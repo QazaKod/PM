@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart University Admissions Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <!-- Mobile Header -->
+  <header class="mobile-header">
+    <button id="mobile-menu-btn" class="icon-btn" aria-label="Toggle Menu">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="3" y1="12" x2="21" y2="12"></line>
+        <line x1="3" y1="6" x2="21" y2="6"></line>
+        <line x1="3" y1="18" x2="21" y2="18"></line>
+      </svg>
+    </button>
+    <div class="mobile-logo">
+      <span class="logo-icon">🏛️</span>
+      <span class="logo-text">Admissions Assistant</span>
+    </div>
+    <button id="mobile-chat-shortcut" class="icon-btn" aria-label="Open Chat">💬</button>
+  </header>
+
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+      <div class="sidebar-header">
+        <div class="brand">
+          <div class="brand-icon">🏛️</div>
+          <div class="brand-info">
+            <h1 class="brand-title">Smart University</h1>
+            <span class="brand-subtitle">Admissions 2026</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="nav-menu" role="navigation">
+        <button class="nav-item active" data-tab="chat">
+          <span class="nav-icon">💬</span>
+          <span class="nav-label">Chat Assistant</span>
+          <span class="nav-tag primary-tag">AI</span>
+        </button>
+        <button class="nav-item" data-tab="programs">
+          <span class="nav-icon">🎓</span>
+          <span class="nav-label">Programs</span>
+        </button>
+        <button class="nav-item" data-tab="faq">
+          <span class="nav-icon">❓</span>
+          <span class="nav-label">FAQ</span>
+        </button>
+        <button class="nav-item" data-tab="documents">
+          <span class="nav-icon">📄</span>
+          <span class="nav-label">Documents</span>
+          <span class="nav-tag demo-tag">US4</span>
+        </button>
+        <button class="nav-item" data-tab="deadlines">
+          <span class="nav-icon">📅</span>
+          <span class="nav-label">Deadlines</span>
+          <span class="nav-tag demo-tag">US8</span>
+        </button>
+        <button class="nav-item" data-tab="status">
+          <span class="nav-icon">📊</span>
+          <span class="nav-label">Application Status</span>
+          <span class="nav-tag demo-tag">US6</span>
+        </button>
+        <button class="nav-item" data-tab="links">
+          <span class="nav-icon">🔗</span>
+          <span class="nav-label">Official Links</span>
+          <span class="nav-tag demo-tag">US9</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status">
+          <div class="status-indicator online"></div>
+          <div class="status-text">
+            <strong>Assistant Online</strong>
+            <span>Rule Matcher v0.1 (Offline)</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Overlay for mobile drawer -->
+    <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+    <!-- Main Content Area -->
+    <main id="main-content" class="main-content">
+
+      <!-- ================= SECTION: CHAT ================= -->
+      <section id="section-chat" class="tab-section active">
+        <div class="chat-container">
+          <div class="chat-header">
+            <div class="chat-header-info">
+              <h2>Smart Admissions Chatbot</h2>
+              <p>Ask questions about programs, tuition fees, requirements, and admission procedures.</p>
+            </div>
+            <button id="clear-chat-btn" class="text-btn" title="Reset conversation">Reset chat</button>
+          </div>
+
+          <!-- Quick prompt pills -->
+          <div class="quick-prompts">
+            <span class="prompts-label">Quick suggestions:</span>
+            <button class="prompt-chip" data-prompt="How much does the Computer Science program cost?">💻 CS Cost</button>
+            <button class="prompt-chip" data-prompt="Tell me about Information Technology">🎓 IT Program</button>
+            <button class="prompt-chip" data-prompt="What is the application deadline?">📅 Deadline</button>
+            <button class="prompt-chip" data-prompt="What documents do I need to submit?">📄 Documents</button>
+            <button class="prompt-chip" data-prompt="Are scholarships available?">🏆 Scholarships</button>
+          </div>
+
+          <!-- Messages Stream -->
+          <div id="chat-messages" class="chat-messages">
+            <div class="message bot-message">
+              <div class="msg-avatar">🤖</div>
+              <div class="msg-content">
+                <div class="msg-bubble">
+                  <p>Hello! Welcome to the <strong>Smart University Admissions Assistant</strong>. 🎓</p>
+                  <p>I can help you explore our degree programs (Computer Science, IT, Business, Data Science), learn about tuition fees, deadlines, and requirements. Ask me anything or explore the sections in the menu!</p>
+                </div>
+                <div class="msg-meta">
+                  <span class="msg-time">Just now</span>
+                  <span class="msg-badge system-badge">System</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input Area -->
+          <div class="chat-input-area">
+            <form id="chat-form" class="chat-form">
+              <input
+                type="text"
+                id="chat-input"
+                placeholder="Ask about programs, admission rules, tuition..."
+                autocomplete="off"
+                required
+              />
+              <button type="submit" id="chat-send-btn" class="send-btn" aria-label="Send message">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"></line>
+                  <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+              </button>
+            </form>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: PROGRAMS ================= -->
+      <section id="section-programs" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <h2>Academic Programs</h2>
+              <p>Explore our current degree offerings. Click "Ask in Chat" to inquire about any program instantly.</p>
+            </div>
+            <div class="filter-controls">
+              <button class="filter-btn active" data-filter="all">All</button>
+              <button class="filter-btn" data-filter="Bachelor">Bachelor</button>
+              <button class="filter-btn" data-filter="Master">Master</button>
+            </div>
+          </div>
+
+          <div id="programs-grid" class="cards-grid">
+            <div class="loading-spinner">Loading academic programs...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: FAQ ================= -->
+      <section id="section-faq" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <h2>Frequently Asked Questions</h2>
+              <p>Common questions answered about admission policies, tuition, deadlines, and aid.</p>
+            </div>
+            <div class="search-bar">
+              <input type="text" id="faq-search" placeholder="Search FAQ questions or keywords..." />
+            </div>
+          </div>
+
+          <div id="faq-list" class="faq-accordion">
+            <div class="loading-spinner">Loading FAQ...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: DOCUMENTS ================= -->
+      <section id="section-documents" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>Required Documents Checklist</h2>
+                <span class="preview-badge">US4 Preview</span>
+              </div>
+              <p>Track your paperwork checklist before submitting your official application.</p>
+            </div>
+          </div>
+
+          <div class="documents-card card">
+            <div class="checklist-progress-bar">
+              <div class="progress-info">
+                <span id="doc-progress-text">0 of 5 documents prepared</span>
+                <span id="doc-progress-percent">0%</span>
+              </div>
+              <div class="progress-track">
+                <div id="doc-progress-fill" class="progress-fill" style="width: 0%"></div>
+              </div>
+            </div>
+
+            <ul class="checklist" id="documents-checklist">
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="id-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>National ID Card or Passport copy</strong>
+                    <span>Valid notarized copy with personal identification number</span>
+                  </div>
+                </label>
+              </li>
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="diploma-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Secondary School Certificate / Diploma with Supplement</strong>
+                    <span>Original copy or verified digital eGov transcript</span>
+                  </div>
+                </label>
+              </li>
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="ent-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>ENT Certificate / Unified National Testing or Exam Results</strong>
+                    <span>Passing threshold scores according to chosen program specialization</span>
+                  </div>
+                </label>
+              </li>
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="med-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Medical Form 075-U with Fluorography</strong>
+                    <span>Including vaccination passport record</span>
+                  </div>
+                </label>
+              </li>
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="photo-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Photos (3x4 cm) — 6 pieces</strong>
+                    <span>Matte photo print with white background</span>
+                  </div>
+                </label>
+              </li>
+            </ul>
+
+            <div class="checklist-footer">
+              <p>💡 <em>Need clarification on international diplomas or apostille?</em></p>
+              <button class="btn btn-secondary ask-chat-shortcut" data-question="What documents are required to apply?">
+                Ask Chatbot about Documents
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: DEADLINES ================= -->
+      <section id="section-deadlines" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>Key Admission Deadlines 2026</h2>
+                <span class="preview-badge">US8 Preview</span>
+              </div>
+              <p>Important milestones for the upcoming 2026-2027 academic intake.</p>
+            </div>
+          </div>
+
+          <div class="timeline">
+            <div class="timeline-item past">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content card">
+                <span class="timeline-date">June 20, 2026</span>
+                <h3>Admissions Office Opens</h3>
+                <p>Start of online application submission and document intake for Bachelor programs.</p>
+                <span class="timeline-status completed">Completed</span>
+              </div>
+            </div>
+
+            <div class="timeline-item active">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content card">
+                <span class="timeline-date">July 13 – July 20, 2026</span>
+                <h3>State Grant Competition Submission</h3>
+                <p>Acceptance of applications for the awarding of state educational grants.</p>
+                <span class="timeline-status in-progress">Active Phase</span>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content card">
+                <span class="timeline-date">August 10, 2026</span>
+                <h3>Grant Results Announcement</h3>
+                <p>Official publication of state grant recipient lists by the Ministry of Science and Higher Education.</p>
+                <span class="timeline-status upcoming">Upcoming</span>
+              </div>
+            </div>
+
+            <div class="timeline-item">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content card">
+                <span class="timeline-date">August 20, 2026</span>
+                <h3>General Application Deadline</h3>
+                <p>Final deadline for paid tuition enrollment and contract signing for 2026 intake.</p>
+                <span class="timeline-status deadline">Final Deadline</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: APPLICATION STATUS ================= -->
+      <section id="section-status" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>Application Status Tracker</h2>
+                <span class="preview-badge">US6 Preview</span>
+              </div>
+              <p>Check the live evaluation progress of your admission dossier.</p>
+            </div>
+          </div>
+
+          <div class="card status-checker-card">
+            <form id="status-form" class="status-search-form">
+              <label for="application-id-input">Enter Application Number</label>
+              <div class="input-group">
+                <input
+                  type="text"
+                  id="application-id-input"
+                  placeholder="e.g., APP-2026-1042"
+                  value="APP-2026-1042"
+                  required
+                />
+                <button type="submit" class="btn btn-primary">Check Status</button>
+              </div>
+              <span class="form-hint">Tip: Try default <code>APP-2026-1042</code> or <code>APP-2026-9999</code> for mock demo.</span>
+            </form>
+
+            <div id="status-result" class="status-result">
+              <div class="result-banner verified">
+                <div class="banner-icon">📋</div>
+                <div>
+                  <h4>Application #APP-2026-1042</h4>
+                  <p>Applicant: <strong>Arman Serikov</strong> | Program: <strong>Computer Science (Bachelor)</strong></p>
+                </div>
+                <div class="badge status-badge green">Documents Verified</div>
+              </div>
+
+              <!-- Stepper -->
+              <div class="stepper">
+                <div class="step completed">
+                  <div class="step-circle">✓</div>
+                  <div class="step-label">Application Submitted</div>
+                  <div class="step-date">July 14, 2026</div>
+                </div>
+                <div class="step completed">
+                  <div class="step-circle">✓</div>
+                  <div class="step-label">Documents Verified</div>
+                  <div class="step-date">July 18, 2026</div>
+                </div>
+                <div class="step current">
+                  <div class="step-circle">3</div>
+                  <div class="step-label">Committee Review</div>
+                  <div class="step-date">In Progress</div>
+                </div>
+                <div class="step">
+                  <div class="step-circle">4</div>
+                  <div class="step-label">Enrollment Decision</div>
+                  <div class="step-date">Expected Aug 15</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: OFFICIAL LINKS ================= -->
+      <section id="section-links" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>Official University Links & Resources</h2>
+                <span class="preview-badge">US9</span>
+              </div>
+              <p>Direct access to university portals, regulatory documents, and admissions support.</p>
+            </div>
+          </div>
+
+          <div class="links-grid">
+            <a href="https://testcenter.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">🏛️</div>
+              <div class="link-details">
+                <h3>National Testing Center</h3>
+                <p>Official ENT registration, scores, and testing schedules.</p>
+                <span class="link-arrow">Visit site →</span>
+              </div>
+            </a>
+
+            <a href="https://egov.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">📑</div>
+              <div class="link-details">
+                <h3>eGov Public Services</h3>
+                <p>Digital submission of academic certificates and medical documents.</p>
+                <span class="link-arrow">Visit site →</span>
+              </div>
+            </a>
+
+            <div class="link-card card" onclick="window.location.href='mailto:admissions@university.kz'">
+              <div class="link-icon">✉️</div>
+              <div class="link-details">
+                <h3>Admissions Support Email</h3>
+                <p>Contact officers directly: <code>admissions@university.kz</code></p>
+                <span class="link-arrow">Send email →</span>
+              </div>
+            </div>
+
+            <div class="link-card card" onclick="alert('Admissions Hotline: +7 (727) 355-00-11\nOffice: Main Campus, Building A, Room 102\nHours: Mon-Fri 09:00 - 18:00')">
+              <div class="link-icon">📞</div>
+              <div class="link-details">
+                <h3>Admissions Hotline & Campus Office</h3>
+                <p>+7 (727) 355-00-11 &bull; Mon-Fri 09:00 - 18:00</p>
+                <span class="link-arrow">View details →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Floating "Ask AI" Button (visible when not on Chat tab) -->
+    <button id="fab-ask-ai" class="fab-ask-ai" aria-label="Ask AI Assistant">
+      <span class="fab-icon">💬</span>
+      <span class="fab-text">Ask AI</span>
+    </button>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

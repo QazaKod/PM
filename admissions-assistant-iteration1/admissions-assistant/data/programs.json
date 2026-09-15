@@ -1,0 +1,42 @@
+[
+  {
+    "id": "it-bachelor",
+    "name": "Information Technology",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "cost_per_year_kzt": 1200000,
+    "format": "Full-time",
+    "language": ["Kazakh", "Russian", "English"],
+    "description": "Covers software engineering, databases, networks, and data analysis fundamentals."
+  },
+  {
+    "id": "cs-bachelor",
+    "name": "Computer Science",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "cost_per_year_kzt": 1350000,
+    "format": "Full-time",
+    "language": ["Russian", "English"],
+    "description": "Focuses on algorithms, AI, and theoretical foundations of computing."
+  },
+  {
+    "id": "ba-bachelor",
+    "name": "Business Administration",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "cost_per_year_kzt": 1100000,
+    "format": "Full-time",
+    "language": ["Kazakh", "Russian", "English"],
+    "description": "Covers management, finance, marketing, and entrepreneurship."
+  },
+  {
+    "id": "ds-master",
+    "name": "Data Science",
+    "degree": "Master",
+    "duration_years": 2,
+    "cost_per_year_kzt": 1500000,
+    "format": "Full-time / Part-time",
+    "language": ["English"],
+    "description": "Advanced study of machine learning, statistics, and big data systems."
+  }
+]

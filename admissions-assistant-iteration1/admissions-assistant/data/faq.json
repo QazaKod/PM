@@ -1,0 +1,32 @@
+[
+  {
+    "id": "faq-1",
+    "keywords": ["deadline", "when apply", "last date", "submission date"],
+    "question": "When is the application deadline?",
+    "answer": "The general application deadline is August 20 each year. Some programs have earlier internal deadlines, so check your specific program page."
+  },
+  {
+    "id": "faq-2",
+    "keywords": ["documents", "what do i need", "paperwork", "papers"],
+    "question": "What documents are required to apply?",
+    "answer": "You typically need: a completed application form, your school diploma/transcript, a national ID or passport copy, exam scores (ENT/IELTS/TOEFL where applicable), and passport-style photos."
+  },
+  {
+    "id": "faq-3",
+    "keywords": ["cost", "tuition", "price", "how much"],
+    "question": "How much does tuition cost?",
+    "answer": "Tuition varies by program, typically between 1,100,000 and 1,500,000 KZT per year. Ask about a specific program for its exact cost."
+  },
+  {
+    "id": "faq-4",
+    "keywords": ["scholarship", "grant", "financial aid"],
+    "question": "Are scholarships available?",
+    "answer": "Yes, state grants and university merit scholarships are available based on ENT scores and academic performance. Contact the admissions office for the current grant quota."
+  },
+  {
+    "id": "faq-5",
+    "keywords": ["contact", "phone", "email", "office"],
+    "question": "How can I contact the admissions office?",
+    "answer": "You can reach the admissions office at admissions@university.kz or visit the office on campus, Monday to Friday, 9:00-18:00."
+  }
+]

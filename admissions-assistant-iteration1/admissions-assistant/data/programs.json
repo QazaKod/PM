@@ -1,42 +1,253 @@
 [
   {
-    "id": "it-bachelor",
-    "name": "Information Technology",
-    "degree": "Bachelor",
-    "duration_years": 4,
-    "cost_per_year_kzt": 1200000,
-    "format": "Full-time",
-    "language": ["Kazakh", "Russian", "English"],
-    "description": "Covers software engineering, databases, networks, and data analysis fundamentals."
-  },
-  {
-    "id": "cs-bachelor",
+    "id": "sdu-cs",
+    "code": "6B06101",
+    "faculty": "Faculty of Engineering and Natural Sciences",
     "name": "Computer Science",
     "degree": "Bachelor",
     "duration_years": 4,
-    "cost_per_year_kzt": 1350000,
+    "approx_cost_per_year_kzt": 1850000,
     "format": "Full-time",
-    "language": ["Russian", "English"],
-    "description": "Focuses on algorithms, AI, and theoretical foundations of computing."
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Computer Science"
+    ],
+    "description": "Deep study of algorithms, software architectures, artificial intelligence, operating systems, and computer vision."
   },
   {
-    "id": "ba-bachelor",
-    "name": "Business Administration",
+    "id": "sdu-is",
+    "code": "6B06102",
+    "faculty": "Faculty of Engineering and Natural Sciences",
+    "name": "Information Systems",
     "degree": "Bachelor",
     "duration_years": 4,
-    "cost_per_year_kzt": 1100000,
+    "approx_cost_per_year_kzt": 1750000,
     "format": "Full-time",
-    "language": ["Kazakh", "Russian", "English"],
-    "description": "Covers management, finance, marketing, and entrepreneurship."
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Computer Science"
+    ],
+    "description": "Enterprise database design, web and mobile development, cloud computing, and IT infrastructure management."
   },
   {
-    "id": "ds-master",
-    "name": "Data Science",
-    "degree": "Master",
-    "duration_years": 2,
-    "cost_per_year_kzt": 1500000,
-    "format": "Full-time / Part-time",
-    "language": ["English"],
-    "description": "Advanced study of machine learning, statistics, and big data systems."
+    "id": "sdu-se",
+    "code": "6B06103",
+    "faculty": "Faculty of Engineering and Natural Sciences",
+    "name": "Software Engineering",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1850000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Computer Science"
+    ],
+    "description": "Full-cycle software product lifecycle, DevOps, agile methodologies, and scalable backend/frontend architecture."
+  },
+  {
+    "id": "sdu-mcm",
+    "code": "6B05401",
+    "faculty": "Faculty of Engineering and Natural Sciences",
+    "name": "Mathematical and Computer Modeling",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1500000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Physics"
+    ],
+    "description": "Applied numerical methods, data analysis, simulation of complex systems, and optimization."
+  },
+  {
+    "id": "sdu-fin",
+    "code": "6B04101",
+    "faculty": "SDU Business School",
+    "name": "Finance",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1650000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Geography"
+    ],
+    "description": "Corporate finance, banking, investment analysis, capital markets, and financial modeling."
+  },
+  {
+    "id": "sdu-acc",
+    "code": "6B04102",
+    "faculty": "SDU Business School",
+    "name": "Accounting and Audit",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1550000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Geography"
+    ],
+    "description": "International Financial Reporting Standards (IFRS), taxation, corporate auditing, and management accounting."
+  },
+  {
+    "id": "sdu-mgmt",
+    "code": "6B04103",
+    "faculty": "SDU Business School",
+    "name": "Management",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1600000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Geography"
+    ],
+    "description": "Strategic planning, human resource leadership, project management, and business operations."
+  },
+  {
+    "id": "sdu-mkt",
+    "code": "6B04104",
+    "faculty": "SDU Business School",
+    "name": "Marketing",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1600000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Mathematics",
+      "Geography"
+    ],
+    "description": "Digital marketing, brand management, consumer behavior analysis, and social media marketing."
+  },
+  {
+    "id": "sdu-law",
+    "code": "6B04201",
+    "faculty": "Faculty of Law and Social Sciences",
+    "name": "Jurisprudence (Law)",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1600000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "World History",
+      "Fundamentals of Law"
+    ],
+    "description": "Civil law, criminal law, court procedural practice, judicial advocacy, and legal consulting."
+  },
+  {
+    "id": "sdu-ilaw",
+    "code": "6B04202",
+    "faculty": "Faculty of Law and Social Sciences",
+    "name": "International Law",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1700000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "World History",
+      "Foreign Language"
+    ],
+    "description": "Public international law, international trade regulations, human rights, and diplomatic legal practice."
+  },
+  {
+    "id": "sdu-ir",
+    "code": "6B03101",
+    "faculty": "Faculty of Law and Social Sciences",
+    "name": "International Relations",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1600000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "World History",
+      "Foreign Language"
+    ],
+    "description": "Geopolitics, diplomatic protocols, international organizations, and global security."
+  },
+  {
+    "id": "sdu-trans",
+    "code": "6B02301",
+    "faculty": "Faculty of Education and Humanities",
+    "name": "Translation Studies",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1450000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Foreign Language",
+      "World History"
+    ],
+    "description": "Simultaneous and consecutive interpreting, technical/legal translation, and cross-cultural communication."
+  },
+  {
+    "id": "sdu-two-lang",
+    "code": "6B01701",
+    "faculty": "Faculty of Education and Humanities",
+    "name": "Two Foreign Languages",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1400000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Foreign Language",
+      "World History"
+    ],
+    "description": "Methodology of teaching English, German, French, or Turkish languages in secondary and high schools."
+  },
+  {
+    "id": "sdu-journalism",
+    "code": "6B03201",
+    "faculty": "Faculty of Education and Humanities",
+    "name": "Journalism and Public Relations",
+    "degree": "Bachelor",
+    "duration_years": 4,
+    "approx_cost_per_year_kzt": 1450000,
+    "format": "Full-time",
+    "language": [
+      "English"
+    ],
+    "unt_subjects": [
+      "Creative Exams"
+    ],
+    "description": "Digital media production, multimedia reporting, AI-assisted news gathering, podcasting, and corporate PR."
   }
 ]

@@ -29,10 +29,6 @@ document.addEventListener("DOMContentLoaded", () => {
   const docProgressPercent = document.getElementById("doc-progress-percent");
   const docProgressFill = document.getElementById("doc-progress-fill");
 
-  // Status Elements
-  const statusForm = document.getElementById("status-form");
-  const statusInput = document.getElementById("application-id-input");
-  const statusResult = document.getElementById("status-result");
 
   let programsData = [];
   let faqData = [];
@@ -290,27 +286,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const filtered = programsData.filter((p) => {
       if (activeFilter === "all") return true;
-      return p.degree === activeFilter;
+      return p.faculty === activeFilter;
     });
 
     programsGrid.innerHTML = filtered.map((p) => {
-      const costFormatted = Number(p.cost_per_year_kzt).toLocaleString("en-US");
+      const costFormatted = Number(p.approx_cost_per_year_kzt).toLocaleString("en-US");
       const degreeClass = p.degree.toLowerCase() === "master" ? "degree-master" : "degree-bachelor";
       const languages = Array.isArray(p.language) ? p.language.join(", ") : p.language;
+      const untSubjects = p.unt_subjects ? p.unt_subjects.join(" + ") : "N/A";
 
       return `
         <div class="card program-card">
           <div class="program-top">
             <span class="degree-badge ${degreeClass}">${escapeHtml(p.degree)}</span>
-            <span style="font-size: 0.8rem; color: var(--text-muted);">${p.duration_years} Years</span>
+            <span style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">${escapeHtml(p.code)}</span>
+            <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">${p.duration_years} Years</span>
           </div>
           <h3 class="program-title">${escapeHtml(p.name)}</h3>
+          <p class="program-desc" style="font-size: 0.85rem; color: #64748b; margin-bottom: 8px;">${escapeHtml(p.faculty)}</p>
           <p class="program-desc">${escapeHtml(p.description)}</p>
           
           <ul class="program-details-list">
             <li><span>Tuition per year:</span> <strong class="program-cost">${costFormatted} KZT</strong></li>
             <li><span>Format:</span> <strong>${escapeHtml(p.format)}</strong></li>
             <li><span>Instruction:</span> <strong>${escapeHtml(languages)}</strong></li>
+            <li><span>UNT Subjects:</span> <strong>${escapeHtml(untSubjects)}</strong></li>
           </ul>
 
           <button class="btn btn-outline" style="width: 100%;" onclick="askInChat('Tell me about the ${escapeJs(p.name)} program')">
@@ -438,64 +438,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   updateDocumentsProgress();
 
-  // ================= 6. STATUS CHECKER (US6) =================
-  if (statusForm) {
-    statusForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-      const val = statusInput.value.trim().toUpperCase();
-      statusResult.style.display = "block";
-
-      if (val === "APP-2026-9999") {
-        statusResult.innerHTML = `
-          <div class="result-banner" style="background: #fffbeb; border-color: #fef3c7;">
-            <div class="banner-icon">⚠️</div>
-            <div>
-              <h4>Application #${escapeHtml(val)}</h4>
-              <p>Applicant: <strong>Dana Akhmetova</strong> | Program: <strong>Business Administration (Bachelor)</strong></p>
-            </div>
-            <div class="badge status-badge" style="background: #d97706; color: #ffffff; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-left: auto;">Action Needed</div>
-          </div>
-          <p style="font-size: 0.9rem; color: #92400e; margin-top: 1rem;">
-            Notice: Additional medical certification supplement is required before committee review.
-          </p>
-        `;
-      } else {
-        // Default verified demo state
-        statusResult.innerHTML = `
-          <div class="result-banner verified">
-            <div class="banner-icon">📋</div>
-            <div>
-              <h4>Application #${escapeHtml(val || "APP-2026-1042")}</h4>
-              <p>Applicant: <strong>Arman Serikov</strong> | Program: <strong>Computer Science (Bachelor)</strong></p>
-            </div>
-            <div class="badge status-badge green">Documents Verified</div>
-          </div>
-          <div class="stepper">
-            <div class="step completed">
-              <div class="step-circle">✓</div>
-              <div class="step-label">Application Submitted</div>
-              <div class="step-date">July 14, 2026</div>
-            </div>
-            <div class="step completed">
-              <div class="step-circle">✓</div>
-              <div class="step-label">Documents Verified</div>
-              <div class="step-date">July 18, 2026</div>
-            </div>
-            <div class="step current">
-              <div class="step-circle">3</div>
-              <div class="step-label">Committee Review</div>
-              <div class="step-date">In Progress</div>
-            </div>
-            <div class="step">
-              <div class="step-circle">4</div>
-              <div class="step-label">Enrollment Decision</div>
-              <div class="step-date">Expected Aug 15</div>
-            </div>
-          </div>
-        `;
-      }
-    });
-  }
 
   // ================= UTILITIES =================
   function escapeHtml(str) {

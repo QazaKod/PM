@@ -1,0 +1,354 @@
+{
+  "university": {
+    "name": "SDU University (Suleyman Demirel University)",
+    "official_website": "https://sdu.edu.kz",
+    "admissions_portal": "https://admissions.sdu.edu.kz",
+    "location": {
+      "country": "Kazakhstan",
+      "city": "Kaskelen",
+      "region": "Almaty Region",
+      "address": "Abylai Khan str., 1/1, Kaskelen, Almaty Region, 040900"
+    },
+    "contacts": {
+      "call_center": "+7 (727) 307-95-65",
+      "whatsapp": "+7 702 000 11 33",
+      "general_email": "info@sdu.edu.kz",
+      "admissions_email": "admission@sdu.edu.kz",
+      "international_email": "intadmissions@sdu.edu.kz",
+      "working_hours": "Monday - Friday, 09:00 - 18:00"
+    }
+  },
+  "faculties": [
+    {
+      "id": "fens",
+      "name_en": "Faculty of Engineering and Natural Sciences (FE&NS)",
+      "name_ru": "Факультет инженерии и естественных наук",
+      "name_kz": "Инженерия және жаратылыстану ғылымдары факультеті",
+      "departments": [
+        "Computer Science & Software Engineering",
+        "Information Systems",
+        "Mathematical & Computer Modeling",
+        "Mathematics & Physics Education"
+      ]
+    },
+    {
+      "id": "sbs",
+      "name_en": "SDU Business School",
+      "name_ru": "Бизнес-школа SDU",
+      "name_kz": "SDU Бизнес мектебі",
+      "departments": [
+        "Finance & Accounting",
+        "Management & Marketing",
+        "Economics"
+      ]
+    },
+    {
+      "id": "feh",
+      "name_en": "Faculty of Education and Humanities",
+      "name_ru": "Факультет образования и гуманитарных наук",
+      "name_kz": "Педагогика және гуманитарлық ғылымдар факультеті",
+      "departments": [
+        "Foreign Philology & Translation Studies",
+        "Two Foreign Languages",
+        "Kazakh/Russian Philology",
+        "Journalism & Media",
+        "Pedagogy & Psychology"
+      ]
+    },
+    {
+      "id": "flss",
+      "name_en": "Faculty of Law and Social Sciences",
+      "name_ru": "Факультет права и социальных наук",
+      "name_kz": "Құқық және әлеуметтік ғылымдар факультеті",
+      "departments": [
+        "Jurisprudence / Law",
+        "International Law",
+        "International Relations"
+      ]
+    }
+  ],
+  "programs": [
+    {
+      "id": "sdu-cs",
+      "code": "6B06101",
+      "faculty_id": "fens",
+      "name": "Computer Science",
+      "name_ru": "Компьютерные науки (Информатика)",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1850000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Computer Science"],
+      "description": "Deep study of algorithms, software architectures, artificial intelligence, operating systems, and computer vision."
+    },
+    {
+      "id": "sdu-is",
+      "code": "6B06102",
+      "faculty_id": "fens",
+      "name": "Information Systems",
+      "name_ru": "Информационные системы",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1750000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Computer Science"],
+      "description": "Enterprise database design, web and mobile development, cloud computing, and IT infrastructure management."
+    },
+    {
+      "id": "sdu-se",
+      "code": "6B06103",
+      "faculty_id": "fens",
+      "name": "Software Engineering",
+      "name_ru": "Программная инженерия",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1850000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Computer Science"],
+      "description": "Full-cycle software product lifecycle, DevOps, agile methodologies, and scalable backend/frontend architecture."
+    },
+    {
+      "id": "sdu-mcm",
+      "code": "6B05401",
+      "faculty_id": "fens",
+      "name": "Mathematical and Computer Modeling",
+      "name_ru": "Математическое и компьютерное моделирование",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1500000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Physics"],
+      "description": "Applied numerical methods, data analysis, simulation of complex systems, and optimization."
+    },
+    {
+      "id": "sdu-fin",
+      "code": "6B04101",
+      "faculty_id": "sbs",
+      "name": "Finance",
+      "name_ru": "Финансы",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1650000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Geography"],
+      "description": "Corporate finance, banking, investment analysis, capital markets, and financial modeling."
+    },
+    {
+      "id": "sdu-acc",
+      "code": "6B04102",
+      "faculty_id": "sbs",
+      "name": "Accounting and Audit",
+      "name_ru": "Учет и аудит",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1550000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Geography"],
+      "description": "International Financial Reporting Standards (IFRS), taxation, corporate auditing, and management accounting."
+    },
+    {
+      "id": "sdu-mgmt",
+      "code": "6B04103",
+      "faculty_id": "sbs",
+      "name": "Management",
+      "name_ru": "Менеджмент",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1600000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Geography"],
+      "description": "Strategic planning, human resource leadership, project management, and business operations."
+    },
+    {
+      "id": "sdu-mkt",
+      "code": "6B04104",
+      "faculty_id": "sbs",
+      "name": "Marketing",
+      "name_ru": "Маркетинг",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1600000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Mathematics", "Geography"],
+      "description": "Digital marketing, brand management, consumer behavior analysis, and social media marketing."
+    },
+    {
+      "id": "sdu-law",
+      "code": "6B04201",
+      "faculty_id": "flss",
+      "name": "Jurisprudence (Law)",
+      "name_ru": "Юриспруденция",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1600000,
+      "format": "Full-time",
+      "language": ["Kazakh", "Russian"],
+      "unt_subjects": ["World History", "Fundamentals of Law"],
+      "description": "Civil law, criminal law, court procedural practice, judicial advocacy, and legal consulting."
+    },
+    {
+      "id": "sdu-ilaw",
+      "code": "6B04202",
+      "faculty_id": "flss",
+      "name": "International Law",
+      "name_ru": "Международное право",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1700000,
+      "format": "Full-time",
+      "language": ["English", "Russian"],
+      "unt_subjects": ["World History", "Foreign Language"],
+      "description": "Public international law, international trade regulations, human rights, and diplomatic legal practice."
+    },
+    {
+      "id": "sdu-ir",
+      "code": "6B03101",
+      "faculty_id": "flss",
+      "name": "International Relations",
+      "name_ru": "Международные отношения",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1600000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["World History", "Foreign Language"],
+      "description": "Geopolitics, diplomatic protocols, international organizations, and global security."
+    },
+    {
+      "id": "sdu-trans",
+      "code": "6B02301",
+      "faculty_id": "feh",
+      "name": "Translation Studies",
+      "name_ru": "Переводческое дело",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1450000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Foreign Language", "World History"],
+      "description": "Simultaneous and consecutive interpreting, technical/legal translation, and cross-cultural communication."
+    },
+    {
+      "id": "sdu-two-lang",
+      "code": "6B01701",
+      "faculty_id": "feh",
+      "name": "Two Foreign Languages (Teacher Education)",
+      "name_ru": "Два иностранных языка (Педагогическое образование)",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1400000,
+      "format": "Full-time",
+      "language": ["English"],
+      "unt_subjects": ["Foreign Language", "World History"],
+      "description": "Methodology of teaching English, German, French, or Turkish languages in secondary and high schools."
+    },
+    {
+      "id": "sdu-journalism",
+      "code": "6B03201",
+      "faculty_id": "feh",
+      "name": "Journalism and Public Relations",
+      "name_ru": "Журналистика и связи с общественностью",
+      "degree": "Bachelor",
+      "duration_years": 4,
+      "approx_cost_per_year_kzt": 1450000,
+      "format": "Full-time",
+      "language": ["Kazakh", "Russian"],
+      "unt_subjects": ["Creative Exams"],
+      "description": "Digital media production, multimedia reporting, AI-assisted news gathering, podcasting, and corporate PR."
+    }
+  ],
+  "tuition_policy": {
+    "system": "ECTS credit based",
+    "credits_per_semester": "20 to 42 ECTS",
+    "range_kzt_annual": "1,200,000 - 2,200,000 KZT",
+    "student_fee_kzt": 60000,
+    "payment_rules": "At least 50% must be paid upon contract signing prior to semester registration; remaining 50% by beginning of second semester."
+  },
+  "grants_and_scholarships": {
+    "state_grants": {
+      "type": "Republic of Kazakhstan State Educational Grant",
+      "basis": "UNT (ЕНТ) competitive score rankings",
+      "coverage": "100% tuition coverage + monthly student stipend",
+      "application_period": "July 13 - July 20 annually"
+    },
+    "spt_olympiad": {
+      "name": "SDU Proficiency Test (SPT)",
+      "description": "Annual nationwide academic olympiad organized by SDU for 11th grade school & college graduates.",
+      "rewards": [
+        "100% internal tuition grant for 4 years",
+        "50% internal tuition discount for 4 years",
+        "30% internal tuition discount for 4 years",
+        "20% internal tuition discount for 4 years"
+      ],
+      "stages": [
+        "Stage 1: Online logical reasoning test (January-February)",
+        "Stage 2: Offline subject-matter testing in major Kazakhstan cities (March)"
+      ],
+      "participation_fee": "Free"
+    },
+    "internal_discounts": [
+      "Altyn Belgi medal recipients discount",
+      "Family/siblings discount (for 2+ siblings enrolled simultaneously)",
+      "High UNT score discounts (110+ points)",
+      "Athlete and creative performance scholarship quotas"
+    ]
+  },
+  "admission_requirements": {
+    "bachelor_local": {
+      "unt_threshold": {
+        "general": 50,
+        "pedagogy": 75,
+        "law": 75,
+        "it_engineering": 65
+      },
+      "min_per_subject": 5
+    },
+    "language_proficiency": {
+      "accepted_tests": ["IELTS (minimum 5.5 overall)", "TOEFL iBT (minimum 46)", "SDU Internal Proficiency Exam (Level B1+)"],
+      "preparatory_year": "Students who score below the required English level are enrolled into SDU Foundation / Preparatory English School for 1 year."
+    },
+    "required_documents": [
+      {
+        "document": "Document of Education",
+        "details": "Original certificate of secondary school completion or college diploma with transcript supplement."
+      },
+      {
+        "document": "UNT Certificate",
+        "details": "Electronic UNT certificate verifying threshold scores in core and profile subjects."
+      },
+      {
+        "document": "National Identity Card / Passport",
+        "details": "Copy of personal identification document with IIN."
+      },
+      {
+        "document": "Medical Certificate Form 075-U",
+        "details": "Medical health form with attached fluorography film/report and vaccination record form 063-U."
+      },
+      {
+        "document": "Photographs",
+        "details": "6 photos of 3x4 cm size (matte finish)."
+      },
+      {
+        "document": "English Certificate (if applicable)",
+        "details": "IELTS / TOEFL certificate copy for exemption from the preparatory language year."
+      }
+    ]
+  },
+  "campus_and_dormitory": {
+    "campus_features": [
+      "Full suburban campus in Kaskelen with 14 hectares territory",
+      "On-campus student dormitories for boys and girls with 1000+ bed capacity",
+      "Sports complex with indoor football, basketball arena, gym, and outdoor stadium",
+      "24/7 library, cafeterias, food court, and medical center"
+    ],
+    "dormitory_priority": "Guaranteed priority for first-year regional and international students. Applications open in early August via student portal."
+  }
+}

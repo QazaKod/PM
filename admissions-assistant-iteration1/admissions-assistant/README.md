@@ -1,67 +1,104 @@
-# Smart University Admissions Assistant — Iteration 1
+# Smart University Admissions Assistant
 
-Implements the first two user stories from the schedule:
+A modern, AI-powered web application designed to streamline the university admissions process for applicants. Built specifically for SDU University (Kazakhstan), this assistant provides instant answers to questions regarding educational programs, tuition fees, UNT requirements, deadlines, and required documents.
 
-- **US1 — Chat-Program Info**: ask questions about educational programs
-- **US5 — Admission FAQ**: get answers to common admission questions
+## 🚀 Key Features
 
-## Stack
+*   **Hybrid AI Chatbot**: Combines a lightning-fast rule-based NLP engine (token overlap) for standard queries with a smart fallback to **Google Gemini (3.6-flash)** for complex, multilingual, or contextual questions.
+*   **Dynamic Theme Engine**: Includes two professionally designed UI themes:
+    *   **Metro Style** (Active): A strict, corporate, tile-based design with sharp edges, solid colors, and Phosphor vector icons.
+    *   **Festival Style**: A vibrant, neon-lit, 3D polygonal design for promotional wow-effects.
+    *   *Easily switchable via a single backend config file.*
+*   **Single Page Application (SPA)**: Smooth navigation without page reloads, featuring program browsing, FAQ accordions, admission timelines, and interactive document checklists.
+*   **Data-Driven**: All programs and FAQs are stored in highly structured JSON files, making it incredibly easy to update university data without touching the code.
 
-FastAPI (Python) + JSON-backed knowledge base (`data/programs.json`,
-`data/faq.json`) + a rule-based keyword-overlap matcher (`app/chatbot.py`).
-No external NLP/AI service is used yet — this keeps Iteration 1 simple
-and fully offline/testable, matching the "Volatility = Medium" tag on
-both stories rather than committing early to a specific AI provider.
+## 🛠️ Tech Stack
 
-## Setup
+*   **Backend**: Python, FastAPI, Uvicorn
+*   **AI Integration**: Google GenAI SDK (`gemini-3.6-flash`)
+*   **Frontend**: Vanilla HTML5, CSS3, JavaScript (No heavy frameworks)
+*   **Icons & Typography**: Phosphor Icons, Segoe UI / Open Sans
+*   **Testing**: Pytest
 
-```bash
-pip install -r requirements.txt
-uvicorn app.main:app --reload
+## 📂 Project Structure
+
+```text
+admissions-assistant/
+│
+├── app/
+│   ├── main.py          # FastAPI application initialization
+│   ├── api.py           # REST API routes and endpoints
+│   ├── chatbot.py       # Hybrid NLP Engine & Gemini API fallback logic
+│   └── database.py      # JSON data loading utilities
+│
+├── data/
+│   ├── programs.json    # Database of SDU Bachelor programs
+│   └── faq.json         # Database of frequently asked questions
+│
+├── static/
+│   ├── index.html       # Main SPA layout
+│   ├── app.js           # Frontend logic and DOM manipulation
+│   ├── metro.css        # Strict "Windows 8" tile-based theme
+│   ├── festival.css     # Vibrant promotional theme
+│   └── config.json      # Dynamic theme configuration
+│
+├── tests/
+│   ├── test_api.py      # Integration tests for FastAPI endpoints
+│   └── test_chatbot.py  # Unit tests for NLP engine and AI fallback
+│
+├── .env                 # Environment variables (API Keys)
+└── README.md            # Project documentation
 ```
 
-Server runs at `http://127.0.0.1:8000`. Interactive API docs at
-`http://127.0.0.1:8000/docs`.
+## ⚙️ Installation & Setup
 
-## Endpoints
+1. **Clone the repository** (or navigate to the project directory):
+   ```bash
+   cd admissions-assistant
+   ```
 
-- `GET /` — Single Page Application (Web Interface)
-- `GET /programs` — Returns list of all academic programs (JSON)
-- `GET /faq` — Returns list of all admission FAQs (JSON)
-- `POST /chat/programs` — US1 only (program questions)
-- `POST /chat/faq` — US5 only (FAQ questions)
-- `POST /chat` — unified: tries both, returns whichever matches better
+2. **Set up a Virtual Environment** (Recommended):
+   ```bash
+   python -m venv venv
+   # On Windows:
+   venv\Scripts\activate
+   # On Mac/Linux:
+   source venv/bin/activate
+   ```
 
-Request body: `{"message": "How much does Computer Science cost?"}`
+3. **Install Dependencies**:
+   Ensure you have FastAPI, Uvicorn, Google GenAI, and Pytest installed:
+   ```bash
+   pip install fastapi uvicorn google-genai python-dotenv pytest
+   ```
 
-Response: `{"answer": "...", "confident": true/false, "source": "program"|"faq"|null, "matched_id": "..."}`
+4. **Configure Environment Variables**:
+   Create a `.env` file in the root directory and add your Google Gemini API key:
+   ```env
+   GEMINI_API_KEY=your_google_gemini_api_key_here
+   ```
 
-When `confident` is `false`, the response is the fallback message that
-offers to connect the user with admissions staff — this is Scenario 2
-of both US1QATest and US5QATest.
+5. **Run the Application**:
+   Start the FastAPI development server:
+   ```bash
+   uvicorn app.main:app --reload
+   ```
+   Open your browser and navigate to: `http://localhost:8000`
 
-## Running the QA tests
+## 🎨 Theme Configuration
+
+The frontend dynamically loads its UI theme based on `static/config.json`. To switch themes without restarting the server:
+
+1. Open `static/config.json`.
+2. Change the `"theme"` value:
+   * `"metro"` - Strict, clean, and corporate.
+   * `"festival"` - Bright, neon, and heavily animated.
+3. Refresh the browser page.
+
+## 🧪 Testing
+
+The project includes a comprehensive test suite to ensure the chatbot logic and API endpoints function correctly. To run the tests:
 
 ```bash
-pytest tests/ -v
+pytest
 ```
-
-`tests/test_chatbot.py` maps 1:1 to the QA Test entries in the
-schedule (US1QATest, US5QATest), including the "Pass: five different
-questions answered correctly" and "Fail/fallback" scenarios.
-
-## Known limitation (flag for Iteration 2 review)
-
-The unified `/chat` endpoint picks whichever knowledge base (programs
-vs FAQ) scores higher on keyword overlap. For a question like *"How
-much does the IT program cost?"*, the generic FAQ cost-answer can
-currently outscore the program-specific answer, because both share
-words like "cost"/"how much". `/chat/programs` and `/chat/faq` always
-give the correct, story-specific answer directly. Worth revisiting
-the scoring weights (e.g. boosting program-name matches) before
-demoing the unified endpoint.
-
-## Next up (Iteration 2)
-
-- US3 — Admission Requirements FAQ
-- US4 — Required Documents Info

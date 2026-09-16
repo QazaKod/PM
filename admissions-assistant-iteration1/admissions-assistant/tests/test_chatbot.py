@@ -17,18 +17,18 @@ def test_us1_scenario1_successful_program_query():
     result = chatbot.answer_program_query("How much does the Computer Science program cost?")
     assert result["confident"] is True
     assert result["source"] == "program"
-    assert result["matched_id"] == "cs-bachelor"
+    assert result["matched_id"] == "sdu-cs"
     assert "Computer Science" in result["answer"]
 
 
 def test_us1_scenario1_five_different_program_questions_pass():
     """System: (Pass) Five different program-related questions are answered correctly."""
     questions_and_expected_ids = [
-        ("Tell me about the Information Technology bachelor program", "it-bachelor"),
-        ("What is the duration of Business Administration?", "ba-bachelor"),
-        ("Is there a Data Science master program?", "ds-master"),
-        ("What format is Computer Science offered in?", "cs-bachelor"),
-        ("How much is tuition for Information Technology?", "it-bachelor"),
+        ("Tell me about the Information Systems bachelor program", "sdu-is"),
+        ("Tell me about the Management program", "sdu-mgmt"),
+        ("Is there a Mathematical Modeling program?", "sdu-mcm"),
+        ("What format is Computer Science offered in?", "sdu-cs"),
+        ("How much is tuition for Software Engineering?", "sdu-se"),
     ]
     for question, expected_id in questions_and_expected_ids:
         result = chatbot.answer_program_query(question)
@@ -46,20 +46,20 @@ def test_us1_scenario2_chatbot_cannot_answer_confidently():
 # --- US5: Admission FAQ ------------------------------------------------------
 
 def test_us5_scenario1_successful_faq_query():
-    result = chatbot.answer_faq_query("What is the application deadline?")
+    result = chatbot.answer_faq_query("What documents are required for admission?")
     assert result["confident"] is True
     assert result["source"] == "faq"
-    assert result["matched_id"] == "faq-1"
+    assert result["matched_id"] == "faq_documents"
 
 
 def test_us5_scenario1_five_different_faq_questions_pass():
     """System: (Pass) Five different FAQ questions are answered correctly."""
     questions_and_expected_ids = [
-        ("When do I need to apply by?", "faq-1"),
-        ("What documents do I need to submit?", "faq-2"),
-        ("How much is the tuition price?", "faq-3"),
-        ("Is there a scholarship available?", "faq-4"),
-        ("How can I contact the admissions office?", "faq-5"),
+        ("What is the SPT Olympiad?", "faq_spt"),
+        ("What documents do I need for admission?", "faq_documents"),
+        ("How are tuition fees paid?", "faq_payment"),
+        ("Is there a student dorm or accommodation?", "faq_dorm"),
+        ("Can I study with a state grant?", "faq_ministry"),
     ]
     for question, expected_id in questions_and_expected_ids:
         result = chatbot.answer_faq_query(question)
@@ -77,7 +77,7 @@ def test_us5_scenario2_question_not_covered_in_faq():
 # --- Unified /chat routing ----------------------------------------------------
 
 def test_unified_chat_routes_to_program_when_stronger_match():
-    result = chatbot.answer_query("Tell me about the Data Science master program")
+    result = chatbot.answer_query("Tell me about the Software Engineering program")
     assert result["source"] == "program"
 
 

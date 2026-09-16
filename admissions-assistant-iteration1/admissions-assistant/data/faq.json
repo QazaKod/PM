@@ -1,32 +1,126 @@
 [
   {
-    "id": "faq-1",
-    "keywords": ["deadline", "when apply", "last date", "submission date"],
-    "question": "When is the application deadline?",
-    "answer": "The general application deadline is August 20 each year. Some programs have earlier internal deadlines, so check your specific program page."
+    "id": "faq_spt",
+    "question": "What is the SPT Olympiad and how to get a discount?",
+    "answer": "SDU Proficiency Test (SPT) is an annual nationwide academic olympiad organized by SDU for 11th grade school & college graduates. It offers 100%, 50%, 30%, and 20% internal tuition discounts for 4 years. Participation is free. Stage 1 is an online logical test, and Stage 2 is an offline subject test.",
+    "keywords": [
+      "spt",
+      "olympiad",
+      "discount",
+      "grant",
+      "free",
+      "scholarship",
+      "test",
+      "proficiency",
+      "win",
+      "100%",
+      "50%",
+      "30%",
+      "20%"
+    ]
   },
   {
-    "id": "faq-2",
-    "keywords": ["documents", "what do i need", "paperwork", "papers"],
-    "question": "What documents are required to apply?",
-    "answer": "You typically need: a completed application form, your school diploma/transcript, a national ID or passport copy, exam scores (ENT/IELTS/TOEFL where applicable), and passport-style photos."
+    "id": "faq_language",
+    "question": "What are the English requirements? Do I need IELTS?",
+    "answer": "SDU requires IELTS (minimum 5.5 overall), TOEFL iBT (minimum 46), or you can pass the SDU Internal Proficiency Exam (Level B1+). If you score below the requirement, you will be enrolled into the 1-year SDU Foundation / Preparatory English School.",
+    "keywords": [
+      "english",
+      "ielts",
+      "toefl",
+      "foundation",
+      "language",
+      "proficiency",
+      "level",
+      "b1",
+      "preparatory",
+      "exam",
+      "requirements"
+    ]
   },
   {
-    "id": "faq-3",
-    "keywords": ["cost", "tuition", "price", "how much"],
-    "question": "How much does tuition cost?",
-    "answer": "Tuition varies by program, typically between 1,100,000 and 1,500,000 KZT per year. Ask about a specific program for its exact cost."
+    "id": "faq_dorm",
+    "question": "Is there a student dorm or accommodation?",
+    "answer": "Yes, SDU has on-campus student dormitories (Student House) for boys and girls in Kaskelen with a 1000+ bed capacity. Guaranteed priority is given to first-year regional and international students. Applications open in early August via the student portal.",
+    "keywords": [
+      "dorm",
+      "dormitory",
+      "hostel",
+      "accommodation",
+      "live",
+      "stay",
+      "house",
+      "student house",
+      "kaskelen",
+      "bed",
+      "room"
+    ]
   },
   {
-    "id": "faq-4",
-    "keywords": ["scholarship", "grant", "financial aid"],
-    "question": "Are scholarships available?",
-    "answer": "Yes, state grants and university merit scholarships are available based on ENT scores and academic performance. Contact the admissions office for the current grant quota."
+    "id": "faq_payment",
+    "question": "How are tuition fees paid?",
+    "answer": "At least 50% must be paid upon contract signing prior to semester registration; the remaining 50% must be paid by the beginning of the second semester. There is also an annual 60,000 KZT student fee.",
+    "keywords": [
+      "pay",
+      "payment",
+      "fee",
+      "fees",
+      "cost",
+      "price",
+      "installment",
+      "money",
+      "tuition",
+      "60000",
+      "student fee"
+    ]
   },
   {
-    "id": "faq-5",
-    "keywords": ["contact", "phone", "email", "office"],
-    "question": "How can I contact the admissions office?",
-    "answer": "You can reach the admissions office at admissions@university.kz or visit the office on campus, Monday to Friday, 9:00-18:00."
+    "id": "faq_ministry",
+    "question": "Can I study with a state grant?",
+    "answer": "Yes, you can apply for the Republic of Kazakhstan State Educational Grant based on your UNT (ENT) competitive score rankings. It provides 100% tuition coverage and a monthly stipend. Applications are typically between July 13 - July 20.",
+    "keywords": [
+      "state grant",
+      "ministry",
+      "government",
+      "unt",
+      "ent",
+      "stipend",
+      "free",
+      "score",
+      "threshold",
+      "national"
+    ]
+  },
+  {
+    "id": "faq_documents",
+    "question": "What documents are required for admission?",
+    "answer": "You need your Original Document of Education, UNT Certificate, National Identity Card / Passport, Medical Certificate Form 075-U with fluorography, 6 photos of 3x4 cm size, and an English Certificate (if applicable).",
+    "keywords": [
+      "documents",
+      "required",
+      "admission",
+      "apply",
+      "passport",
+      "medical",
+      "075",
+      "photos",
+      "certificate",
+      "id",
+      "what to bring"
+    ]
+  },
+  {
+    "id": "faq_location",
+    "question": "Where is the university located?",
+    "answer": "SDU University is located at Abylai Khan str., 1/1, Kaskelen, Almaty Region, 040900, Kazakhstan. The campus features a large territory, sports complex, library, and medical center.",
+    "keywords": [
+      "where",
+      "location",
+      "located",
+      "address",
+      "city",
+      "kaskelen",
+      "almaty",
+      "campus"
+    ]
   }
 ]

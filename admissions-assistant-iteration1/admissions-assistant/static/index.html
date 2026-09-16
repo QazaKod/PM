@@ -6,9 +6,25 @@
   <title>Smart University Admissions Assistant</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/static/style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/metro.css">
+
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script>
+    // Theme Switcher Logic
+    fetch('/static/config.json')
+      .then(res => res.json())
+      .then(data => {
+        const themeFile = data.theme === 'festival' ? 'festival.css' : 'metro.css';
+        document.getElementById('theme-stylesheet').href = '/static/' + themeFile;
+      })
+      .catch(() => {
+        // Fallback
+        document.getElementById('theme-stylesheet').href = '/static/metro.css';
+      });
+  </script>
 </head>
+
 <body>
   <!-- Mobile Header -->
   <header class="mobile-header">
@@ -23,7 +39,7 @@
       <span class="logo-icon">🏛️</span>
       <span class="logo-text">Admissions Assistant</span>
     </div>
-    <button id="mobile-chat-shortcut" class="icon-btn" aria-label="Open Chat">💬</button>
+    <button id="mobile-chat-shortcut" class="icon-btn" aria-label="Open Chat"><i class="ph ph-chats"></i></button>
   </header>
 
   <div class="app-layout">
@@ -41,16 +57,16 @@
 
       <nav class="nav-menu" role="navigation">
         <button class="nav-item active" data-tab="chat">
-          <span class="nav-icon">💬</span>
+          <i class="ph ph-chats nav-icon"></i>
           <span class="nav-label">Chat Assistant</span>
           <span class="nav-tag primary-tag">AI</span>
         </button>
         <button class="nav-item" data-tab="programs">
-          <span class="nav-icon">🎓</span>
+          <i class="ph ph-books nav-icon"></i>
           <span class="nav-label">Programs</span>
         </button>
         <button class="nav-item" data-tab="faq">
-          <span class="nav-icon">❓</span>
+          <i class="ph ph-question nav-icon"></i>
           <span class="nav-label">FAQ</span>
         </button>
         <button class="nav-item" data-tab="documents">
@@ -59,17 +75,13 @@
           <span class="nav-tag demo-tag">US4</span>
         </button>
         <button class="nav-item" data-tab="deadlines">
-          <span class="nav-icon">📅</span>
+          <i class="ph ph-calendar nav-icon"></i>
           <span class="nav-label">Deadlines</span>
           <span class="nav-tag demo-tag">US8</span>
         </button>
-        <button class="nav-item" data-tab="status">
-          <span class="nav-icon">📊</span>
-          <span class="nav-label">Application Status</span>
-          <span class="nav-tag demo-tag">US6</span>
-        </button>
+
         <button class="nav-item" data-tab="links">
-          <span class="nav-icon">🔗</span>
+          <i class="ph ph-link nav-icon"></i>
           <span class="nav-label">Official Links</span>
           <span class="nav-tag demo-tag">US9</span>
         </button>
@@ -109,14 +121,14 @@
             <button class="prompt-chip" data-prompt="How much does the Computer Science program cost?">💻 CS Cost</button>
             <button class="prompt-chip" data-prompt="Tell me about Information Technology">🎓 IT Program</button>
             <button class="prompt-chip" data-prompt="What is the application deadline?">📅 Deadline</button>
-            <button class="prompt-chip" data-prompt="What documents do I need to submit?">📄 Documents</button>
-            <button class="prompt-chip" data-prompt="Are scholarships available?">🏆 Scholarships</button>
+            <button class="prompt-chip" data-prompt="What documents do I need to submit?"><i class="ph ph-file-text"></i> Documents</button>
+            <button class="prompt-chip" data-prompt="Are scholarships available?"><i class="ph ph-medal"></i> Scholarships</button>
           </div>
 
           <!-- Messages Stream -->
           <div id="chat-messages" class="chat-messages">
             <div class="message bot-message">
-              <div class="msg-avatar">🤖</div>
+              <div class="msg-avatar"><i class="ph-fill ph-robot"></i></div>
               <div class="msg-content">
                 <div class="msg-bubble">
                   <p>Hello! Welcome to the <strong>Smart University Admissions Assistant</strong>. 🎓</p>
@@ -161,8 +173,10 @@
             </div>
             <div class="filter-controls">
               <button class="filter-btn active" data-filter="all">All</button>
-              <button class="filter-btn" data-filter="Bachelor">Bachelor</button>
-              <button class="filter-btn" data-filter="Master">Master</button>
+              <button class="filter-btn" data-filter="Faculty of Engineering and Natural Sciences">Engineering & IT</button>
+              <button class="filter-btn" data-filter="SDU Business School">Business School</button>
+              <button class="filter-btn" data-filter="Faculty of Law and Social Sciences">Law & Social Sciences</button>
+              <button class="filter-btn" data-filter="Faculty of Education and Humanities">Education & Humanities</button>
             </div>
           </div>
 
@@ -269,7 +283,7 @@
             </ul>
 
             <div class="checklist-footer">
-              <p>💡 <em>Need clarification on international diplomas or apostille?</em></p>
+              <p><i class="ph-fill ph-lightbulb"></i> <em>Need clarification on international diplomas or apostille?</em></p>
               <button class="btn btn-secondary ask-chat-shortcut" data-question="What documents are required to apply?">
                 Ask Chatbot about Documents
               </button>
@@ -335,72 +349,6 @@
         </div>
       </section>
 
-      <!-- ================= SECTION: APPLICATION STATUS ================= -->
-      <section id="section-status" class="tab-section">
-        <div class="section-container">
-          <div class="section-header">
-            <div>
-              <div class="title-with-badge">
-                <h2>Application Status Tracker</h2>
-                <span class="preview-badge">US6 Preview</span>
-              </div>
-              <p>Check the live evaluation progress of your admission dossier.</p>
-            </div>
-          </div>
-
-          <div class="card status-checker-card">
-            <form id="status-form" class="status-search-form">
-              <label for="application-id-input">Enter Application Number</label>
-              <div class="input-group">
-                <input
-                  type="text"
-                  id="application-id-input"
-                  placeholder="e.g., APP-2026-1042"
-                  value="APP-2026-1042"
-                  required
-                />
-                <button type="submit" class="btn btn-primary">Check Status</button>
-              </div>
-              <span class="form-hint">Tip: Try default <code>APP-2026-1042</code> or <code>APP-2026-9999</code> for mock demo.</span>
-            </form>
-
-            <div id="status-result" class="status-result">
-              <div class="result-banner verified">
-                <div class="banner-icon">📋</div>
-                <div>
-                  <h4>Application #APP-2026-1042</h4>
-                  <p>Applicant: <strong>Arman Serikov</strong> | Program: <strong>Computer Science (Bachelor)</strong></p>
-                </div>
-                <div class="badge status-badge green">Documents Verified</div>
-              </div>
-
-              <!-- Stepper -->
-              <div class="stepper">
-                <div class="step completed">
-                  <div class="step-circle">✓</div>
-                  <div class="step-label">Application Submitted</div>
-                  <div class="step-date">July 14, 2026</div>
-                </div>
-                <div class="step completed">
-                  <div class="step-circle">✓</div>
-                  <div class="step-label">Documents Verified</div>
-                  <div class="step-date">July 18, 2026</div>
-                </div>
-                <div class="step current">
-                  <div class="step-circle">3</div>
-                  <div class="step-label">Committee Review</div>
-                  <div class="step-date">In Progress</div>
-                </div>
-                <div class="step">
-                  <div class="step-circle">4</div>
-                  <div class="step-label">Enrollment Decision</div>
-                  <div class="step-date">Expected Aug 15</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       <!-- ================= SECTION: OFFICIAL LINKS ================= -->
       <section id="section-links" class="tab-section">
@@ -434,20 +382,20 @@
               </div>
             </a>
 
-            <div class="link-card card" onclick="window.location.href='mailto:admissions@university.kz'">
+            <div class="link-card card" onclick="window.location.href='mailto:admission@sdu.edu.kz'">
               <div class="link-icon">✉️</div>
               <div class="link-details">
                 <h3>Admissions Support Email</h3>
-                <p>Contact officers directly: <code>admissions@university.kz</code></p>
+                <p>Contact officers directly: <code>admission@sdu.edu.kz</code></p>
                 <span class="link-arrow">Send email →</span>
               </div>
             </div>
 
-            <div class="link-card card" onclick="alert('Admissions Hotline: +7 (727) 355-00-11\nOffice: Main Campus, Building A, Room 102\nHours: Mon-Fri 09:00 - 18:00')">
+            <div class="link-card card" onclick="alert('Admissions Hotline: +7 (727) 307-95-65\nOffice: Abylai Khan str., 1/1, Kaskelen\nHours: Mon-Fri 09:00 - 18:00')">
               <div class="link-icon">📞</div>
               <div class="link-details">
                 <h3>Admissions Hotline & Campus Office</h3>
-                <p>+7 (727) 355-00-11 &bull; Mon-Fri 09:00 - 18:00</p>
+                <p>+7 (727) 307-95-65 &bull; Mon-Fri 09:00 - 18:00</p>
                 <span class="link-arrow">View details →</span>
               </div>
             </div>
@@ -459,7 +407,7 @@
 
     <!-- Floating "Ask AI" Button (visible when not on Chat tab) -->
     <button id="fab-ask-ai" class="fab-ask-ai" aria-label="Ask AI Assistant">
-      <span class="fab-icon">💬</span>
+      <i class="ph ph-chats" style="font-size: 1.2rem; margin-right: 8px;"></i>
       <span class="fab-text">Ask AI</span>
     </button>
   </div>

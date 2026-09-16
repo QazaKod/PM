@@ -25,8 +25,7 @@ def test_get_programs_endpoint():
     assert len(data) >= 4
     # Check that known programs are present
     program_ids = [p["id"] for p in data]
-    assert "cs-bachelor" in program_ids
-    assert "it-bachelor" in program_ids
+    assert "sdu-cs" in program_ids
 
 
 def test_get_faq_endpoint():
@@ -36,7 +35,7 @@ def test_get_faq_endpoint():
     assert isinstance(data, list)
     assert len(data) >= 5
     faq_ids = [item["id"] for item in data]
-    assert "faq-1" in faq_ids
+    assert "faq_spt" in faq_ids
 
 
 def test_post_chat_unified():

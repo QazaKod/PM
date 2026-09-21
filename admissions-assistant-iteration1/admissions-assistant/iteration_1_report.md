@@ -57,9 +57,14 @@ We successfully tested all Given/When/Then scenarios. They are also added to our
     *   *Note: We temporarily hid US4, US8, and US9 from the menu as requested.*
 4.  **Start Script**: We created a `start.bat` file. Now you can start the server in one click.
 
+## 5. Project Management & Workflow
+*   **Trello Setup**: We set up a Trello board to manage our tasks and track progress.
+*   **Product Backlog**: We created a backlog with 14 detailed User Stories (from US-1 to US-14). We divided them into 7 future iterations, assigned team members, and added deadlines and Story Points.
+*   **Documentation**: We saved the full task details in a `backlog.md` file inside the project folder so that the team always has access to the task requirements.
+
 ---
 
-## 5. Maintenance Tasks
+## 6. Maintenance Tasks
 
 We added new maintenance tasks for the future:
 *   **Task (Verified):** The `programs.json` and `faq.json` files are ready. In the future, we need to sync this data with the official university database automatically.

@@ -9,13 +9,13 @@
 
 * **[US-5] Admission FAQ**
   * **Description:** As an applicant, I want to get answers to frequently asked admission questions, so that I don't have to search for information manually.
-  * **Estimation:** 2 | **Assignee:** Arman | **Deadline:** 27 Sep 2026
+  * **Estimation:** 2 | **Assignee:** Arman | **Deadline:** 20 Sep 2026
   * **Pre-Requirements:** FAQ database maintained by staff
   * **QA Test:** US5QATest
 
 * **[US-3] Admission Requirements FAQ**
   * **Description:** As an applicant, I want to ask questions about admission requirements, so that I know what conditions I need to meet.
-  * **Estimation:** 3 | **Assignee:** Saken | **Deadline:** 4 Oct 2026
+  * **Estimation:** 3 | **Assignee:** Saken | **Deadline:** 27 Sep 2026
   * **Pre-Requirements:** Up-to-date database of requirements per program
   * **QA Test:** US3QATest
 

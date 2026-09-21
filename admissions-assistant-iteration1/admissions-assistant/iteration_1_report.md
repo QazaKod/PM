@@ -10,6 +10,11 @@ In the first iteration, we created the basic features for the Smart Admissions A
 
 We built a **Hybrid AI Engine**. It uses a fast local search for simple questions. If a question is too difficult or unusual, it uses **Google Gemini (3.6-flash)** as a fallback.
 
+**Sprint Scope Adjustments:**
+Following the teacher's instructions, we adjusted the sprint scope:
+*   We pulled one task from Iteration 2 into Iteration 1. As a result, Iteration 2 now contains only a single User Story (US-4).
+*   We shifted the third User Story (US-3: Admission Requirements FAQ) forward by one week (from Oct 4 to Sept 27). It is currently in the **Doing** phase.
+
 ---
 
 ## 2. Completed User Stories
@@ -24,6 +29,11 @@ We built a **Hybrid AI Engine**. It uses a fast local search for simple question
 > **As an applicant**, I want to get answers to frequently asked admission questions, so that I don't have to search for information manually.
 *   **Result:** We created a search module for the `faq.json` database. The chatbot can quickly answer questions about deadlines, documents, and procedures.
 *   **Constraints:** We added a UI accordion to read the FAQ easily. If the question is not in the FAQ base, the system tells the user and offers to connect them with the staff.
+
+### 🔄 US3: Admission Requirements FAQ (In Progress)
+> **As an applicant**, I want to ask questions about admission requirements, so that I know what conditions I need to meet.
+*   **Status:** Currently in the **Doing** column.
+*   **Update:** Shifted forward by one week to September 27. Saken is working on gathering the database of requirements per program.
 
 ### 🟡 US2: Program Recommendation (Basic setup)
 > **As an applicant**, I want to receive program recommendations based on my interests and academic goals.

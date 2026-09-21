@@ -7,21 +7,26 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-  <link id="theme-stylesheet" rel="stylesheet" href="/static/metro.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/steppe.css">
 
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script>
-    // Theme Switcher Logic
-    fetch('/static/config.json')
-      .then(res => res.json())
-      .then(data => {
-        const themeFile = data.theme === 'festival' ? 'festival.css' : 'metro.css';
-        document.getElementById('theme-stylesheet').href = '/static/' + themeFile;
-      })
-      .catch(() => {
-        // Fallback
-        document.getElementById('theme-stylesheet').href = '/static/metro.css';
-      });
+    // Theme switcher — whitelist keeps config.json from pointing at an arbitrary path
+    (function () {
+      const THEMES = ['steppe', 'metro', 'festival'];
+      const DEFAULT_THEME = 'steppe';
+      const el = document.getElementById('theme-stylesheet');
+
+      fetch('/static/config.json?v=' + new Date().getTime())
+        .then(res => res.json())
+        .then(data => {
+          const theme = THEMES.includes(data.theme) ? data.theme : DEFAULT_THEME;
+          el.href = '/static/' + theme + '.css';
+        })
+        .catch(() => {
+          el.href = '/static/' + DEFAULT_THEME + '.css';
+        });
+    })();
   </script>
 </head>
 
@@ -69,6 +74,7 @@
           <i class="ph ph-question nav-icon"></i>
           <span class="nav-label">FAQ</span>
         </button>
+        <!-- ВРЕМЕННО СКРЫТО ПО ПРОСЬБЕ
         <button class="nav-item" data-tab="documents">
           <span class="nav-icon">📄</span>
           <span class="nav-label">Documents</span>
@@ -85,6 +91,7 @@
           <span class="nav-label">Official Links</span>
           <span class="nav-tag demo-tag">US9</span>
         </button>
+        -->
       </nav>
 
       <div class="sidebar-footer">

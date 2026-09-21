@@ -118,6 +118,16 @@ document.addEventListener("DOMContentLoaded", () => {
     return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   }
 
+  // Bot answers (and especially AI answers) come back with light markdown.
+  // Escape first, THEN convert the few safe constructs — order matters,
+  // otherwise this would be an HTML injection hole.
+  function renderAnswer(text) {
+    return escapeHtml(text)
+      .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+      .replace(/^\s*[-*]\s+(.*)$/gm, "• $1")
+      .replace(/\n/g, "<br>");
+  }
+
   function appendMessage(sender, text, meta = {}) {
     const isBot = sender === "bot";
     const msgEl = document.createElement("div");
@@ -139,7 +149,7 @@ document.addEventListener("DOMContentLoaded", () => {
       <div class="msg-avatar">${isBot ? "🤖" : "👤"}</div>
       <div class="msg-content">
         <div class="msg-bubble">
-          <p>${escapeHtml(text)}</p>
+          <p>${renderAnswer(text)}</p>
         </div>
         <div class="msg-meta">
           <span class="msg-time">${formatTime()}</span>

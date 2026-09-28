@@ -35,11 +35,6 @@ Following the teacher's instructions, we adjusted the sprint scope:
 *   **Status:** Currently in the **Doing** column.
 *   **Update:** Shifted forward by one week to September 27. Saken is working on gathering the database of requirements per program.
 
-### 🟡 US2: Program Recommendation (Basic setup)
-> **As an applicant**, I want to receive program recommendations based on my interests and academic goals.
-*   **Result:** The Gemini AI module can give basic recommendations. For example, if a user writes *"I like math and business"*, the AI looks at the SDU programs and recommends a ranked list (like Finance or Information Systems).
-*   **Next Steps:** To finish this story, we need to create a short questionnaire dialogue to collect the applicant's interests.
-
 ---
 
 ## 3. Test Results & Acceptance Criteria
@@ -52,7 +47,6 @@ We successfully tested all Given/When/Then scenarios. They are also added to our
 | **US1: Bad or invalid query** | No answer / warning | **PASS** | The bot uses the fallback system. |
 | **US1 / US5: Cannot answer confidently** | System informs user and offers staff contact | **PASS** | Shows the "Admissions Staff Offer" badge. |
 | **Performance (Deferred)** | Answer is returned without long delay | **PASS** | Local answers are instant. AI answers take 1-2 seconds. |
-| **US2: Recommendation list** | Ranked list of programs generated | **PASS** | Gemini AI ranks programs correctly based on user profile. |
 
 ---
 

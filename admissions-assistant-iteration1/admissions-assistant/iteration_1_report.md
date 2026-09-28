@@ -30,11 +30,18 @@ Following the teacher's instructions, we adjusted the sprint scope:
 *   **Result:** We created a search module for the `faq.json` database. The chatbot can quickly answer questions about deadlines, documents, and procedures.
 *   **Constraints:** We added a UI accordion to read the FAQ easily. If the question is not in the FAQ base, the system tells the user and offers to connect them with the staff.
 
-### 🔄 US3: Admission Requirements FAQ (In Progress)
-> **As an applicant**, I want to ask questions about admission requirements, so that I know what conditions I need to meet.
-*   **Status:** Currently in the **Doing** column.
-*   **Update:** Shifted forward by one week to September 27. Saken is working on gathering the database of requirements per program.
+### ✅ US3: Admission Requirements FAQ
 
+> **As an applicant**, I want to ask questions about admission requirements, so that I know what conditions I need to meet.
+
+- **Result:** We implemented a dedicated admission requirements module integrated into the existing chatbot. Applicants can ask about requirements by program, applicant category, and study level.
+- **Multi-language support:** The requirements flow supports English, Russian, and Kazakh. The system automatically detects the language of the user's question and responds in the same language.
+- **Context-aware dialogue:** If required information is missing, the chatbot asks follow-up questions and keeps the original context. For example, after asking about IELTS, the applicant can provide only the program and applicant category without repeating the full question.
+- **Structured requirements data:** We created `requirements.json`, where requirements are stored separately by program, applicant category, and study level. Each entry can include official sources, verification dates, and data status.
+- **Safety and data validation:** If a requirement, score, or condition has not been verified from an official source, the chatbot does not invent or substitute information. It clearly tells the applicant that the current requirement is not confirmed and provides the available official source.
+- **Different applicant routes:** Domestic and international applicants are handled separately. Undergraduate and graduate requirements are also separated, preventing the system from incorrectly reusing requirements from another category or study level.
+- **Testing:** US3 is covered by automated `pytest` tests. Tests include three languages, follow-up clarification, applicant categories, study levels, unknown programs, missing or outdated data, API behavior, and compatibility with US1 and US5.
+- **Current limitation:** Automatic synchronization with official university sources and real notification subscriptions are not implemented yet. Requirement updates currently depend on manual verification and maintenance.
 ---
 
 ## 3. Test Results & Acceptance Criteria

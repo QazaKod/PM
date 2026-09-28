@@ -30,6 +30,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const docProgressFill = document.getElementById("doc-progress-fill");
 
 
+  let requirementContext = null;
+  let chatBusy = false;
   let programsData = [];
   let faqData = [];
   let activeFilter = "all";
@@ -125,6 +127,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return escapeHtml(text)
       .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
       .replace(/^\s*[-*]\s+(.*)$/gm, "• $1")
+      .replace(/https:\/\/sdu\.edu\.kz\/[a-zA-Z0-9/_-]*/g, url => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`)
       .replace(/\n/g, "<br>");
   }
 
@@ -139,7 +142,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let sourceBadgeHtml = "";
     if (isBot && meta.source) {
       const badgeClass = meta.source === "program" ? "source-program" : "source-faq";
-      const badgeLabel = meta.source === "program" ? "Program Match" : "FAQ Match";
+      const badgeLabel = meta.source === "requirements" ? "Admission Requirements" : meta.source === "program" ? "Program Match" : "FAQ Match";
       sourceBadgeHtml = `<span class="msg-badge ${badgeClass}">${badgeLabel}</span>`;
     } else if (isBot && meta.isFallback) {
       sourceBadgeHtml = `<span class="msg-badge source-fallback">Admissions Staff Offer</span>`;
@@ -189,7 +192,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   async function handleUserMessage(messageText) {
     const text = messageText.trim();
-    if (!text) return;
+    if (!text || chatBusy) return;
+    chatBusy = true;
+    clearChatBtn.disabled = true;
 
     // Display user bubble
     appendMessage("user", text);
@@ -201,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text })
+        body: JSON.stringify({ message: text, context: requirementContext, language: document.getElementById("requirements-language").value || null })
       });
 
       removeTypingIndicator(typingId);
@@ -211,6 +216,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const data = await response.json();
+      requirementContext = data.context || null;
       appendMessage("bot", data.answer, {
         source: data.source,
         isFallback: !data.confident,
@@ -222,6 +228,9 @@ document.addEventListener("DOMContentLoaded", () => {
         isFallback: true
       });
       console.error("Chat error:", err);
+    } finally {
+      chatBusy = false;
+      clearChatBtn.disabled = false;
     }
   }
 
@@ -243,6 +252,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Reset chat button
   if (clearChatBtn) {
     clearChatBtn.addEventListener("click", () => {
+      requirementContext = null;
       chatMessages.innerHTML = `
         <div class="message bot-message">
           <div class="msg-avatar">🤖</div>
@@ -303,7 +313,6 @@ document.addEventListener("DOMContentLoaded", () => {
       const costFormatted = Number(p.approx_cost_per_year_kzt).toLocaleString("en-US");
       const degreeClass = p.degree.toLowerCase() === "master" ? "degree-master" : "degree-bachelor";
       const languages = Array.isArray(p.language) ? p.language.join(", ") : p.language;
-      const untSubjects = p.unt_subjects ? p.unt_subjects.join(" + ") : "N/A";
 
       return `
         <div class="card program-card">
@@ -320,12 +329,12 @@ document.addEventListener("DOMContentLoaded", () => {
             <li><span>Tuition per year:</span> <strong class="program-cost">${costFormatted} KZT</strong></li>
             <li><span>Format:</span> <strong>${escapeHtml(p.format)}</strong></li>
             <li><span>Instruction:</span> <strong>${escapeHtml(languages)}</strong></li>
-            <li><span>UNT Subjects:</span> <strong>${escapeHtml(untSubjects)}</strong></li>
           </ul>
 
           <button class="btn btn-outline" style="width: 100%;" onclick="askInChat('Tell me about the ${escapeJs(p.name)} program')">
             💬 Ask in Chat
           </button>
+          <button class="btn btn-outline" style="width: 100%;" onclick="askInChat('Admission requirements for ${escapeJs(p.name)}')">Admission requirements</button>
         </div>
       `;
     }).join("");

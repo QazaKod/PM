@@ -35,19 +35,25 @@ def get_faq():
 @app.post("/chat/programs", response_model=ChatResponse)
 def chat_programs(query: ChatQuery):
     """US1 — Chat-Program Info."""
+    requirements = chatbot.answer_requirements(query.message, query.context.model_dump() if query.context else None, query.language)
+    if requirements is not None:
+        return requirements
     return chatbot.answer_program_query(query.message)
 
 
 @app.post("/chat/faq", response_model=ChatResponse)
 def chat_faq(query: ChatQuery):
     """US5 — Admission FAQ."""
+    requirements = chatbot.answer_requirements(query.message, query.context.model_dump() if query.context else None, query.language)
+    if requirements is not None:
+        return requirements
     return chatbot.answer_faq_query(query.message)
 
 
 @app.post("/chat", response_model=ChatResponse)
 def chat(query: ChatQuery):
     """Unified endpoint: routes to whichever knowledge base matches best."""
-    return chatbot.answer_query(query.message)
+    return chatbot.answer_query(query.message, query.context.model_dump() if query.context else None, query.language)
 
 
 # Mount static assets and serve root SPA

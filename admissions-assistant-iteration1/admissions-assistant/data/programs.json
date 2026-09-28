@@ -1,7 +1,7 @@
 [
   {
     "id": "sdu-cs",
-    "code": "6B06101",
+    "code": "6B06102",
     "faculty": "Faculty of Engineering and Natural Sciences",
     "name": "Computer Science",
     "degree": "Bachelor",
@@ -19,7 +19,7 @@
   },
   {
     "id": "sdu-is",
-    "code": "6B06102",
+    "code": "6B06101",
     "faculty": "Faculty of Engineering and Natural Sciences",
     "name": "Information Systems",
     "degree": "Bachelor",
@@ -37,7 +37,7 @@
   },
   {
     "id": "sdu-se",
-    "code": "6B06103",
+    "code": "6B06105",
     "faculty": "Faculty of Engineering and Natural Sciences",
     "name": "Software Engineering",
     "degree": "Bachelor",
@@ -55,7 +55,7 @@
   },
   {
     "id": "sdu-mcm",
-    "code": "6B05401",
+    "code": "6B06103",
     "faculty": "Faculty of Engineering and Natural Sciences",
     "name": "Mathematical and Computer Modeling",
     "degree": "Bachelor",
@@ -73,7 +73,7 @@
   },
   {
     "id": "sdu-fin",
-    "code": "6B04101",
+    "code": "6B04104",
     "faculty": "SDU Business School",
     "name": "Finance",
     "degree": "Bachelor",
@@ -91,7 +91,7 @@
   },
   {
     "id": "sdu-acc",
-    "code": "6B04102",
+    "code": "6B04103",
     "faculty": "SDU Business School",
     "name": "Accounting and Audit",
     "degree": "Bachelor",
@@ -109,7 +109,7 @@
   },
   {
     "id": "sdu-mgmt",
-    "code": "6B04103",
+    "code": "6B04102",
     "faculty": "SDU Business School",
     "name": "Management",
     "degree": "Bachelor",
@@ -127,7 +127,7 @@
   },
   {
     "id": "sdu-mkt",
-    "code": "6B04104",
+    "code": "6B04105",
     "faculty": "SDU Business School",
     "name": "Marketing",
     "degree": "Bachelor",
@@ -199,7 +199,7 @@
   },
   {
     "id": "sdu-trans",
-    "code": "6B02301",
+    "code": "6B02302",
     "faculty": "Faculty of Education and Humanities",
     "name": "Translation Studies",
     "degree": "Bachelor",
@@ -217,7 +217,7 @@
   },
   {
     "id": "sdu-two-lang",
-    "code": "6B01701",
+    "code": "6B01702",
     "faculty": "Faculty of Education and Humanities",
     "name": "Two Foreign Languages",
     "degree": "Bachelor",

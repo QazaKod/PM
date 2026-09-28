@@ -1,0 +1,2343 @@
+{
+  "sdu-cs": {
+    "name": "Computer Science",
+    "aliases": [
+      "CS",
+      "компьютерные науки",
+      "компьютерлік ғылымдар"
+    ],
+    "codes": {
+      "undergraduate": "6B06102",
+      "graduate": "7M06102"
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Informatics. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + Информатика. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + Информатика. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-is": {
+    "name": "Information Systems",
+    "aliases": [
+      "информационные системы",
+      "ақпараттық жүйелер"
+    ],
+    "codes": {
+      "undergraduate": "6B06101",
+      "graduate": "7M06101"
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Informatics. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + Информатика. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + Информатика. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-se": {
+    "name": "Software Engineering",
+    "aliases": [
+      "программная инженерия",
+      "бағдарламалық инженерия"
+    ],
+    "codes": {
+      "undergraduate": "6B06105",
+      "graduate": "7M06105"
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Informatics. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + Информатика. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + Информатика. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-mcm": {
+    "name": "Mathematical and Computer Modeling",
+    "aliases": [
+      "математическое и компьютерное моделирование",
+      "математикалық және компьютерлік модельдеу",
+      "MCM"
+    ],
+    "codes": {
+      "undergraduate": "6B06103",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Informatics. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + Информатика. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + Информатика. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-fin": {
+    "name": "Finance",
+    "aliases": [
+      "финансы",
+      "қаржы"
+    ],
+    "codes": {
+      "undergraduate": "6B04104",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Geography. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + География. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + География. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-acc": {
+    "name": "Accounting and Audit",
+    "aliases": [
+      "учет и аудит",
+      "есеп және аудит"
+    ],
+    "codes": {
+      "undergraduate": "6B04103",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Geography. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + География. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + География. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-mgmt": {
+    "name": "Management",
+    "aliases": [
+      "менеджмент"
+    ],
+    "codes": {
+      "undergraduate": "6B04102",
+      "graduate": "7M04115"
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Geography. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + География. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + География. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-mkt": {
+    "name": "Marketing",
+    "aliases": [
+      "маркетинг",
+      "digital marketing"
+    ],
+    "codes": {
+      "undergraduate": "6B04105",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Mathematics + Geography. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Математика + География. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Математика + География. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-law": {
+    "name": "Jurisprudence (Law)",
+    "aliases": [
+      "law",
+      "право",
+      "юриспруденция",
+      "құқық"
+    ],
+    "codes": {
+      "undergraduate": "6B04201",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Fundamentals of Law + World History. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Основы права + Всемирная история. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Құқық негіздері + Дүниежүзі тарихы. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-ilaw": {
+    "name": "International Law",
+    "aliases": [
+      "международное право",
+      "халықаралық құқық"
+    ],
+    "codes": {
+      "undergraduate": "6B04202",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: Fundamentals of Law + World History. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Основы права + Всемирная история. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Құқық негіздері + Дүниежүзі тарихы. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-ir": {
+    "name": "International Relations",
+    "aliases": [
+      "международные отношения",
+      "халықаралық қатынастар"
+    ],
+    "codes": {
+      "undergraduate": "6B03101",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: English + World History. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Английский язык + Всемирная история. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Ағылшын тілі + Дүниежүзі тарихы. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-trans": {
+    "name": "Translation Studies",
+    "aliases": [
+      "переводческое дело",
+      "аударма ісі"
+    ],
+    "codes": {
+      "undergraduate": "6B02302",
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: English + World History. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Английский язык + Всемирная история. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Ағылшын тілі + Дүниежүзі тарихы. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-two-lang": {
+    "name": "Two Foreign Languages",
+    "aliases": [
+      "два иностранных языка",
+      "екі шет тілі"
+    ],
+    "codes": {
+      "undergraduate": "6B01702",
+      "graduate": "7M01702"
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official linked score PDF could not be read; no numeric thresholds imported.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "For school-leaver UNT admission, profile subjects: English + World History. The school-leaver route requires a school certificate and transcript; college routes must be checked separately.",
+              "ru": "Для поступления после школы по ЕНТ профильные предметы: Английский язык + Всемирная история. Для маршрута после школы нужны аттестат и приложение; условия после колледжа проверяются отдельно.",
+              "kk": "Мектептен кейін ҰБТ арқылы түсу үшін бейіндік пәндер: Ағылшын тілі + Дүниежүзі тарихы. Мектептен кейінгі қабылдау үшін аттестат және қосымша қажет; колледжден кейінгі шарттар бөлек тексеріледі."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "English proof: IELTS overall ≥5.5, each component ≥5.0; SDU Language School B1 or higher; or the SDU English exam result.",
+              "ru": "Подтверждение английского: IELTS от 5.5, каждый раздел от 5.0; SDU Language School от B1; либо результат экзамена SDU по английскому.",
+              "kk": "Ағылшын тілін растау: IELTS жалпы ≥5.5, әр бөлім ≥5.0; SDU Language School кемінде B1; немесе SDU ағылшын тілі емтиханының нәтижесі."
+            },
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "The international application route includes an English placement test and an interview with the program coordinator. A numeric examination threshold has not been verified.",
+              "ru": "Международный маршрут включает тест по английскому и собеседование с координатором программы. Числовой порог экзамена не подтверждён.",
+              "kk": "Шетелдік талапкер ағылшын тілі тестінен және бағдарлама үйлестірушісімен сұхбаттан өтеді. Емтиханның сандық шегі расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "published",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": "2026-09-28",
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {
+              "en": "Previous education: school certificate/diploma and transcript. This is the published international route; additional program prerequisites have not been verified.",
+              "ru": "Предыдущее образование: аттестат/диплом и транскрипт. Это опубликованные общие условия международного маршрута; дополнительные условия программы не подтверждены.",
+              "kk": "Алдыңғы білім: аттестат/диплом және транскрипт. Бұл халықаралық қабылдаудың жалпы шарттары; бағдарламаның қосымша шарттары расталмаған."
+            },
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Official locale pages differ on IELTS component detail; placement waiver and enrollment certificate conditions need confirmation.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  },
+  "sdu-journalism": {
+    "name": "Journalism and Public Relations",
+    "aliases": [
+      "журналистика"
+    ],
+    "codes": {
+      "undergraduate": null,
+      "graduate": null
+    },
+    "requirements": {
+      "domestic": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/admission-3-2/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      },
+      "international": {
+        "undergraduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/halykaralyk-kabyldau-komissyasy/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        },
+        "graduate": {
+          "exams": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "prerequisites": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          },
+          "language": {
+            "status": "unverified",
+            "source": "https://sdu.edu.kz/en/master/",
+            "checked_on": "2026-09-28",
+            "verified_on": null,
+            "review_due": "2026-10-28",
+            "admission_period": "2026–2027",
+            "text": {},
+            "verification_note": "Current program/category/level applicability not established.",
+            "valid_until": "2026-12-31"
+          }
+        }
+      }
+    }
+  }
+}

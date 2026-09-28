@@ -122,9 +122,17 @@
             <button id="clear-chat-btn" class="text-btn" title="Reset conversation">Reset chat</button>
           </div>
 
+          <label for="requirements-language">Requirements language / Язык / Тіл:
+            <select id="requirements-language">
+              <option value="">Auto</option><option value="en">English</option>
+              <option value="ru">Русский</option><option value="kk">Қазақша</option>
+            </select>
+          </label>
+
           <!-- Quick prompt pills -->
           <div class="quick-prompts">
             <span class="prompts-label">Quick suggestions:</span>
+            <button class="prompt-chip" data-prompt="What are the admission requirements for Computer Science?">Admission requirements</button>
             <button class="prompt-chip" data-prompt="How much does the Computer Science program cost?">💻 CS Cost</button>
             <button class="prompt-chip" data-prompt="Tell me about Information Technology">🎓 IT Program</button>
             <button class="prompt-chip" data-prompt="What is the application deadline?">📅 Deadline</button>

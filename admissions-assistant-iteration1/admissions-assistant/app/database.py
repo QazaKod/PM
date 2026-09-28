@@ -19,3 +19,9 @@ def load_programs() -> List[Dict]:
 def load_faq() -> List[Dict]:
     with open(DATA_DIR / "faq.json", encoding="utf-8") as f:
         return json.load(f)
+
+
+def load_requirements() -> Dict:
+    """US3: exact program -> category -> level -> topic, with provenance."""
+    with open(DATA_DIR / "requirements.json", encoding="utf-8") as f:
+        return json.load(f)

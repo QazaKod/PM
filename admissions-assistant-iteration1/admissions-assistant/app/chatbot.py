@@ -1,13 +1,14 @@
 """Rule-based matching engine with AI Fallback.
 
-Implements the two Iteration 1 stories:
+Implements the Iteration 1 stories:
   - US1 Chat-Program Info: answer questions about educational programs
   - US5 Admission FAQ:      answer common admission questions
+  - US3 Requirements:       exact, provenance-gated lookup before similarity matching
 
 Matching approach (Idea 2 Hybrid):
 1. First, we attempt normalized token-overlap scoring.
 2. If confidence is >= 0.34, we return the hardcoded instant response (0 tokens used).
-3. If confidence < 0.34, we trigger the AI Fallback (Gemini) to handle complex/foreign questions.
+3. For unmatched non-US3 queries, Gemini may select a known catalog entry only.
 """
 import os
 import re
@@ -15,6 +16,7 @@ import json
 from typing import Dict, List, Optional, Tuple
 
 from app.database import load_programs, load_faq
+from app.requirements import answer_requirements
 
 # --- AI Fallback Imports ---
 try:
@@ -99,22 +101,31 @@ def match_faq(message: str, faq_entries: Optional[List[Dict]] = None) -> Tuple[O
 
 def answer_program_query(message: str) -> Dict:
     """Implements US1 acceptance criteria (Scenario 1 & 2)."""
+    requirements = answer_requirements(message)
+    if requirements is not None:
+        return requirements
     program, score = match_program(message)
     if program and score >= CONFIDENCE_THRESHOLD:
-        answer = (
-            f"**{program['name']}** ({program['code']}) - {program['faculty']}\n"
-            f"Degree: {program['degree']}, {program['duration_years']} years\n"
-            f"Cost: ~{program['approx_cost_per_year_kzt']:,} KZT/year\n"
-            f"Format: {program['format']}\n"
-            f"UNT Subjects: {', '.join(program.get('unt_subjects', []))}\n"
-            f"Description: {program['description']}"
-        )
-        return {"answer": answer, "confident": True, "source": "program", "matched_id": program["id"]}
+        return _program_answer(program)
     return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
+
+
+def _program_answer(program):
+    answer = (
+        f"**{program['name']}** ({program['code']}) - {program['faculty']}\n"
+        f"Degree: {program['degree']}, {program['duration_years']} years\n"
+        f"Cost: ~{program['approx_cost_per_year_kzt']:,} KZT/year\n"
+        f"Format: {program['format']}\n"
+        f"Description: {program['description']}"
+    )
+    return {"answer": answer, "confident": True, "source": "program", "matched_id": program["id"]}
 
 
 def answer_faq_query(message: str) -> Dict:
     """Implements US5 acceptance criteria (Scenario 1 & 2)."""
+    requirements = answer_requirements(message)
+    if requirements is not None:
+        return requirements
     entry, score = match_faq(message)
     if entry and score >= CONFIDENCE_THRESHOLD:
         return {"answer": entry["answer"], "confident": True, "source": "faq", "matched_id": entry["id"]}
@@ -123,6 +134,9 @@ def answer_faq_query(message: str) -> Dict:
 
 def get_ai_fallback_response(message: str) -> Dict:
     """Uses Gemini API as a smart fallback for complex or non-English queries."""
+    requirements = answer_requirements(message)
+    if requirements is not None:
+        return requirements
     api_key = os.environ.get("GEMINI_API_KEY")
     if not AI_AVAILABLE or not api_key:
         print("AI Fallback skipped: Missing google-genai library or GEMINI_API_KEY")
@@ -130,35 +144,48 @@ def get_ai_fallback_response(message: str) -> Dict:
         
     try:
         client = genai.Client(api_key=api_key)
-        programs = load_programs()
-        faq = load_faq()
+        programs = [{k: v for k, v in p.items() if k != "unt_subjects"} for p in load_programs()]
+        faq = [f for f in load_faq() if f["id"] != "faq_language"]
         
+        # AI may select a catalog entry, but never author admission conditions.
         context = (
-            "You are the Smart University Admissions Assistant for SDU University in Kazakhstan. "
-            "Answer user questions accurately based ONLY on the following JSON data. "
-            "If the answer is not in the data, politely inform the user and suggest contacting admission@sdu.edu.kz. "
-            "Keep answers concise, friendly, and well-formatted.\n\n"
-            f"PROGRAMS DATA:\n{json.dumps(programs, indent=2)}\n\n"
-            f"FAQ DATA:\n{json.dumps(faq, indent=2)}"
+            "Select an entry that answers the user's question. Return ONLY a JSON object "
+            'with source ("program" or "faq") and matched_id, or {} if no entry answers it. '
+            "Do not select any entry for admission requirements, examination scores, "
+            "eligibility, prerequisite or language proficiency questions. "
+            f"PROGRAMS: {json.dumps(programs)}\nFAQ: {json.dumps(faq)}"
         )
-        
+
         config = types.GenerateContentConfig(
             system_instruction=context,
-            temperature=0.2,
+            temperature=0,
+            response_mime_type="application/json",
         )
         
         # Используем актуальную модель
         chat = client.chats.create(model='gemini-3.6-flash', config=config)
         response = chat.send_message(message)
         
-        return {"answer": response.text, "confident": True, "source": "ai_fallback", "matched_id": "gemini"}
+        selection = json.loads(response.text)
+        if selection.get("source") == "program":
+            program = next((p for p in programs if p["id"] == selection.get("matched_id")), None)
+            if program:
+                return _program_answer(program)
+        if selection.get("source") == "faq":
+            entry = next((f for f in faq if f["id"] == selection.get("matched_id")), None)
+            if entry:
+                return {"answer": entry["answer"], "confident": True, "source": "faq", "matched_id": entry["id"]}
+        return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
     except Exception as e:
         print(f"AI Fallback Error: {e}")
         return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
 
 
-def answer_query(message: str) -> Dict:
+def answer_query(message: str, context=None, language=None) -> Dict:
     """Unified entry point: try both program and FAQ matching, return the stronger match."""
+    requirements = answer_requirements(message, context, language)
+    if requirements is not None:
+        return requirements
     program, p_score = match_program(message)
     entry, f_score = match_faq(message)
 

@@ -4,7 +4,7 @@ A modern, AI-powered web application designed to streamline the university admis
 
 ## 🚀 Key Features
 
-*   **Hybrid AI Chatbot**: Combines a lightning-fast rule-based NLP engine (token overlap) for standard queries with a smart fallback to **Google Gemini (3.6-flash)** for complex, multilingual, or contextual questions.
+*   **Hybrid AI Chatbot**: Combines a lightning-fast rule-based NLP engine (token overlap) for standard queries with an optional **Google Gemini** fallback that selects existing catalog entries for unmatched questions. US-3 requirements use a deterministic verified-data lookup before matching.
 *   **Dynamic Theme Engine**: Includes two professionally designed UI themes:
     *   **Metro Style** (Active): A strict, corporate, tile-based design with sharp edges, solid colors, and Phosphor vector icons.
     *   **Festival Style**: A vibrant, neon-lit, 3D polygonal design for promotional wow-effects.
@@ -27,13 +27,14 @@ admissions-assistant/
 │
 ├── app/
 │   ├── main.py          # FastAPI application initialization
-│   ├── api.py           # REST API routes and endpoints
+│   ├── requirements.py  # US3 routing, clarification and publication checks
 │   ├── chatbot.py       # Hybrid NLP Engine & Gemini API fallback logic
 │   └── database.py      # JSON data loading utilities
 │
 ├── data/
 │   ├── programs.json    # Database of SDU Bachelor programs
-│   └── faq.json         # Database of frequently asked questions
+│   ├── faq.json         # Database of frequently asked questions
+│   └── requirements.json # US3 program/category/level requirements
 │
 ├── static/
 │   ├── index.html       # Main SPA layout
@@ -73,7 +74,7 @@ admissions-assistant/
    ```
 
 4. **Configure Environment Variables**:
-   Create a `.env` file in the root directory and add your Google Gemini API key:
+   Optional for non-US3 fallback: create a `.env` file and add your Google Gemini API key. US3 works without a key:
    ```env
    GEMINI_API_KEY=your_google_gemini_api_key_here
    ```
@@ -102,3 +103,10 @@ The project includes a comprehensive test suite to ensure the chatbot logic and 
 ```bash
 pytest
 ```
+
+## US-3 admission requirements
+
+The existing chat now supports verified requirements and clarifications in English,
+Russian and Kazakh. See [US3.md](US3.md) for data provenance, run instructions,
+acceptance tests, instructor examples and the remaining synchronization/notification
+limitations. Unknown, unapproved and expired values are never substituted.

@@ -18,7 +18,6 @@ class FAQAdmin(ModelView, model=FAQ):
 class RequirementAdmin(ModelView, model=Requirement):
     column_list = [Requirement.id, Requirement.program_id, Requirement.category, Requirement.level, Requirement.topic, Requirement.status]
     column_searchable_list = [Requirement.program_id]
-    column_filters = [Requirement.category, Requirement.level, Requirement.topic, Requirement.status]
     name = "Admission Requirement"
     name_plural = "Admission Requirements"
     icon = "fa-solid fa-clipboard-list"

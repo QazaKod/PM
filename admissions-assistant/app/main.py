@@ -5,6 +5,9 @@ from fastapi.responses import FileResponse
 
 from app.schemas import ChatQuery, ChatResponse
 from app import chatbot, database
+from app.db_session import engine
+from sqladmin import Admin
+from app.admin import ProgramAdmin, FAQAdmin, RequirementAdmin
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 
@@ -13,6 +16,12 @@ app = FastAPI(
     description="Iteration 1: Chat-Program Info (US1) + Admission FAQ (US5)",
     version="0.1.0",
 )
+
+# Initialize SQLAdmin
+admin = Admin(app, engine, title="Admissions DB Admin")
+admin.add_view(ProgramAdmin)
+admin.add_view(FAQAdmin)
+admin.add_view(RequirementAdmin)
 
 
 @app.get("/health")

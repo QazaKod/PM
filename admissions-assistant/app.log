@@ -29,3 +29,23 @@
 2026-09-29 10:47:09,294 | INFO | [Unified /chat] Incoming Context: None
 2026-09-29 10:47:09,300 | INFO | [Unified /chat] Response Source: requirements | Confident: False
 2026-09-29 10:47:09,300 | INFO | [Unified /chat] Outgoing Context: {'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'program_id': 'sdu-cs', 'pending': 'category'}
+2026-09-29 10:52:41,747 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:52:41,762 | INFO | [Unified /chat] User Query: Are scholarships available?
+2026-09-29 10:52:41,762 | INFO | [Unified /chat] Incoming Context: None
+2026-09-29 10:52:41,782 | INFO | [Unified /chat] Response Source: None | Confident: False
+2026-09-29 10:52:41,783 | INFO | [Unified /chat] Outgoing Context: None
+2026-09-29 10:52:43,979 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:52:43,981 | INFO | [Unified /chat] User Query: What are the admission requirements for Computer Science?
+2026-09-29 10:52:43,981 | INFO | [Unified /chat] Incoming Context: None
+2026-09-29 10:52:43,988 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:52:43,988 | INFO | [Unified /chat] Outgoing Context: {'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'program_id': 'sdu-cs', 'pending': 'category'}
+2026-09-29 10:52:48,407 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:52:48,408 | INFO | [Unified /chat] User Query: domestic
+2026-09-29 10:52:48,408 | INFO | [Unified /chat] Incoming Context: None
+2026-09-29 10:52:48,413 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:52:48,413 | INFO | [Unified /chat] Outgoing Context: {'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'category': 'domestic', 'pending': 'program_id'}
+2026-09-29 10:52:53,546 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:52:53,549 | INFO | [Unified /chat] User Query: IS
+2026-09-29 10:52:53,549 | INFO | [Unified /chat] Incoming Context: None
+2026-09-29 10:52:53,556 | INFO | [Unified /chat] Response Source: faq | Confident: True
+2026-09-29 10:52:53,556 | INFO | [Unified /chat] Outgoing Context: None

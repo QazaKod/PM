@@ -44,7 +44,8 @@ admin.add_view(LogsAdmin)
 async def log_requests(request: Request, call_next):
     # Log incoming requests for the chatbot
     if request.url.path.startswith("/chat"):
-        logger.info(f"Incoming chat request from {request.client.host}")
+        body_bytes = await request.body()
+        logger.info(f"Incoming chat request from {request.client.host} | Body: {body_bytes.decode('utf-8')}")
     response = await call_next(request)
     return response
 

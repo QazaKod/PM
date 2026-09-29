@@ -79,7 +79,7 @@ def language_of(message, previous='en'):
     return previous
 
 
-def is_requirements_query(message):
+def is_requirements_query(message, data=None):
     text = message.lower()
     
     # Exclude non-academic inquiries (like dorms, cost, standard documents)
@@ -90,12 +90,21 @@ def is_requirements_query(message):
             
     has_intent = bool(re.search(INTENT, text) or any(re.search(p, text) for p in TOPICS.values()))
     
-    # Also consider standalone category or level words as valid intent
-    # if they match our recognized slot dictionaries.
-    if not has_intent and len(text.split()) <= 2:
+    # Also consider standalone category, level, or program words as valid intent
+    # if they match our recognized slot dictionaries (to handle dropped frontend context).
+    if not has_intent and len(text.split()) <= 3:
         has_category = any(re.search(pattern, text) for pattern in CATEGORY.values())
         has_level = any(re.search(pattern, text) for pattern in LEVEL.values())
-        if has_category or has_level:
+        
+        has_program = False
+        if data:
+            for pid, p in data.items():
+                aliases = [p['name']] + p.get('aliases', [])
+                if any(re.search(fr'\b{re.escape(a.lower())}\b', text) for a in aliases):
+                    has_program = True
+                    break
+                    
+        if has_category or has_level or has_program:
             return True
             
     return has_intent
@@ -159,7 +168,7 @@ def answer_requirements(message, context=None, language=None, *, data=None, toda
         for level, code in p.get('codes', {}).items():
             if code and _contains(text, code) and level not in levels:
                 levels.append(level)
-    intent = is_requirements_query(category_text)
+    intent = is_requirements_query(category_text, data)
     if not intent and re.search(r'cost|tuition|documents|dorm|оплат|стоимост|документ|жатақхана|құжат', text):
         return None
     slot_reply = bool(matches or categories or levels)

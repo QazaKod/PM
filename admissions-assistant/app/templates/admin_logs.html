@@ -1,0 +1,23 @@
+{% extends "sqladmin/layout.html" %}
+{% block content %}
+<div class="col-12">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title">System Logs (app.log)</h3>
+            <a href="#" onclick="location.reload()" class="btn btn-sm btn-primary">
+                <i class="fa-solid fa-rotate-right"></i> Refresh Logs
+            </a>
+        </div>
+        <div class="card-body" style="background-color: #1e1e1e; padding: 15px; height: 75vh; overflow-y: auto;">
+            <pre style="color: #00ff00; font-family: 'Consolas', 'Courier New', monospace; font-size: 13px; white-space: pre-wrap; margin: 0; line-height: 1.4;">{{ log_content }}</pre>
+        </div>
+    </div>
+</div>
+<script>
+    // Auto scroll to bottom
+    const cardBody = document.querySelector('.card-body');
+    if (cardBody) {
+        cardBody.scrollTop = cardBody.scrollHeight;
+    }
+</script>
+{% endblock %}

@@ -213,7 +213,7 @@ def test_ai_output_cannot_author_requirements(output,monkeypatch):
     monkeypatch.setenv('GEMINI_API_KEY','TEST-ONLY-FAKE-KEY')
     monkeypatch.setattr(chatbot,'genai',api,raising=False)
     monkeypatch.setattr(chatbot,'types',SimpleNamespace(GenerateContentConfig=Mock()),raising=False)
-    r=chatbot.get_ai_fallback_response('An uncommon campus question')
+    r=chatbot.get_ai_fallback_response('An uncommon campus question', [], [])
     assert '99' not in r['answer']
     assert 'fictional' not in r['answer']
     api.Client.return_value.chats.create.return_value.send_message.assert_called_once()

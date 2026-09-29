@@ -14,7 +14,7 @@ from app import chatbot
 # --- US1: Chat-Program Info -------------------------------------------------
 
 def test_us1_scenario1_successful_program_query():
-    result = chatbot.answer_program_query("How much does the Computer Science program cost?")
+    result = chatbot.answer_query("How much does the Computer Science program cost?")
     assert result["confident"] is True
     assert result["source"] == "program"
     assert result["matched_id"] == "sdu-cs"
@@ -31,13 +31,13 @@ def test_us1_scenario1_five_different_program_questions_pass():
         ("How much is tuition for Software Engineering?", "sdu-se"),
     ]
     for question, expected_id in questions_and_expected_ids:
-        result = chatbot.answer_program_query(question)
+        result = chatbot.answer_query(question)
         assert result["confident"] is True, f"Expected confident answer for: {question}"
         assert result["matched_id"] == expected_id, f"Wrong program matched for: {question}"
 
 
 def test_us1_scenario2_chatbot_cannot_answer_confidently():
-    result = chatbot.answer_program_query("What's the weather like on Mars today?")
+    result = chatbot.answer_query("What's the weather like on Mars today?")
     assert result["confident"] is False
     assert result["source"] is None
     assert "connect you with the admissions office" in result["answer"]
@@ -46,7 +46,7 @@ def test_us1_scenario2_chatbot_cannot_answer_confidently():
 # --- US5: Admission FAQ ------------------------------------------------------
 
 def test_us5_scenario1_successful_faq_query():
-    result = chatbot.answer_faq_query("What documents are required for admission?")
+    result = chatbot.answer_query("What documents are required for admission?")
     assert result["confident"] is True
     assert result["source"] == "faq"
     assert result["matched_id"] == "faq_documents"
@@ -62,13 +62,13 @@ def test_us5_scenario1_five_different_faq_questions_pass():
         ("Can I study with a state grant?", "faq_ministry"),
     ]
     for question, expected_id in questions_and_expected_ids:
-        result = chatbot.answer_faq_query(question)
+        result = chatbot.answer_query(question)
         assert result["confident"] is True, f"Expected confident answer for: {question}"
         assert result["matched_id"] == expected_id, f"Wrong FAQ matched for: {question}"
 
 
 def test_us5_scenario2_question_not_covered_in_faq():
-    result = chatbot.answer_faq_query("Can I bring my dog to campus?")
+    result = chatbot.answer_query("Can I bring my dog to campus?")
     assert result["confident"] is False
     assert result["source"] is None
     assert "connect you with the admissions office" in result["answer"]

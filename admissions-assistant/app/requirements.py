@@ -81,9 +81,13 @@ def language_of(message, previous='en'):
 
 def is_requirements_query(message):
     text = message.lower()
-    # US5's document checklist is separate from academic eligibility.
-    if re.search(r'documents|документ|құжат', text) and not re.search(r'ielts|toefl|score|балл|ұбт|qualification', text):
-        return False
+    
+    # Exclude non-academic inquiries (like dorms, cost, standard documents)
+    # UNLESS they explicitly say "requirements" or similar strong intent.
+    if re.search(r'cost|tuition|price|dorm|оплат|стоимост|сколько стоит|документ|жатақхана|құжат|баға', text):
+        if not re.search(INTENT, text) and not re.search(r'ielts|toefl|score|балл|ұбт|qualification', text):
+            return False
+            
     return bool(re.search(INTENT, text) or any(re.search(p, text) for p in TOPICS.values()))
 
 

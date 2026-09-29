@@ -1,0 +1,31 @@
+2026-09-29 10:40:30,701 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:40:30,705 | INFO | [Unified /chat] User Query: What are the admission requirements for Computer Science?
+2026-09-29 10:40:30,719 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:40:36,740 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:40:36,741 | INFO | [Unified /chat] User Query: How much does the Computer Science program cost?
+2026-09-29 10:40:36,749 | INFO | [Unified /chat] Response Source: program | Confident: True
+2026-09-29 10:43:01,068 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:43:01,074 | INFO | [Unified /chat] User Query: domestic
+2026-09-29 10:43:01,074 | INFO | [Unified /chat] Incoming Context: admission_year=None program_id='sdu-cs' category=None study_level=None language='en' topics=['exams', 'prerequisites', 'language'] pending='category'
+2026-09-29 10:43:01,093 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:43:01,093 | INFO | [Unified /chat] Outgoing Context: {'admission_year': None, 'program_id': 'sdu-cs', 'category': 'domestic', 'study_level': None, 'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'pending': 'study_level'}
+2026-09-29 10:43:18,061 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:43:18,062 | INFO | [Unified /chat] User Query: What are the admission requirements for Computer Science?
+2026-09-29 10:43:18,062 | INFO | [Unified /chat] Incoming Context: None
+2026-09-29 10:43:18,067 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:43:18,067 | INFO | [Unified /chat] Outgoing Context: {'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'program_id': 'sdu-cs', 'pending': 'category'}
+2026-09-29 10:43:46,893 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:43:46,894 | INFO | [Unified /chat] User Query: What are the admission requirements for Computer Science?
+2026-09-29 10:43:46,895 | INFO | [Unified /chat] Incoming Context: None
+2026-09-29 10:43:46,899 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:43:46,899 | INFO | [Unified /chat] Outgoing Context: {'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'program_id': 'sdu-cs', 'pending': 'category'}
+2026-09-29 10:43:57,467 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:43:57,469 | INFO | [Unified /chat] User Query: domestic
+2026-09-29 10:43:57,469 | INFO | [Unified /chat] Incoming Context: admission_year=None program_id='sdu-cs' category=None study_level=None language='en' topics=['exams', 'prerequisites', 'language'] pending='category'
+2026-09-29 10:43:57,474 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:43:57,475 | INFO | [Unified /chat] Outgoing Context: {'admission_year': None, 'program_id': 'sdu-cs', 'category': 'domestic', 'study_level': None, 'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'pending': 'study_level'}
+2026-09-29 10:47:09,293 | INFO | Incoming chat request from 127.0.0.1
+2026-09-29 10:47:09,294 | INFO | [Unified /chat] User Query: What are the admission requirements for Computer Science?
+2026-09-29 10:47:09,294 | INFO | [Unified /chat] Incoming Context: None
+2026-09-29 10:47:09,300 | INFO | [Unified /chat] Response Source: requirements | Confident: False
+2026-09-29 10:47:09,300 | INFO | [Unified /chat] Outgoing Context: {'language': 'en', 'topics': ['exams', 'prerequisites', 'language'], 'program_id': 'sdu-cs', 'pending': 'category'}

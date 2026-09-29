@@ -84,8 +84,10 @@ def chat_faq(query: ChatQuery):
 def chat(query: ChatQuery):
     """Unified endpoint: routes to whichever knowledge base matches best."""
     logger.info(f"[Unified /chat] User Query: {query.message}")
+    logger.info(f"[Unified /chat] Incoming Context: {query.context}")
     response = chatbot.answer_query(query.message, query.context.model_dump() if query.context else None, query.language)
     logger.info(f"[Unified /chat] Response Source: {response.get('source', 'None')} | Confident: {response.get('confident')}")
+    logger.info(f"[Unified /chat] Outgoing Context: {response.get('context')}")
     return response
 
 

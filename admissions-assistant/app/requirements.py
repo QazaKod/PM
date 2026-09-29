@@ -88,7 +88,17 @@ def is_requirements_query(message):
         if not re.search(INTENT, text) and not re.search(r'ielts|toefl|score|балл|ұбт|qualification', text):
             return False
             
-    return bool(re.search(INTENT, text) or any(re.search(p, text) for p in TOPICS.values()))
+    has_intent = bool(re.search(INTENT, text) or any(re.search(p, text) for p in TOPICS.values()))
+    
+    # Also consider standalone category or level words as valid intent
+    # if they match our recognized slot dictionaries.
+    if not has_intent and len(text.split()) <= 2:
+        has_category = any(re.search(pattern, text) for pattern in CATEGORY.values())
+        has_level = any(re.search(pattern, text) for pattern in LEVEL.values())
+        if has_category or has_level:
+            return True
+            
+    return has_intent
 
 
 def _contains(text, alias):

@@ -43,9 +43,9 @@ FALLBACK_MESSAGE = (
 
 _STOPWORDS = {
     # English
-    "a", "an", "the", "is", "are", "do", "does", "what", "which", "how",
+    "a", "an", "the", "are", "do", "does", "what", "which", "how",
     "i", "want", "to", "for", "of", "in", "on", "about", "can", "you",
-    "me", "my", "please", "tell", "much", "cost", "price", "there", "it",
+    "me", "my", "please", "tell", "much", "there",
     "at", "by", "from", "with", "any", "some", "have", "has", "had", "will",
     # Russian
     "и", "в", "на", "с", "по", "как", "что", "для", "это", "а", "я", "мне", 
@@ -83,7 +83,10 @@ def get_scored_programs(message: str) -> List[Tuple[Dict, float]]:
     q_tokens = _tokenize(message)
     scored = []
     for program in programs:
-        target = f"{program['name']} {program['name']} {program['name']} {program['code']} {program.get('description', '')} {program.get('degree', '')}"
+        aliases = " ".join(program.get("aliases") or [])
+        codes_dict = program.get("codes") or {}
+        codes = " ".join(filter(None, codes_dict.values()))
+        target = f"{program['name']} {program['name']} {program['name']} {program['code']} {program.get('description', '')} {program.get('degree', '')} {aliases} {codes}"
         scored.append((program, _score(q_tokens, _tokenize(target))))
     scored.sort(key=lambda x: x[1], reverse=True)
     return scored
@@ -126,10 +129,12 @@ def get_ai_fallback_response(message: str, top_programs: list, top_faqs: list) -
         faq_ctx = [f for f in top_faqs if f["id"] != "faq_language"]
         
         context = (
-            "Select an entry that answers the user's question. Return ONLY a JSON object "
-            'with source ("program" or "faq") and matched_id, or {} if no entry answers it. '
-            "Do not select any entry for admission requirements, examination scores, "
-            "eligibility, prerequisite or language proficiency questions. "
+            "You are a university admissions assistant.\n"
+            "If the user is just greeting you (e.g. 'Hello', 'Привет', 'Сәлем') or making small talk, respond warmly and concisely in the same language. "
+            "Return a JSON object: {\"source\": \"greeting\", \"answer\": \"Your text\"}.\n\n"
+            "Otherwise, select an entry that answers the user's question. Return ONLY a JSON object "
+            'with source ("program" or "faq") and matched_id, or {} if no entry answers it.\n'
+            "Do not author admission conditions yourself.\n"
             f"PROGRAMS: {json.dumps(programs_ctx)}\nFAQ: {json.dumps(faq_ctx)}"
         )
 
@@ -143,6 +148,9 @@ def get_ai_fallback_response(message: str, top_programs: list, top_faqs: list) -
         response = chat.send_message(message)
         
         selection = json.loads(response.text)
+        
+        if selection.get("source") == "greeting":
+            return {"answer": selection.get("answer"), "confident": True, "source": "greeting", "matched_id": None}
         if selection.get("source") == "program":
             program = next((p for p in top_programs if p["id"] == selection.get("matched_id")), None)
             if program:

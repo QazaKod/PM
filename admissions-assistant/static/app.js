@@ -566,13 +566,111 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.switchAuthTab = function(tab) {
     const isLogin = tab === 'login';
+    const isRegister = tab === 'register';
+    const isForgot = tab === 'forgot';
+    const isReset = tab === 'reset';
+
+    const tabsContainer = document.querySelector(".auth-tabs");
+    if (tabsContainer) {
+      tabsContainer.style.display = (isForgot || isReset) ? "none" : "flex";
+    }
+
     document.getElementById("tab-btn-login").classList.toggle("active", isLogin);
-    document.getElementById("tab-btn-register").classList.toggle("active", !isLogin);
+    document.getElementById("tab-btn-register").classList.toggle("active", isRegister);
+
     document.getElementById("form-login").style.display = isLogin ? "block" : "none";
-    document.getElementById("form-register").style.display = isLogin ? "none" : "block";
-    document.getElementById("auth-modal-title").textContent = isLogin ? "Sign In" : "Create Account";
-    document.getElementById("login-error").textContent = "";
-    document.getElementById("reg-error").textContent = "";
+    document.getElementById("form-register").style.display = isRegister ? "block" : "none";
+    document.getElementById("form-forgot").style.display = isForgot ? "block" : "none";
+    document.getElementById("form-reset").style.display = isReset ? "block" : "none";
+
+    if (isLogin) document.getElementById("auth-modal-title").textContent = "Sign In";
+    else if (isRegister) document.getElementById("auth-modal-title").textContent = "Create Account";
+    else if (isForgot) document.getElementById("auth-modal-title").textContent = "Forgot Password";
+    else if (isReset) document.getElementById("auth-modal-title").textContent = "Reset Password";
+
+    const errorIds = ["login-error", "reg-error", "forgot-error", "reset-error"];
+    errorIds.forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = "";
+    });
+  };
+
+  let pendingResetEmail = "";
+
+  window.handleForgotSubmit = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById("forgot-email").value.trim();
+    const errorEl = document.getElementById("forgot-error");
+    errorEl.textContent = "";
+
+    try {
+      const res = await fetch("/auth/forgot-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.detail || "Failed to process request";
+        return;
+      }
+
+      pendingResetEmail = email;
+      switchAuthTab('reset');
+
+      const notice = document.getElementById("reset-notice");
+      if (data.debug_code) {
+        notice.innerHTML = `Verification code sent to <strong>${escapeHtml(email)}</strong>.<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Your code is <strong>${data.debug_code}</strong> (also in app.log)</small>`;
+      } else {
+        notice.innerHTML = `A 6-digit verification code has been sent to <strong>${escapeHtml(email)}</strong>. Please check your inbox and enter it below.`;
+      }
+    } catch (err) {
+      errorEl.textContent = "Network error. Please try again.";
+    }
+  };
+
+  window.handleResetSubmit = async function(e) {
+    e.preventDefault();
+    const code = document.getElementById("reset-code").value.trim();
+    const new_password = document.getElementById("reset-new-password").value;
+    const confirm_password = document.getElementById("reset-confirm-password").value;
+    const errorEl = document.getElementById("reset-error");
+    errorEl.textContent = "";
+
+    if (new_password !== confirm_password) {
+      errorEl.textContent = "Passwords do not match. Please verify.";
+      return;
+    }
+
+    try {
+      const res = await fetch("/auth/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: pendingResetEmail,
+          code,
+          new_password,
+          confirm_password
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.detail || (data.detail && data.detail[0]?.msg) || "Failed to reset password";
+        return;
+      }
+
+      switchAuthTab('login');
+      document.getElementById("login-email").value = pendingResetEmail;
+      const loginError = document.getElementById("login-error");
+      loginError.style.color = "var(--ok, #1B7F5C)";
+      loginError.textContent = "Password successfully changed! Please log in.";
+      setTimeout(() => {
+        loginError.style.color = "var(--alert, #b32d3a)";
+        loginError.textContent = "";
+      }, 6000);
+    } catch (err) {
+      errorEl.textContent = "Network error. Please try again.";
+    }
   };
 
   window.handleLoginSubmit = async function(e) {

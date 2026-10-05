@@ -1,12 +1,16 @@
+import random
+from datetime import datetime, timedelta
 from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from app.db_session import get_db
-from app.models import User, ApplicantProfile, SavedProgram, ChatSession, Program
+from app.models import User, ApplicantProfile, SavedProgram, ChatSession, Program, PasswordResetToken
 from app.schemas import (
     UserRegister,
     UserLogin,
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
     TokenResponse,
     UserOut,
     ApplicantProfileOut,
@@ -20,6 +24,7 @@ from app.security import (
     create_access_token,
     get_current_user,
 )
+from app.email_service import send_password_reset_email, is_smtp_configured
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Profile"])
 
@@ -79,6 +84,102 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
     token = create_access_token(data={"sub": str(user.id), "email": user.email, "role": user.role})
     return TokenResponse(access_token=token, token_type="bearer", user=UserOut.model_validate(user))
+
+
+# ==========================================
+# PASSWORD RESET & EMAIL RECOVERY
+# ==========================================
+
+@router.post("/forgot-password")
+def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Sends a 6-digit password reset verification code to the user's email.
+    """
+    email_clean = payload.email.strip().lower()
+    user = db.query(User).filter(User.email == email_clean).first()
+
+    if not user:
+        # Return generic success response to prevent email enumeration
+        return {
+            "status": "ok",
+            "message": "If this email is registered in our system, a verification code has been sent."
+        }
+
+    # Generate 6-digit verification code
+    code = f"{random.randint(100000, 999999):06d}"
+    expires_at = datetime.utcnow() + timedelta(minutes=15)
+
+    reset_token = PasswordResetToken(
+        user_id=user.id,
+        code=code,
+        expires_at=expires_at,
+        is_used=False
+    )
+    db.add(reset_token)
+    db.commit()
+
+    # Send email (or log if SMTP not yet configured)
+    sent = send_password_reset_email(to_email=user.email, code=code, user_name=user.full_name)
+
+    response_data = {
+        "status": "ok",
+        "message": "A 6-digit verification code has been sent to your email.",
+        "email": user.email,
+    }
+    # If SMTP is not yet configured, include debug_code for convenient local developer testing
+    if not is_smtp_configured():
+        response_data["debug_code"] = code
+        response_data["note"] = "SMTP is not configured in .env. Code was logged to app.log."
+
+    return response_data
+
+
+@router.post("/reset-password")
+def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Verifies the 6-digit code and resets the user's password.
+    """
+    email_clean = payload.email.strip().lower()
+    user = db.query(User).filter(User.email == email_clean).first()
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid request or email."
+        )
+
+    # Find the latest matching unused reset token
+    token_entry = (
+        db.query(PasswordResetToken)
+        .filter(
+            PasswordResetToken.user_id == user.id,
+            PasswordResetToken.code == payload.code.strip(),
+            PasswordResetToken.is_used == False
+        )
+        .order_by(PasswordResetToken.created_at.desc())
+        .first()
+    )
+
+    if not token_entry:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code. Please check your email or request a new code."
+        )
+
+    if token_entry.expires_at < datetime.utcnow():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Verification code has expired. Please request a new code."
+        )
+
+    # Update user password
+    user.hashed_password = hash_password(payload.new_password)
+    token_entry.is_used = True
+    db.commit()
+
+    return {
+        "status": "ok",
+        "message": "Password successfully reset! You can now log in with your new password."
+    }
 
 
 @router.get("/me", response_model=UserOut)

@@ -79,6 +79,39 @@ class UserLogin(BaseModel):
         return v.strip().lower()
 
 
+class ForgotPasswordRequest(BaseModel):
+    email: str
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, v: str) -> str:
+        return v.strip().lower()
+
+
+class ResetPasswordRequest(BaseModel):
+    email: str
+    code: str
+    new_password: str = Field(min_length=6, max_length=100)
+    confirm_password: str = Field(min_length=6, max_length=100)
+
+    @field_validator("email")
+    @classmethod
+    def normalize_email(cls, v: str) -> str:
+        return v.strip().lower()
+
+    @field_validator("code")
+    @classmethod
+    def clean_code(cls, v: str) -> str:
+        return v.strip()
+
+    @model_validator(mode="after")
+    def check_passwords_match(self):
+        if self.new_password != self.confirm_password:
+            raise ValueError("New passwords do not match.")
+        return self
+
+
+
 class ApplicantProfileOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

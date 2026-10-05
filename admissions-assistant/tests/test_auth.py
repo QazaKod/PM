@@ -203,3 +203,57 @@ def test_personalized_chat_auto_fills_profile():
     assert data["source"] == "requirements"
     assert "session_id" in data
     assert data["session_id"] is not None
+
+
+def test_forgot_and_reset_password_flow():
+    # 1. Request forgot password
+    forgot_resp = client.post("/auth/forgot-password", json={"email": TEST_EMAIL})
+    assert forgot_resp.status_code == 200
+    data = forgot_resp.json()
+    assert data["status"] == "ok"
+    assert "debug_code" in data
+    code = data["debug_code"]
+
+    # 2. Try resetting with mismatched passwords (should fail)
+    mismatch_resp = client.post("/auth/reset-password", json={
+        "email": TEST_EMAIL,
+        "code": code,
+        "new_password": "NewSecretPassword123!",
+        "confirm_password": "DifferentPassword!"
+    })
+    assert mismatch_resp.status_code == 422
+
+    # 3. Try resetting with invalid code (should fail)
+    bad_code_resp = client.post("/auth/reset-password", json={
+        "email": TEST_EMAIL,
+        "code": "000000",
+        "new_password": "NewSecretPassword123!",
+        "confirm_password": "NewSecretPassword123!"
+    })
+    assert bad_code_resp.status_code == 400
+
+    # 4. Reset with valid code and matching passwords
+    reset_resp = client.post("/auth/reset-password", json={
+        "email": TEST_EMAIL,
+        "code": code,
+        "new_password": "NewSecretPassword123!",
+        "confirm_password": "NewSecretPassword123!"
+    })
+    assert reset_resp.status_code == 200
+    assert "successfully reset" in reset_resp.json()["message"]
+
+    # 5. Old password should now fail
+    old_login_resp = client.post("/auth/login", json={
+        "email": TEST_EMAIL,
+        "password": TEST_PASSWORD
+    })
+    assert old_login_resp.status_code == 401
+
+    # 6. New password should successfully log in
+    new_login_resp = client.post("/auth/login", json={
+        "email": TEST_EMAIL,
+        "password": "NewSecretPassword123!"
+    })
+    assert new_login_resp.status_code == 200
+    assert "access_token" in new_login_resp.json()
+

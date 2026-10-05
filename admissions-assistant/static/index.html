@@ -547,6 +547,9 @@
             <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('login-password', this)" title="Show/Hide Password">👁️</button>
           </div>
         </div>
+        <div style="display: flex; justify-content: flex-end; margin-top: 4px;">
+          <a href="#" class="auth-forgot-link" onclick="switchAuthTab('forgot'); return false;">Forgot password?</a>
+        </div>
         <div id="login-error" class="auth-form-error"></div>
         <button type="submit" class="auth-form-submit">Log In</button>
       </form>
@@ -577,6 +580,52 @@
         </div>
         <div id="reg-error" class="auth-form-error"></div>
         <button type="submit" class="auth-form-submit">Create Account</button>
+      </form>
+
+      <!-- Forgot Password Form (Step 1) -->
+      <form id="form-forgot" style="display: none;" onsubmit="handleForgotSubmit(event)">
+        <p style="font-size: 13px; color: var(--muted); margin-top: 0; margin-bottom: 14px;">
+          Enter your registered email address and we will send you a 6-digit verification code to reset your password.
+        </p>
+        <div class="auth-form-group">
+          <label>Email Address</label>
+          <input type="email" id="forgot-email" required placeholder="applicant@sdu.edu.kz">
+        </div>
+        <div id="forgot-error" class="auth-form-error"></div>
+        <button type="submit" class="auth-form-submit">Send Verification Code</button>
+        <div style="text-align: center; margin-top: 14px;">
+          <a href="#" class="auth-forgot-link" onclick="switchAuthTab('login'); return false;">&larr; Back to Sign In</a>
+        </div>
+      </form>
+
+      <!-- Reset Password Form (Step 2) -->
+      <form id="form-reset" style="display: none;" onsubmit="handleResetSubmit(event)">
+        <div id="reset-notice" class="auth-notice-box">
+          A 6-digit code has been sent to your email. Please check your inbox (or spam) and enter it below.
+        </div>
+        <div class="auth-form-group">
+          <label>6-Digit Verification Code</label>
+          <input type="text" id="reset-code" maxlength="6" class="auth-code-input" required placeholder="123456">
+        </div>
+        <div class="auth-form-group">
+          <label>New Password (at least 6 chars)</label>
+          <div class="password-wrapper">
+            <input type="password" id="reset-new-password" minlength="6" required placeholder="••••••••">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reset-new-password', this)" title="Show/Hide Password">👁️</button>
+          </div>
+        </div>
+        <div class="auth-form-group">
+          <label>Confirm New Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="reset-confirm-password" minlength="6" required placeholder="••••••••">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reset-confirm-password', this)" title="Show/Hide Password">👁️</button>
+          </div>
+        </div>
+        <div id="reset-error" class="auth-form-error"></div>
+        <button type="submit" class="auth-form-submit">Change Password</button>
+        <div style="text-align: center; margin-top: 14px;">
+          <a href="#" class="auth-forgot-link" onclick="switchAuthTab('forgot'); return false;">&larr; Request a different code</a>
+        </div>
       </form>
     </div>
   </div>

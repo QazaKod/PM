@@ -331,4 +331,57 @@
   line-height: 1.4;
 }
 
+.auth-channel-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.auth-channel-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid var(--line, #DFE7ED);
+  background: var(--surface, #ffffff);
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--muted, #5C7085);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.auth-channel-btn.active {
+  background: var(--steppe-lo, #E4F3F7);
+  border-color: var(--steppe, #1289A7);
+  color: var(--steppe, #1289A7);
+}
+
+.auth-tg-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 10px;
+  background: #229ED9;
+  color: white !important;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 13px;
+  margin-bottom: 14px;
+  box-sizing: border-box;
+  transition: background 0.2s, transform 0.15s;
+}
+
+.auth-tg-btn:hover {
+  background: #1B8ABF;
+  transform: translateY(-1px);
+}
+
+
 

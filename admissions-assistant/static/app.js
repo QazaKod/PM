@@ -596,6 +596,21 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   let pendingResetEmail = "";
+  let forgotChannel = "email";
+
+  window.setForgotChannel = function(channel) {
+    forgotChannel = channel;
+    const emailBtn = document.getElementById("channel-btn-email");
+    const tgBtn = document.getElementById("channel-btn-telegram");
+    const submitBtn = document.getElementById("forgot-submit-btn");
+
+    if (emailBtn) emailBtn.classList.toggle("active", channel === "email");
+    if (tgBtn) tgBtn.classList.toggle("active", channel === "telegram");
+
+    if (submitBtn) {
+      submitBtn.textContent = channel === "telegram" ? "Get Code via Telegram Bot" : "Send Code via Email";
+    }
+  };
 
   window.handleForgotSubmit = async function(e) {
     e.preventDefault();
@@ -607,7 +622,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email, channel: forgotChannel })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -619,10 +634,25 @@ document.addEventListener("DOMContentLoaded", () => {
       switchAuthTab('reset');
 
       const notice = document.getElementById("reset-notice");
-      if (data.debug_code) {
-        notice.innerHTML = `Verification code sent to <strong>${escapeHtml(email)}</strong>.<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Your code is <strong>${data.debug_code}</strong> (also in app.log)</small>`;
+      const tgContainer = document.getElementById("reset-tg-container");
+      const tgLink = document.getElementById("reset-tg-link");
+
+      if (data.channel === "telegram") {
+        if (tgContainer) tgContainer.style.display = "block";
+        if (tgLink && data.bot_url) tgLink.href = data.bot_url;
+
+        let msg = `Click the button below to open our Telegram bot and receive your 6-digit code for <strong>${escapeHtml(email)}</strong>.`;
+        if (data.debug_code) {
+          msg += `<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Code is <strong>${data.debug_code}</strong> (logged to app.log)</small>`;
+        }
+        notice.innerHTML = msg;
       } else {
-        notice.innerHTML = `A 6-digit verification code has been sent to <strong>${escapeHtml(email)}</strong>. Please check your inbox and enter it below.`;
+        if (tgContainer) tgContainer.style.display = "none";
+        let msg = `A 6-digit verification code has been sent to <strong>${escapeHtml(email)}</strong>. Please check your inbox and enter it below.`;
+        if (data.debug_code) {
+          msg += `<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Code is <strong>${data.debug_code}</strong> (logged to app.log)</small>`;
+        }
+        notice.innerHTML = msg;
       }
     } catch (err) {
       errorEl.textContent = "Network error. Please try again.";

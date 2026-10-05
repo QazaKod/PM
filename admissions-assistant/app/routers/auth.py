@@ -1,7 +1,7 @@
 import random
 from datetime import datetime, timedelta
-from typing import List
-from fastapi import APIRouter, Depends, HTTPException, status
+from typing import List, Optional
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
 from app.db_session import get_db
@@ -25,6 +25,13 @@ from app.security import (
     get_current_user,
 )
 from app.email_service import send_password_reset_email, is_smtp_configured
+from app.telegram_service import (
+    send_telegram_reset_code,
+    get_telegram_deep_link,
+    get_bot_username,
+    is_telegram_configured,
+    process_telegram_update,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Profile"])
 
@@ -87,13 +94,13 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 
 
 # ==========================================
-# PASSWORD RESET & EMAIL RECOVERY
+# PASSWORD RESET (EMAIL & TELEGRAM)
 # ==========================================
 
 @router.post("/forgot-password")
 def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
     """
-    Sends a 6-digit password reset verification code to the user's email.
+    Sends a 6-digit password reset verification code via Email or Telegram.
     """
     email_clean = payload.email.strip().lower()
     user = db.query(User).filter(User.email == email_clean).first()
@@ -102,7 +109,8 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
         # Return generic success response to prevent email enumeration
         return {
             "status": "ok",
-            "message": "If this email is registered in our system, a verification code has been sent."
+            "channel": payload.channel or "email",
+            "message": "If this account exists in our system, a verification code has been sent."
         }
 
     # Generate 6-digit verification code
@@ -118,15 +126,45 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
     db.add(reset_token)
     db.commit()
 
-    # Send email (or log if SMTP not yet configured)
-    sent = send_password_reset_email(to_email=user.email, code=code, user_name=user.full_name)
+    bot_url = get_telegram_deep_link(code)
+    bot_username = get_bot_username()
 
+    if payload.channel == "telegram":
+        # Check if user has an existing linked Telegram chat_id
+        if user.telegram_chat_id:
+            send_telegram_reset_code(user.telegram_chat_id, code, user.full_name)
+            response_data = {
+                "status": "ok",
+                "channel": "telegram",
+                "delivery": "direct",
+                "message": f"Verification code sent directly to your linked Telegram account.",
+                "bot_url": bot_url,
+                "bot_username": bot_username,
+            }
+        else:
+            # Deep link: user can tap the bot link to receive the code
+            response_data = {
+                "status": "ok",
+                "channel": "telegram",
+                "delivery": "deep_link",
+                "message": f"Please open our Telegram bot to receive your verification code.",
+                "bot_url": bot_url,
+                "bot_username": bot_username,
+            }
+        if not is_telegram_configured():
+            response_data["debug_code"] = code
+            response_data["note"] = "Telegram bot token not configured in .env. Code was logged to app.log."
+        return response_data
+
+    # Default channel: Email
+    send_password_reset_email(to_email=user.email, code=code, user_name=user.full_name)
     response_data = {
         "status": "ok",
+        "channel": "email",
         "message": "A 6-digit verification code has been sent to your email.",
         "email": user.email,
+        "bot_url": bot_url,
     }
-    # If SMTP is not yet configured, include debug_code for convenient local developer testing
     if not is_smtp_configured():
         response_data["debug_code"] = code
         response_data["note"] = "SMTP is not configured in .env. Code was logged to app.log."
@@ -162,7 +200,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     if not token_entry:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code. Please check your email or request a new code."
+            detail="Invalid verification code. Please check your messages or request a new code."
         )
 
     if token_entry.expires_at < datetime.utcnow():
@@ -182,6 +220,20 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     }
 
 
+@router.post("/telegram-webhook")
+async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
+    """
+    Webhook endpoint for Telegram Bot updates.
+    Handles /start reset_<CODE> and automatic chat_id linking.
+    """
+    try:
+        update_data = await request.json()
+        result = process_telegram_update(update_data, db)
+        return {"ok": True, "result": result}
+    except Exception as e:
+        return {"ok": False, "error": str(e)}
+
+
 @router.get("/me", response_model=UserOut)
 def get_me(user: User = Depends(get_current_user)):
     """Returns the authenticated user's account details and profile."""
@@ -194,13 +246,16 @@ def update_profile(
     user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Updates the applicant's profile (citizenship, target degree, UNT/IELTS scores)."""
+    """Updates the applicant's profile (citizenship, target degree, UNT/IELTS scores, telegram)."""
     profile = user.profile
     if not profile:
         profile = ApplicantProfile(user_id=user.id)
         db.add(profile)
 
     update_data = payload.model_dump(exclude_unset=True)
+    if "telegram_username" in update_data:
+        user.telegram_username = update_data.pop("telegram_username")
+
     for field, val in update_data.items():
         setattr(profile, field, val)
 

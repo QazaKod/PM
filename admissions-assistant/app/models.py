@@ -83,6 +83,8 @@ class User(Base):
     role = Column(String, default="applicant")  # applicant | manager | admin
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    telegram_chat_id = Column(String, nullable=True, index=True)
+    telegram_username = Column(String, nullable=True)
 
     # Relationships
     profile = relationship("ApplicantProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")

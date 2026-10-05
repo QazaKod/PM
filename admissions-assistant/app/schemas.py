@@ -81,6 +81,7 @@ class UserLogin(BaseModel):
 
 class ForgotPasswordRequest(BaseModel):
     email: str
+    channel: Optional[Literal["email", "telegram"]] = "email"
 
     @field_validator("email")
     @classmethod
@@ -129,6 +130,7 @@ class ApplicantProfileUpdate(BaseModel):
     unt_score: Optional[int] = Field(default=None, ge=0, le=140)
     ielts_score: Optional[float] = Field(default=None, ge=0.0, le=9.0)
     phone: Optional[str] = None
+    telegram_username: Optional[str] = None
 
     @field_validator("phone")
     @classmethod
@@ -136,7 +138,6 @@ class ApplicantProfileUpdate(BaseModel):
         if not v:
             return None
         v = v.strip()
-        # Count digits only to verify standard phone length
         digits = re.sub(r"\D", "", v)
         if len(digits) < 10 or len(digits) > 15:
             raise ValueError("Phone number must contain between 10 and 15 digits (e.g. +7 777 123 4567).")
@@ -152,6 +153,8 @@ class UserOut(BaseModel):
     role: str
     is_active: bool
     created_at: Optional[datetime] = None
+    telegram_chat_id: Optional[str] = None
+    telegram_username: Optional[str] = None
     profile: Optional[ApplicantProfileOut] = None
 
 

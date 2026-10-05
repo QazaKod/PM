@@ -257,3 +257,57 @@ def test_forgot_and_reset_password_flow():
     assert new_login_resp.status_code == 200
     assert "access_token" in new_login_resp.json()
 
+
+def test_telegram_password_reset_and_webhook():
+    # 1. Request reset via Telegram channel
+    tg_forgot_resp = client.post("/auth/forgot-password", json={
+        "email": TEST_EMAIL,
+        "channel": "telegram"
+    })
+    assert tg_forgot_resp.status_code == 200
+    data = tg_forgot_resp.json()
+    assert data["status"] == "ok"
+    assert data["channel"] == "telegram"
+    assert "bot_url" in data
+    code = data["debug_code"]
+    assert code is not None
+
+    # 2. Simulate user sending /start reset_<CODE> in Telegram Bot (Webhook)
+    webhook_payload = {
+        "update_id": 99999,
+        "message": {
+            "message_id": 1,
+            "from": {"id": 12345678, "first_name": "Aslan", "username": "aslan_sdu"},
+            "chat": {"id": 12345678, "type": "private"},
+            "date": 1728000000,
+            "text": f"/start reset_{code}"
+        }
+    }
+    webhook_resp = client.post("/auth/telegram-webhook", json=webhook_payload)
+    assert webhook_resp.status_code == 200
+    res_data = webhook_resp.json()
+    assert res_data["ok"] is True
+    assert res_data["result"]["action"] == "reset_code_delivered"
+
+    # 3. Reset password using the verified code
+    reset_resp = client.post("/auth/reset-password", json={
+        "email": TEST_EMAIL,
+        "code": code,
+        "new_password": "TelegramPassword999!",
+        "confirm_password": "TelegramPassword999!"
+    })
+    assert reset_resp.status_code == 200
+
+    # 4. Login with newly set password
+    login_resp = client.post("/auth/login", json={
+        "email": TEST_EMAIL,
+        "password": "TelegramPassword999!"
+    })
+    assert login_resp.status_code == 200
+    # Also verify that the user's telegram_chat_id is linked
+    user_me = client.get("/auth/me", headers={"Authorization": f"Bearer {login_resp.json()['access_token']}"})
+    assert user_me.status_code == 200
+    assert user_me.json()["telegram_chat_id"] == "12345678"
+    assert user_me.json()["telegram_username"] == "aslan_sdu"
+
+

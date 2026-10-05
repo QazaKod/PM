@@ -75,12 +75,12 @@
           <i class="ph ph-question nav-icon"></i>
           <span class="nav-label">FAQ</span>
         </button>
-        <!-- ВРЕМЕННО СКРЫТО ПО ПРОСЬБЕ
         <button class="nav-item" data-tab="documents">
-          <span class="nav-icon">📄</span>
+          <i class="ph ph-file-text nav-icon"></i>
           <span class="nav-label">Documents</span>
           <span class="nav-tag demo-tag">US4</span>
         </button>
+        <!-- ВРЕМЕННО СКРЫТО ПО ПРОСЬБЕ
         <button class="nav-item" data-tab="deadlines">
           <i class="ph ph-calendar nav-icon"></i>
           <span class="nav-label">Deadlines</span>
@@ -238,7 +238,7 @@
           <div class="documents-card card">
             <div class="checklist-progress-bar">
               <div class="progress-info">
-                <span id="doc-progress-text">0 of 5 documents prepared</span>
+                <span id="doc-progress-text">0 of 13 documents prepared</span>
                 <span id="doc-progress-percent">0%</span>
               </div>
               <div class="progress-track">
@@ -252,48 +252,140 @@
                   <input type="checkbox" data-doc-id="id-doc">
                   <span class="custom-checkbox"></span>
                   <div class="item-text">
-                    <strong>National ID Card or Passport copy</strong>
-                    <span>Valid notarized copy with personal identification number</span>
+                    <strong>National ID Card or Passport</strong>
+                    <span>Valid identification document of the applicant</span>
                   </div>
                 </label>
               </li>
+            
               <li class="checklist-item">
                 <label>
                   <input type="checkbox" data-doc-id="diploma-doc">
                   <span class="custom-checkbox"></span>
                   <div class="item-text">
                     <strong>Secondary School Certificate / Diploma with Supplement</strong>
-                    <span>Original copy or verified digital eGov transcript</span>
+                    <span>Original certificate with the attached supplement</span>
                   </div>
                 </label>
               </li>
+            
               <li class="checklist-item">
                 <label>
                   <input type="checkbox" data-doc-id="ent-doc">
                   <span class="custom-checkbox"></span>
                   <div class="item-text">
-                    <strong>ENT Certificate / Unified National Testing or Exam Results</strong>
-                    <span>Passing threshold scores according to chosen program specialization</span>
+                    <strong>ENT Certificate</strong>
+                    <span>Unified National Testing (UNT) certificate with the required score</span>
                   </div>
                 </label>
               </li>
+            
               <li class="checklist-item">
                 <label>
-                  <input type="checkbox" data-doc-id="med-doc">
+                  <input type="checkbox" data-doc-id="medical-doc">
                   <span class="custom-checkbox"></span>
                   <div class="item-text">
-                    <strong>Medical Form 075-U with Fluorography</strong>
-                    <span>Including vaccination passport record</span>
+                    <strong>Medical Certificate Form 075-U</strong>
+                    <span>Medical certificate required for university enrollment</span>
                   </div>
                 </label>
               </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="fluorography-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Fluorography with Doctor's Conclusion</strong>
+                    <span>Fluorography examination with the medical conclusion</span>
+                  </div>
+                </label>
+              </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="vaccination-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Vaccination Card Form 063</strong>
+                    <span>Official vaccination record</span>
+                  </div>
+                </label>
+              </li>
+            
               <li class="checklist-item">
                 <label>
                   <input type="checkbox" data-doc-id="photo-doc">
                   <span class="custom-checkbox"></span>
                   <div class="item-text">
                     <strong>Photos (3x4 cm) — 6 pieces</strong>
-                    <span>Matte photo print with white background</span>
+                    <span>Six recent passport-size photographs</span>
+                  </div>
+                </label>
+              </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="ielts-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>IELTS / SDU Language School Certificate</strong>
+                    <span>English language certificate, if available</span>
+                  </div>
+                </label>
+              </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="pedagogical-exam-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Pedagogical Exam Result</strong>
+                    <span>Required for applicants applying to pedagogical programs</span>
+                  </div>
+                </label>
+              </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="grant-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>State Grant Certificate</strong>
+                    <span>Required for applicants admitted through the state educational grant</span>
+                  </div>
+                </label>
+              </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="application-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Application for Admission</strong>
+                    <span>Completed application form for university enrollment</span>
+                  </div>
+                </label>
+              </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="student-fee-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>Student Fee Payment Receipt</strong>
+                    <span>Proof of payment of the required student fee</span>
+                  </div>
+                </label>
+              </li>
+            
+              <li class="checklist-item">
+                <label>
+                  <input type="checkbox" data-doc-id="tuition-payment-doc">
+                  <span class="custom-checkbox"></span>
+                  <div class="item-text">
+                    <strong>First Semester Tuition Payment Receipt</strong>
+                    <span>Required for applicants enrolling on a tuition-based program</span>
                   </div>
                 </label>
               </li>

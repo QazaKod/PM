@@ -603,23 +603,41 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  window.togglePasswordVisibility = function(inputId, btnEl) {
+    const input = document.getElementById(inputId);
+    if (!input) return;
+    if (input.type === "password") {
+      input.type = "text";
+      btnEl.textContent = "🙈";
+    } else {
+      input.type = "password";
+      btnEl.textContent = "👁️";
+    }
+  };
+
   window.handleRegisterSubmit = async function(e) {
     e.preventDefault();
     const full_name = document.getElementById("reg-name").value.trim();
     const email = document.getElementById("reg-email").value.trim();
     const password = document.getElementById("reg-password").value;
+    const confirm_password = document.getElementById("reg-confirm-password").value;
     const errorEl = document.getElementById("reg-error");
     errorEl.textContent = "";
+
+    if (password !== confirm_password) {
+      errorEl.textContent = "Passwords do not match. Please verify.";
+      return;
+    }
 
     try {
       const res = await fetch("/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name, email, password })
+        body: JSON.stringify({ full_name, email, password, confirm_password })
       });
       const data = await res.json();
       if (!res.ok) {
-        errorEl.textContent = data.detail || "Registration failed";
+        errorEl.textContent = data.detail || (data.detail && data.detail[0]?.msg) || "Registration failed";
         return;
       }
       localStorage.setItem("auth_token", data.access_token);
@@ -656,6 +674,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const ielts_score = document.getElementById("prof-ielts").value ? parseFloat(document.getElementById("prof-ielts").value) : null;
     const phone = document.getElementById("prof-phone").value.trim() || null;
     const statusEl = document.getElementById("profile-status");
+    statusEl.textContent = "";
+
+    if (phone) {
+      const digits = phone.replace(/\D/g, "");
+      if (digits.length < 10 || digits.length > 15) {
+        statusEl.style.color = "var(--alert, #b32d3a)";
+        statusEl.textContent = "Phone number must contain between 10 and 15 digits (e.g. +7 777 123 4567).";
+        return;
+      }
+    }
 
     const token = localStorage.getItem("auth_token");
     if (!token) return;

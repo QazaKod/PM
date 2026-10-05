@@ -542,7 +542,10 @@
         </div>
         <div class="auth-form-group">
           <label>Password</label>
-          <input type="password" id="login-password" required placeholder="••••••••">
+          <div class="password-wrapper">
+            <input type="password" id="login-password" required placeholder="••••••••">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('login-password', this)" title="Show/Hide Password">👁️</button>
+          </div>
         </div>
         <div id="login-error" class="auth-form-error"></div>
         <button type="submit" class="auth-form-submit">Log In</button>
@@ -560,7 +563,17 @@
         </div>
         <div class="auth-form-group">
           <label>Password (at least 6 chars)</label>
-          <input type="password" id="reg-password" minlength="6" required placeholder="••••••••">
+          <div class="password-wrapper">
+            <input type="password" id="reg-password" minlength="6" required placeholder="••••••••">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reg-password', this)" title="Show/Hide Password">👁️</button>
+          </div>
+        </div>
+        <div class="auth-form-group">
+          <label>Confirm Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="reg-confirm-password" minlength="6" required placeholder="••••••••">
+            <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('reg-confirm-password', this)" title="Show/Hide Password">👁️</button>
+          </div>
         </div>
         <div id="reg-error" class="auth-form-error"></div>
         <button type="submit" class="auth-form-submit">Create Account</button>
@@ -601,6 +614,7 @@
         <div class="auth-form-group">
           <label>Phone Number</label>
           <input type="tel" id="prof-phone" placeholder="+7 777 123 4567">
+          <div class="form-hint">Format: +7 777 123 4567 or 10-15 digits</div>
         </div>
         <div id="profile-status" class="auth-form-error" style="color: var(--ok, #1B7F5C);"></div>
         <button type="submit" class="auth-form-submit">Save Profile</button>

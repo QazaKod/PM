@@ -13,6 +13,7 @@ def test_register_applicant_success():
     payload = {
         "email": TEST_EMAIL,
         "password": TEST_PASSWORD,
+        "confirm_password": TEST_PASSWORD,
         "full_name": "Aslan Bolatov"
     }
     response = client.post("/auth/register", json=payload)
@@ -25,10 +26,35 @@ def test_register_applicant_success():
     assert data["user"]["profile"]["citizenship"] == "domestic"
 
 
+def test_register_password_mismatch():
+    payload = {
+        "email": f"mismatch_{uuid.uuid4().hex[:6]}@sdu.edu.kz",
+        "password": "Password123!",
+        "confirm_password": "DifferentPassword456!",
+        "full_name": "Aslan Bolatov"
+    }
+    response = client.post("/auth/register", json=payload)
+    assert response.status_code == 422
+    assert "Passwords do not match" in response.text
+
+
+def test_register_invalid_email():
+    payload = {
+        "email": "not-an-email-address",
+        "password": "Password123!",
+        "confirm_password": "Password123!",
+        "full_name": "Aslan Bolatov"
+    }
+    response = client.post("/auth/register", json=payload)
+    assert response.status_code == 422
+    assert "Invalid email" in response.text
+
+
 def test_register_duplicate_email():
     payload = {
         "email": TEST_EMAIL,
         "password": TEST_PASSWORD,
+        "confirm_password": TEST_PASSWORD,
         "full_name": "Aslan Bolatov"
     }
     response = client.post("/auth/register", json=payload)
@@ -76,7 +102,7 @@ def test_get_me_authorized():
     assert data["profile"]["target_degree"] == "undergraduate"
 
 
-def test_update_profile():
+def test_update_profile_valid_phone():
     login_resp = client.post("/auth/login", json={
         "email": TEST_EMAIL,
         "password": TEST_PASSWORD
@@ -88,7 +114,7 @@ def test_update_profile():
         "target_degree": "graduate",
         "unt_score": 115,
         "ielts_score": 7.5,
-        "phone": "+7 777 123 4567"
+        "phone": "+7 (777) 123-45-67"
     }
     response = client.put(
         "/auth/profile",
@@ -100,6 +126,27 @@ def test_update_profile():
     assert data["citizenship"] == "international"
     assert data["target_degree"] == "graduate"
     assert data["ielts_score"] == 7.5
+    assert data["phone"] == "+7 (777) 123-45-67"
+
+
+def test_update_profile_invalid_phone():
+    login_resp = client.post("/auth/login", json={
+        "email": TEST_EMAIL,
+        "password": TEST_PASSWORD
+    })
+    token = login_resp.json()["access_token"]
+
+    # Less than 10 digits
+    update_payload = {
+        "phone": "12345"
+    }
+    response = client.put(
+        "/auth/profile",
+        json=update_payload,
+        headers={"Authorization": f"Bearer {token}"}
+    )
+    assert response.status_code == 422
+    assert "Phone number must contain between 10 and 15 digits" in response.text
 
 
 def test_favorites_workflow():
@@ -132,7 +179,6 @@ def test_admin_panel_requires_login():
 
 
 def test_personalized_chat_auto_fills_profile():
-    # Login user
     login_resp = client.post("/auth/login", json={
         "email": TEST_EMAIL,
         "password": TEST_PASSWORD
@@ -140,7 +186,7 @@ def test_personalized_chat_auto_fills_profile():
     token = login_resp.json()["access_token"]
     headers = {"Authorization": f"Bearer {token}"}
 
-    # Reset profile to domestic + undergraduate
+    # Set profile to domestic + undergraduate
     client.put("/auth/profile", json={
         "citizenship": "domestic",
         "target_degree": "undergraduate"
@@ -154,10 +200,6 @@ def test_personalized_chat_auto_fills_profile():
     )
     assert chat_resp.status_code == 200
     data = chat_resp.json()
-    # Notice that because profile provides both domestic and undergraduate,
-    # the requirements logic doesn't have to ask "domestic or international?" or "undergraduate or graduate?".
-    # It immediately answers with the verified requirements!
     assert data["source"] == "requirements"
     assert "session_id" in data
     assert data["session_id"] is not None
-

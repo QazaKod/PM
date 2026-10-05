@@ -259,3 +259,43 @@
 .program-fav-btn.active {
   color: var(--gold, #D99411);
 }
+
+/* Password with Show/Hide toggle */
+.password-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-wrapper input {
+  padding-right: 42px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--muted, #5C7085);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  border-radius: 4px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.password-toggle-btn:hover {
+  color: var(--steppe, #1289A7);
+  background: rgba(18, 137, 167, 0.08);
+}
+
+.form-hint {
+  font-size: 11px;
+  color: var(--muted, #5C7085);
+  margin-top: 4px;
+}
+

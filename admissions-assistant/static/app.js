@@ -35,6 +35,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let programsData = [];
   let faqData = [];
   let activeFilter = "all";
+  let currentUser = null;
+  let userFavorites = new Set();
 
   // ================= 1. TAB NAVIGATION (SPA) =================
   function switchTab(tabId) {
@@ -203,9 +205,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const typingId = showTypingIndicator();
 
     try {
+      const token = localStorage.getItem("auth_token");
+      const headers = { "Content-Type": "application/json" };
+      if (token) headers["Authorization"] = `Bearer ${token}`;
+
       const response = await fetch("/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: headers,
         body: JSON.stringify({ message: text, context: requirementContext, language: document.getElementById("requirements-language").value || null })
       });
 
@@ -313,12 +319,14 @@ document.addEventListener("DOMContentLoaded", () => {
       const costFormatted = Number(p.approx_cost_per_year_kzt).toLocaleString("en-US");
       const degreeClass = p.degree.toLowerCase() === "master" ? "degree-master" : "degree-bachelor";
       const languages = Array.isArray(p.language) ? p.language.join(", ") : p.language;
+      const isFav = userFavorites.has(p.id);
 
       return `
         <div class="card program-card">
           <div class="program-top">
             <span class="degree-badge ${degreeClass}">${escapeHtml(p.degree)}</span>
             <span style="font-size: 0.8rem; font-weight: 600; color: var(--primary);">${escapeHtml(p.code)}</span>
+            <button class="program-fav-btn ${isFav ? 'active' : ''}" onclick="toggleFavorite('${escapeJs(p.id)}')" title="Bookmark program">${isFav ? '★' : '☆'}</button>
             <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">${p.duration_years} Years</span>
           </div>
           <h3 class="program-title">${escapeHtml(p.name)}</h3>
@@ -469,8 +477,247 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/'/g, "&#039;");
   }
 
-  function escapeJs(str) {
-    if (!str) return "";
-    return String(str).replace(/'/g, "\\'").replace(/"/g, '\\"');
+  // ================= 6. AUTH & USER PROFILES =================
+  async function initAuth() {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      renderAuthWidget(null);
+      return;
+    }
+    try {
+      const res = await fetch("/auth/me", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (!res.ok) {
+        throw new Error("Invalid token");
+      }
+      currentUser = await res.json();
+      renderAuthWidget(currentUser);
+      await loadFavorites();
+    } catch (err) {
+      localStorage.removeItem("auth_token");
+      currentUser = null;
+      renderAuthWidget(null);
+    }
   }
+
+  async function loadFavorites() {
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+    try {
+      const res = await fetch("/auth/favorites", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const favs = await res.json();
+        userFavorites = new Set(favs.map((f) => f.program_id));
+        if (programsData.length > 0) renderPrograms();
+      }
+    } catch (err) {
+      console.error("Failed to load favorites", err);
+    }
+  }
+
+  function renderAuthWidget(user) {
+    const container = document.getElementById("auth-widget-container");
+    if (!container) return;
+
+    if (!user) {
+      container.innerHTML = `
+        <div class="auth-widget">
+          <button class="auth-btn-login" onclick="openAuthModal('login')">
+            <i class="ph ph-sign-in"></i>
+            <span>Sign In / Register</span>
+          </button>
+        </div>
+      `;
+    } else {
+      const initial = (user.full_name || user.email)[0].toUpperCase();
+      container.innerHTML = `
+        <div class="auth-widget">
+          <div class="auth-user-info">
+            <div class="auth-avatar">${initial}</div>
+            <div class="auth-details">
+              <div class="auth-name" title="${escapeHtml(user.full_name)}">${escapeHtml(user.full_name)}</div>
+              <div class="auth-role">${escapeHtml(user.role)}</div>
+            </div>
+          </div>
+          <div class="auth-actions">
+            <button class="auth-btn-small auth-btn-profile" onclick="openProfileModal()">
+              <i class="ph ph-user"></i> Profile
+            </button>
+            <button class="auth-btn-small auth-btn-logout" onclick="handleLogout()">
+              <i class="ph ph-sign-out"></i> Logout
+            </button>
+          </div>
+        </div>
+      `;
+    }
+  }
+
+  window.openAuthModal = function(tab = 'login') {
+    switchAuthTab(tab);
+    document.getElementById("auth-modal").classList.add("active");
+  };
+
+  window.closeAuthModal = function() {
+    document.getElementById("auth-modal").classList.remove("active");
+  };
+
+  window.switchAuthTab = function(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById("tab-btn-login").classList.toggle("active", isLogin);
+    document.getElementById("tab-btn-register").classList.toggle("active", !isLogin);
+    document.getElementById("form-login").style.display = isLogin ? "block" : "none";
+    document.getElementById("form-register").style.display = isLogin ? "none" : "block";
+    document.getElementById("auth-modal-title").textContent = isLogin ? "Sign In" : "Create Account";
+    document.getElementById("login-error").textContent = "";
+    document.getElementById("reg-error").textContent = "";
+  };
+
+  window.handleLoginSubmit = async function(e) {
+    e.preventDefault();
+    const email = document.getElementById("login-email").value.trim();
+    const password = document.getElementById("login-password").value;
+    const errorEl = document.getElementById("login-error");
+    errorEl.textContent = "";
+
+    try {
+      const res = await fetch("/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.detail || "Login failed";
+        return;
+      }
+      localStorage.setItem("auth_token", data.access_token);
+      currentUser = data.user;
+      renderAuthWidget(currentUser);
+      closeAuthModal();
+      await loadFavorites();
+    } catch (err) {
+      errorEl.textContent = "Network error. Please try again.";
+    }
+  };
+
+  window.handleRegisterSubmit = async function(e) {
+    e.preventDefault();
+    const full_name = document.getElementById("reg-name").value.trim();
+    const email = document.getElementById("reg-email").value.trim();
+    const password = document.getElementById("reg-password").value;
+    const errorEl = document.getElementById("reg-error");
+    errorEl.textContent = "";
+
+    try {
+      const res = await fetch("/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ full_name, email, password })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.detail || "Registration failed";
+        return;
+      }
+      localStorage.setItem("auth_token", data.access_token);
+      currentUser = data.user;
+      renderAuthWidget(currentUser);
+      closeAuthModal();
+      openProfileModal();
+    } catch (err) {
+      errorEl.textContent = "Network error. Please try again.";
+    }
+  };
+
+  window.openProfileModal = function() {
+    if (!currentUser) return;
+    const p = currentUser.profile || {};
+    document.getElementById("prof-citizenship").value = p.citizenship || "domestic";
+    document.getElementById("prof-degree").value = p.target_degree || "undergraduate";
+    document.getElementById("prof-unt").value = p.unt_score || "";
+    document.getElementById("prof-ielts").value = p.ielts_score || "";
+    document.getElementById("prof-phone").value = p.phone || "";
+    document.getElementById("profile-status").textContent = "";
+    document.getElementById("profile-modal").classList.add("active");
+  };
+
+  window.closeProfileModal = function() {
+    document.getElementById("profile-modal").classList.remove("active");
+  };
+
+  window.handleProfileSubmit = async function(e) {
+    e.preventDefault();
+    const citizenship = document.getElementById("prof-citizenship").value;
+    const target_degree = document.getElementById("prof-degree").value;
+    const unt_score = document.getElementById("prof-unt").value ? parseInt(document.getElementById("prof-unt").value) : null;
+    const ielts_score = document.getElementById("prof-ielts").value ? parseFloat(document.getElementById("prof-ielts").value) : null;
+    const phone = document.getElementById("prof-phone").value.trim() || null;
+    const statusEl = document.getElementById("profile-status");
+
+    const token = localStorage.getItem("auth_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch("/auth/profile", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({ citizenship, target_degree, unt_score, ielts_score, phone })
+      });
+      if (res.ok) {
+        const updatedProf = await res.json();
+        currentUser.profile = updatedProf;
+        statusEl.textContent = "Profile updated successfully!";
+        setTimeout(() => closeProfileModal(), 900);
+      } else {
+        const data = await res.json();
+        statusEl.style.color = "var(--alert, #b32d3a)";
+        statusEl.textContent = data.detail || "Failed to update profile";
+      }
+    } catch (err) {
+      statusEl.style.color = "var(--alert, #b32d3a)";
+      statusEl.textContent = "Network error.";
+    }
+  };
+
+  window.handleLogout = function() {
+    localStorage.removeItem("auth_token");
+    currentUser = null;
+    userFavorites = new Set();
+    renderAuthWidget(null);
+    if (programsData.length > 0) renderPrograms();
+  };
+
+  window.toggleFavorite = async function(programId) {
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      openAuthModal('login');
+      return;
+    }
+    const isFav = userFavorites.has(programId);
+    try {
+      const res = await fetch(`/auth/favorites/${encodeURIComponent(programId)}`, {
+        method: isFav ? "DELETE" : "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        if (isFav) {
+          userFavorites.delete(programId);
+        } else {
+          userFavorites.add(programId);
+        }
+        renderPrograms();
+      }
+    } catch (err) {
+      console.error("Error toggling favorite", err);
+    }
+  };
+
+  // Initialize Auth on page load
+  initAuth();
 });

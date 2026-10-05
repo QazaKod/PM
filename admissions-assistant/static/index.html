@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
   <link id="theme-stylesheet" rel="stylesheet" href="/static/steppe.css">
+  <link rel="stylesheet" href="/static/auth.css">
 
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script>
@@ -95,6 +96,7 @@
       </nav>
 
       <div class="sidebar-footer">
+        <div id="auth-widget-container"></div>
         <div class="system-status">
           <div class="status-indicator online"></div>
           <div class="status-text">
@@ -425,6 +427,93 @@
       <i class="ph ph-chats" style="font-size: 1.2rem; margin-right: 8px;"></i>
       <span class="fab-text">Ask AI</span>
     </button>
+  </div>
+
+  <!-- Auth Modal (Login / Register) -->
+  <div id="auth-modal" class="auth-modal-overlay">
+    <div class="auth-modal">
+      <div class="auth-modal-header">
+        <h3 id="auth-modal-title">Sign In</h3>
+        <button class="auth-modal-close" onclick="closeAuthModal()">&times;</button>
+      </div>
+
+      <div class="auth-tabs">
+        <button id="tab-btn-login" class="auth-tab-btn active" onclick="switchAuthTab('login')">Sign In</button>
+        <button id="tab-btn-register" class="auth-tab-btn" onclick="switchAuthTab('register')">Create Account</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="form-login" onsubmit="handleLoginSubmit(event)">
+        <div class="auth-form-group">
+          <label>Email Address</label>
+          <input type="email" id="login-email" required placeholder="applicant@sdu.edu.kz">
+        </div>
+        <div class="auth-form-group">
+          <label>Password</label>
+          <input type="password" id="login-password" required placeholder="••••••••">
+        </div>
+        <div id="login-error" class="auth-form-error"></div>
+        <button type="submit" class="auth-form-submit">Log In</button>
+      </form>
+
+      <!-- Register Form -->
+      <form id="form-register" style="display: none;" onsubmit="handleRegisterSubmit(event)">
+        <div class="auth-form-group">
+          <label>Full Name</label>
+          <input type="text" id="reg-name" required placeholder="Arman Kassymov">
+        </div>
+        <div class="auth-form-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" required placeholder="applicant@sdu.edu.kz">
+        </div>
+        <div class="auth-form-group">
+          <label>Password (at least 6 chars)</label>
+          <input type="password" id="reg-password" minlength="6" required placeholder="••••••••">
+        </div>
+        <div id="reg-error" class="auth-form-error"></div>
+        <button type="submit" class="auth-form-submit">Create Account</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Profile Modal -->
+  <div id="profile-modal" class="auth-modal-overlay">
+    <div class="auth-modal">
+      <div class="auth-modal-header">
+        <h3>Applicant Profile</h3>
+        <button class="auth-modal-close" onclick="closeProfileModal()">&times;</button>
+      </div>
+      <form id="form-profile" onsubmit="handleProfileSubmit(event)">
+        <div class="auth-form-group">
+          <label>Citizenship</label>
+          <select id="prof-citizenship">
+            <option value="domestic">Domestic (Kazakhstan)</option>
+            <option value="international">International</option>
+          </select>
+        </div>
+        <div class="auth-form-group">
+          <label>Target Degree Level</label>
+          <select id="prof-degree">
+            <option value="undergraduate">Undergraduate (Bachelor)</option>
+            <option value="graduate">Graduate (Master / PhD)</option>
+          </select>
+        </div>
+        <div class="auth-form-group">
+          <label>UNT Score (ЕНТ, 0 - 140)</label>
+          <input type="number" id="prof-unt" min="0" max="140" placeholder="e.g. 110">
+        </div>
+        <div class="auth-form-group">
+          <label>IELTS Score (0.0 - 9.0)</label>
+          <input type="number" id="prof-ielts" min="0" max="9" step="0.5" placeholder="e.g. 6.5">
+        </div>
+        <div class="auth-form-group">
+          <label>Phone Number</label>
+          <input type="tel" id="prof-phone" placeholder="+7 777 123 4567">
+        </div>
+        <div id="profile-status" class="auth-form-error" style="color: var(--ok, #1B7F5C);"></div>
+        <button type="submit" class="auth-form-submit">Save Profile</button>
+      </form>
+    </div>
   </div>
 
   <script src="/static/app.js"></script>

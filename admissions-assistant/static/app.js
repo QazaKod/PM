@@ -292,20 +292,23 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= 3. PROGRAMS TAB (US1) =================
   async function loadPrograms() {
+    programsGrid.innerHTML = `<div class="loading-spinner">Loading academic programs...</div>`;
     try {
       const res = await fetch("/programs");
-      if (!res.ok) throw new Error("Failed to load programs");
+      if (!res.ok) throw new Error("Failed to load programs: HTTP " + res.status);
       programsData = await res.json();
       renderPrograms();
     } catch (err) {
       programsGrid.innerHTML = `
-        <div class="card" style="grid-column: 1 / -1; color: #b91c1c;">
-          Failed to load academic programs. Please check backend status.
+        <div class="card" style="grid-column: 1 / -1; color: #b91c1c; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-start;">
+          <span>Failed to load academic programs. Please check backend status.</span>
+          <button class="btn btn-secondary" onclick="loadPrograms()" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">🔄 Try Again</button>
         </div>
       `;
-      console.error(err);
+      console.error("loadPrograms error:", err);
     }
   }
+  window.loadPrograms = loadPrograms;
 
   function renderPrograms() {
     if (!programsData.length) return;
@@ -359,31 +362,39 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= 4. FAQ TAB (US5) =================
   async function loadFAQ() {
+    faqList.innerHTML = `<div class="loading-spinner">Loading FAQ...</div>`;
     try {
       const res = await fetch("/faq");
-      if (!res.ok) throw new Error("Failed to load FAQ");
+      if (!res.ok) throw new Error("Failed to load FAQ: HTTP " + res.status);
       faqData = await res.json();
       renderFAQ(faqData);
     } catch (err) {
       faqList.innerHTML = `
-        <div class="card" style="color: #b91c1c;">
-          Failed to load FAQ. Please check backend status.
+        <div class="card" style="color: #b91c1c; display: flex; flex-direction: column; gap: 0.75rem; align-items: flex-start;">
+          <span>Failed to load FAQ. Please check backend status.</span>
+          <button class="btn btn-secondary" onclick="loadFAQ()" style="font-size: 0.85rem; padding: 0.35rem 0.75rem;">🔄 Try Again</button>
         </div>
       `;
-      console.error(err);
+      console.error("loadFAQ error:", err);
     }
   }
+  window.loadFAQ = loadFAQ;
 
   function renderFAQ(items) {
-    if (!items.length) {
+    if (!items || !items.length) {
       faqList.innerHTML = `<div class="card"><p style="color: var(--text-muted);">No matching FAQ entries found.</p></div>`;
       return;
     }
 
     faqList.innerHTML = items.map((item, idx) => {
-      const keywordsHtml = item.keywords
-        ? item.keywords.map((kw) => `<span class="keyword-badge">#${escapeHtml(kw)}</span>`).join("")
-        : "";
+      const rawKw = item.keywords;
+      const kwList = Array.isArray(rawKw)
+        ? rawKw
+        : (typeof rawKw === "string" ? rawKw.split(",").map(k => k.trim()) : []);
+
+      const keywordsHtml = kwList
+        .map((kw) => `<span class="keyword-badge">#${escapeHtml(kw)}</span>`)
+        .join("");
 
       return `
         <div class="faq-item ${idx === 0 ? "open" : ""}" id="faq-item-${item.id}">
@@ -427,9 +438,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const filtered = faqData.filter((item) => {
-        const inQuestion = item.question.toLowerCase().includes(query);
-        const inAnswer = item.answer.toLowerCase().includes(query);
-        const inKw = item.keywords && item.keywords.some((k) => k.toLowerCase().includes(query));
+        const inQuestion = (item.question || "").toLowerCase().includes(query);
+        const inAnswer = (item.answer || "").toLowerCase().includes(query);
+        const rawKw = item.keywords;
+        const kwList = Array.isArray(rawKw)
+          ? rawKw
+          : (typeof rawKw === "string" ? rawKw.split(",") : []);
+        const inKw = kwList.some((k) => k.toLowerCase().includes(query));
         return inQuestion || inAnswer || inKw;
       });
 
@@ -476,6 +491,19 @@ document.addEventListener("DOMContentLoaded", () => {
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;");
   }
+
+  function escapeJs(str) {
+    if (!str) return "";
+    return String(str)
+      .replace(/\\/g, "\\\\")
+      .replace(/'/g, "\\'")
+      .replace(/"/g, '\\"')
+      .replace(/\n/g, "\\n")
+      .replace(/\r/g, "\\r");
+  }
+
+  window.escapeHtml = escapeHtml;
+  window.escapeJs = escapeJs;
 
   // ================= 6. AUTH & USER PROFILES =================
   async function initAuth() {

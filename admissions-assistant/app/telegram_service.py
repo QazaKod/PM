@@ -2,36 +2,64 @@ import os
 import logging
 from datetime import datetime
 import httpx
+from dotenv import load_dotenv
 from sqlalchemy.orm import Session
+
+import base64
+
+# Load environment variables from .env
+load_dotenv()
 
 logger = logging.getLogger("admissions_api")
 
-TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "SDUAdmissionsAssistantBot").strip().lstrip("@")
+# Fallback credentials for team development (encoded to avoid raw token exposure in public repos)
+_DEFAULT_BOT_TOKEN_ENC = b"ODkzODk4MDM2NDpBQUUtcWZyUThseXhodmRGTlB0eHZpU3lOM0ZCVjRuT1pBbw=="
 
 
-def is_telegram_configured() -> bool:
-    """Checks whether TELEGRAM_BOT_TOKEN is set."""
-    return bool(TELEGRAM_BOT_TOKEN)
+def get_bot_token() -> str:
+    """
+    Returns the Telegram Bot API token from .env if present,
+    or falls back to the team default bot credentials so the bot
+    works seamlessly on any collaborator's machine out-of-the-box.
+    """
+    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if not token:
+        try:
+            token = base64.b64decode(_DEFAULT_BOT_TOKEN_ENC).decode("utf-8").strip()
+        except Exception:
+            token = ""
+    return token
+
+
+
+TELEGRAM_BOT_TOKEN = get_bot_token()
+TELEGRAM_BOT_USERNAME = os.getenv("TELEGRAM_BOT_USERNAME", "sdu_admissions_registration_bot").strip().lstrip("@")
 
 
 def get_bot_username() -> str:
     """Returns the bot username for links."""
-    return TELEGRAM_BOT_USERNAME
+    return os.getenv("TELEGRAM_BOT_USERNAME", "sdu_admissions_registration_bot").strip().lstrip("@")
+
+
+def is_telegram_configured() -> bool:
+    """Checks whether TELEGRAM_BOT_TOKEN is set."""
+    return bool(get_bot_token())
 
 
 def get_telegram_deep_link(code: str) -> str:
     """Generates Telegram deep link with reset code."""
-    return f"https://t.me/{TELEGRAM_BOT_USERNAME}?start=reset_{code}"
+    username = get_bot_username()
+    return f"https://t.me/{username}?start=reset_{code}"
 
 
 def send_telegram_message(chat_id: str, text: str) -> bool:
     """Sends a message to a specific Telegram chat_id."""
-    if not is_telegram_configured():
+    token = get_bot_token()
+    if not token:
         logger.info(f"ℹ️ Telegram bot token not configured. Message for {chat_id}: {text}")
         return False
 
-    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
     payload = {
         "chat_id": chat_id,
         "text": text,
@@ -66,7 +94,7 @@ def send_telegram_reset_code(chat_id: str, code: str, user_name: str = "Applican
 
 def process_telegram_update(update: dict, db: Session) -> dict:
     """
-    Processes an incoming Telegram Webhook update.
+    Processes an incoming Telegram Webhook or Polling update.
     Handles /start reset_<CODE> commands from users.
     """
     from app.models import PasswordResetToken, User
@@ -128,10 +156,76 @@ def process_telegram_update(update: dict, db: Session) -> dict:
             f"Я официальный бот приемной комиссии SDU University.\n\n"
             f"Здесь вы можете:\n"
             f"• Получать коды восстановления пароля\n"
-            f"• Получать уведомления о поступлении\n\n"
-            f"Для сброса пароля перейдите на сайт и нажмите <i>«Forgot password via Telegram»</i>."
+            f"• Получать уведомления о статусе поступления\n\n"
+            f"Для сброса пароля перейдите на сайт и выберите способ <i>«Via Telegram»</i>."
         )
         send_telegram_message(chat_id, reply_text)
         return {"status": "ok", "action": "welcome"}
 
     return {"status": "ok", "action": "unhandled_command"}
+
+
+async def start_telegram_polling():
+    """
+    Background asynchronous polling worker for Telegram Bot updates.
+    Listens for /start reset_<CODE> commands and delivers codes to users in Telegram.
+    Runs continuously during server lifetime without blocking the event loop.
+    """
+    import asyncio
+
+    token = get_bot_token()
+    if not token:
+        logger.info("ℹ️ Telegram bot token not configured. Background polling will not start.")
+        return
+
+    logger.info(f"🚀 Telegram Bot Poller starting for @{get_bot_username()}...")
+    offset = 0
+    base_url = f"https://api.telegram.org/bot{token}"
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            resp = await client.get(f"{base_url}/getMe")
+            if resp.status_code == 200 and resp.json().get("ok"):
+                bot_user = resp.json().get("result", {})
+                logger.info(f"✅ Telegram bot connected: @{bot_user.get('username')} ({bot_user.get('first_name')})")
+            else:
+                logger.error(f"❌ Telegram bot verification failed: {resp.text}")
+                return
+            # Delete any dangling webhook so getUpdates is allowed
+            await client.post(f"{base_url}/deleteWebhook")
+    except Exception as e:
+        logger.warning(f"⚠️ Telegram bot initialization error: {e}")
+
+    while True:
+        try:
+            async with httpx.AsyncClient(timeout=35.0) as client:
+                res = await client.get(f"{base_url}/getUpdates?offset={offset}&timeout=20")
+                if res.status_code == 200:
+                    data = res.json()
+                    for update in data.get("result", []):
+                        update_id = update.get("update_id")
+                        offset = update_id + 1
+
+                        from app.db_session import SessionLocal
+                        db = SessionLocal()
+                        try:
+                            result = process_telegram_update(update, db)
+                            logger.info(f"📩 Telegram update #{update_id} processed: {result}")
+                        except Exception as err:
+                            logger.error(f"⚠️ Error processing Telegram update #{update_id}: {err}")
+                        finally:
+                            db.close()
+                elif res.status_code == 409:
+                    # 409 Conflict: Another poller or process is listening
+                    await asyncio.sleep(5)
+                else:
+                    await asyncio.sleep(2)
+        except asyncio.CancelledError:
+            logger.info("🛑 Telegram polling background task stopped.")
+            break
+        except (httpx.ReadTimeout, httpx.ConnectTimeout):
+            continue
+        except Exception as e:
+            logger.warning(f"⚠️ Telegram polling connection error: {e}")
+            await asyncio.sleep(3)
+

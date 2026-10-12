@@ -1,5 +1,8 @@
 import logging
 import uuid
+import sys
+import os
+import asyncio
 from typing import Optional
 from pathlib import Path
 from fastapi import FastAPI, Request, Depends
@@ -7,6 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
+from app.telegram_service import start_telegram_polling
 from app.schemas import ChatQuery, ChatResponse
 from app import chatbot, database
 from app.db_session import engine, get_db
@@ -41,10 +45,23 @@ logger = logging.getLogger("admissions_api")
 STATIC_DIR = PROJECT_ROOT / "static"
 TEMPLATES_DIR = PROJECT_ROOT / "app" / "templates"
 
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for starting and stopping background services."""
+    polling_task = None
+    if "pytest" not in sys.modules and not os.getenv("TESTING"):
+        polling_task = asyncio.create_task(start_telegram_polling())
+    yield
+    if polling_task:
+        polling_task.cancel()
+
 app = FastAPI(
     title="Smart University Admissions Assistant",
     description="Intelligent Admissions Portal with RBAC, Chatbot, and SQLAdmin",
     version="0.2.0",
+    lifespan=lifespan,
 )
 
 # Mount Routers
@@ -68,6 +85,7 @@ admin.add_view(UserAdmin)
 admin.add_view(ApplicantProfileAdmin)
 admin.add_view(ChatSessionAdmin)
 admin.add_view(LogsAdmin)
+
 
 
 @app.middleware("http")

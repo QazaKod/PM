@@ -14,6 +14,14 @@ if exist "venv\Scripts\activate.bat" (
     echo [WARN] Virtual environment 'venv' not found. Using global Python environment.
 )
 
+REM Проверяем наличие файла .env
+if not exist ".env" (
+    if exist ".env.example" (
+        copy ".env.example" ".env" >nul
+        echo [INFO] Initialized local .env from .env.example
+    )
+)
+
 echo [INFO] Opening browser...
 start http://127.0.0.1:8000
 

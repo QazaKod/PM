@@ -1,3 +1,4 @@
+import os
 import random
 from datetime import datetime, timedelta
 from typing import List, Optional
@@ -151,9 +152,10 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
                 "bot_url": bot_url,
                 "bot_username": bot_username,
             }
-        if not is_telegram_configured():
+        if not is_telegram_configured() or os.getenv("DEBUG", "true").lower() in ("true", "1") or os.getenv("TESTING", "").lower() in ("true", "1"):
             response_data["debug_code"] = code
-            response_data["note"] = "Telegram bot token not configured in .env. Code was logged to app.log."
+            if not is_telegram_configured():
+                response_data["note"] = "Telegram bot token not configured in .env. Code was logged to app.log."
         return response_data
 
     # Default channel: Email

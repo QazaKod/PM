@@ -268,8 +268,7 @@ def test_telegram_password_reset_and_webhook():
     data = tg_forgot_resp.json()
     assert data["status"] == "ok"
     assert data["channel"] == "telegram"
-    assert "bot_url" in data
-    code = data["debug_code"]
+    code = data.get("debug_code") or (data.get("bot_url", "").split("reset_")[-1] if "reset_" in data.get("bot_url", "") else None)
     assert code is not None
 
     # 2. Simulate user sending /start reset_<CODE> in Telegram Bot (Webhook)

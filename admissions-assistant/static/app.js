@@ -597,10 +597,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const isRegister = tab === 'register';
     const isForgot = tab === 'forgot';
     const isReset = tab === 'reset';
+    const isVerifyReg = tab === 'verify_reg';
 
     const tabsContainer = document.querySelector(".auth-tabs");
     if (tabsContainer) {
-      tabsContainer.style.display = (isForgot || isReset) ? "none" : "flex";
+      tabsContainer.style.display = (isForgot || isReset || isVerifyReg) ? "none" : "flex";
     }
 
     document.getElementById("tab-btn-login").classList.toggle("active", isLogin);
@@ -610,13 +611,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("form-register").style.display = isRegister ? "block" : "none";
     document.getElementById("form-forgot").style.display = isForgot ? "block" : "none";
     document.getElementById("form-reset").style.display = isReset ? "block" : "none";
+    const formVerifyReg = document.getElementById("form-verify-reg");
+    if (formVerifyReg) formVerifyReg.style.display = isVerifyReg ? "block" : "none";
 
     if (isLogin) document.getElementById("auth-modal-title").textContent = "Sign In";
     else if (isRegister) document.getElementById("auth-modal-title").textContent = "Create Account";
+    else if (isVerifyReg) document.getElementById("auth-modal-title").textContent = "Verify Account";
     else if (isForgot) document.getElementById("auth-modal-title").textContent = "Forgot Password";
     else if (isReset) document.getElementById("auth-modal-title").textContent = "Reset Password";
 
-    const errorIds = ["login-error", "reg-error", "forgot-error", "reset-error"];
+    const errorIds = ["login-error", "reg-error", "forgot-error", "reset-error", "verify-reg-error"];
     errorIds.forEach((id) => {
       const el = document.getElementById(id);
       if (el) el.textContent = "";
@@ -771,10 +775,35 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  let registerChannel = "email";
+  let phoneDeliveryMethod = "phone_sms";
+  let pendingVerifyIdentifier = "";
+
+  window.setRegisterChannel = function(ch) {
+    registerChannel = ch;
+    const emailBtn = document.getElementById("reg-channel-email");
+    const phoneBtn = document.getElementById("reg-channel-phone");
+    const emailGroup = document.getElementById("reg-email-group");
+    const phoneGroup = document.getElementById("reg-phone-group");
+
+    if (emailBtn) emailBtn.classList.toggle("active", ch === "email");
+    if (phoneBtn) phoneBtn.classList.toggle("active", ch === "phone");
+
+    if (emailGroup) emailGroup.style.display = ch === "email" ? "block" : "none";
+    if (phoneGroup) phoneGroup.style.display = ch === "phone" ? "block" : "none";
+  };
+
+  window.setPhoneDeliveryMethod = function(method) {
+    phoneDeliveryMethod = method;
+    const smsBtn = document.getElementById("reg-phone-via-sms");
+    const tgBtn = document.getElementById("reg-phone-via-tg");
+    if (smsBtn) smsBtn.classList.toggle("active", method === "phone_sms");
+    if (tgBtn) tgBtn.classList.toggle("active", method === "phone_telegram");
+  };
+
   window.handleRegisterSubmit = async function(e) {
     e.preventDefault();
     const full_name = document.getElementById("reg-name").value.trim();
-    const email = document.getElementById("reg-email").value.trim();
     const password = document.getElementById("reg-password").value;
     const confirm_password = document.getElementById("reg-confirm-password").value;
     const errorEl = document.getElementById("reg-error");
@@ -785,17 +814,91 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
+    const payload = {
+      full_name,
+      password,
+      confirm_password,
+      channel: registerChannel === "email" ? "email" : phoneDeliveryMethod
+    };
+
+    if (registerChannel === "email") {
+      const email = document.getElementById("reg-email").value.trim();
+      if (!email) {
+        errorEl.textContent = "Please enter your email address.";
+        return;
+      }
+      payload.email = email;
+    } else {
+      const phone = document.getElementById("reg-phone").value.trim();
+      if (!phone) {
+        errorEl.textContent = "Please enter your phone number.";
+        return;
+      }
+      payload.phone = phone;
+    }
+
     try {
       const res = await fetch("/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ full_name, email, password, confirm_password })
+        body: JSON.stringify(payload)
       });
       const data = await res.json();
       if (!res.ok) {
         errorEl.textContent = data.detail || (data.detail && data.detail[0]?.msg) || "Registration failed";
         return;
       }
+
+      pendingVerifyIdentifier = data.identifier;
+      switchAuthTab('verify_reg');
+
+      const notice = document.getElementById("verify-reg-notice");
+      const tgContainer = document.getElementById("verify-reg-tg-container");
+      const tgLink = document.getElementById("verify-reg-tg-link");
+
+      if (data.channel === "phone_telegram") {
+        if (tgContainer) tgContainer.style.display = "block";
+        if (tgLink && data.bot_url) tgLink.href = data.bot_url;
+        let msg = `Click the button below to open our Telegram bot and receive your 6-digit verification code for <strong>${escapeHtml(data.identifier)}</strong>.`;
+        if (data.debug_code) {
+          msg += `<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Code is <strong>${data.debug_code}</strong> (logged to app.log)</small>`;
+        }
+        notice.innerHTML = msg;
+      } else {
+        if (tgContainer) tgContainer.style.display = "none";
+        let destType = data.channel === "email" ? "email inbox" : "phone via SMS";
+        let msg = `A 6-digit verification code has been sent to your <strong>${destType}</strong> (<strong>${escapeHtml(data.identifier)}</strong>). Please enter it below.`;
+        if (data.debug_code) {
+          msg += `<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Code is <strong>${data.debug_code}</strong> (logged to app.log)</small>`;
+        }
+        notice.innerHTML = msg;
+      }
+    } catch (err) {
+      errorEl.textContent = "Network error. Please try again.";
+    }
+  };
+
+  window.handleVerifyRegSubmit = async function(e) {
+    e.preventDefault();
+    const code = document.getElementById("verify-reg-code").value.trim();
+    const errorEl = document.getElementById("verify-reg-error");
+    errorEl.textContent = "";
+
+    try {
+      const res = await fetch("/auth/verify-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: pendingVerifyIdentifier,
+          code
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        errorEl.textContent = data.detail || (data.detail && data.detail[0]?.msg) || "Verification failed";
+        return;
+      }
+
       localStorage.setItem("auth_token", data.access_token);
       currentUser = data.user;
       renderAuthWidget(currentUser);
@@ -803,6 +906,31 @@ document.addEventListener("DOMContentLoaded", () => {
       openProfileModal();
     } catch (err) {
       errorEl.textContent = "Network error. Please try again.";
+    }
+  };
+
+  window.handleResendCode = async function() {
+    const errorEl = document.getElementById("verify-reg-error");
+    errorEl.textContent = "";
+    try {
+      const res = await fetch("/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ identifier: pendingVerifyIdentifier })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        const notice = document.getElementById("verify-reg-notice");
+        let msg = `A fresh verification code has been sent to <strong>${escapeHtml(pendingVerifyIdentifier)}</strong>.`;
+        if (data.debug_code) {
+          msg += `<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Code is <strong>${data.debug_code}</strong></small>`;
+        }
+        notice.innerHTML = msg;
+      } else {
+        errorEl.textContent = data.detail || "Failed to resend code";
+      }
+    } catch (err) {
+      errorEl.textContent = "Network error.";
     }
   };
 

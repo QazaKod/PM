@@ -41,17 +41,32 @@ class ChatResponse(BaseModel):
 # ==========================================
 
 class UserRegister(BaseModel):
-    email: str = Field(min_length=3, max_length=120)
+    full_name: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=6, max_length=100)
     confirm_password: Optional[str] = Field(default=None, max_length=100)
-    full_name: str = Field(min_length=1, max_length=100)
+    channel: Literal["email", "phone_sms", "phone_telegram"] = "email"
+    email: Optional[str] = None
+    phone: Optional[str] = None
 
     @field_validator("email")
     @classmethod
-    def validate_email_format(cls, v: str) -> str:
+    def validate_email_format(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
         v = v.strip().lower()
         if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", v):
             raise ValueError("Invalid email address format.")
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
+        if not v:
+            return None
+        v = v.strip()
+        digits = re.sub(r"\D", "", v)
+        if len(digits) < 10 or len(digits) > 15:
+            raise ValueError("Phone number must contain between 10 and 15 digits (e.g. +7 777 123 4567).")
         return v
 
     @field_validator("full_name")
@@ -63,14 +78,55 @@ class UserRegister(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def check_passwords_match(self):
+    def validate_registration_payload(self):
         if self.confirm_password is not None and self.password != self.confirm_password:
             raise ValueError("Passwords do not match.")
+        if self.channel == "email":
+            if not self.email:
+                raise ValueError("Email address is required for email registration.")
+        elif self.channel in ("phone_sms", "phone_telegram"):
+            if not self.phone:
+                raise ValueError("Phone number is required for phone registration.")
         return self
 
 
+class VerifyRegistrationRequest(BaseModel):
+    identifier: str
+    code: str = Field(min_length=4, max_length=10)
+
+    @field_validator("identifier")
+    @classmethod
+    def clean_identifier(cls, v: str) -> str:
+        return v.strip().lower()
+
+    @field_validator("code")
+    @classmethod
+    def clean_code(cls, v: str) -> str:
+        return v.strip()
+
+
+class ResendVerificationRequest(BaseModel):
+    identifier: str
+
+    @field_validator("identifier")
+    @classmethod
+    def clean_identifier(cls, v: str) -> str:
+        return v.strip().lower()
+
+
+class RegistrationResponse(BaseModel):
+    status: str
+    user_id: int
+    identifier: str
+    channel: str
+    message: str
+    bot_url: Optional[str] = None
+    bot_username: Optional[str] = None
+    debug_code: Optional[str] = None
+
+
 class UserLogin(BaseModel):
-    email: str
+    email: str  # Can be email or phone number
     password: str
 
     @field_validator("email")
@@ -148,10 +204,12 @@ class UserOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    email: str
+    email: Optional[str] = None
+    phone: Optional[str] = None
     full_name: str
     role: str
     is_active: bool
+    is_verified: bool = False
     created_at: Optional[datetime] = None
     telegram_chat_id: Optional[str] = None
     telegram_username: Optional[str] = None

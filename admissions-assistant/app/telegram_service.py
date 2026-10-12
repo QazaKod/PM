@@ -52,6 +52,12 @@ def get_telegram_deep_link(code: str) -> str:
     return f"https://t.me/{username}?start=reset_{code}"
 
 
+def get_telegram_verification_link(code: str) -> str:
+    """Generates Telegram deep link with account verification code."""
+    username = get_bot_username()
+    return f"https://t.me/{username}?start=verify_{code}"
+
+
 def send_telegram_message(chat_id: str, text: str) -> bool:
     """Sends a message to a specific Telegram chat_id."""
     token = get_bot_token()
@@ -92,12 +98,26 @@ def send_telegram_reset_code(chat_id: str, code: str, user_name: str = "Applican
     return send_telegram_message(chat_id, message)
 
 
+def send_telegram_verification_code(chat_id: str, code: str, user_name: str = "Applicant") -> bool:
+    """Sends formatted 6-digit registration verification code to user via Telegram."""
+    message = (
+        f"🏛️ <b>SDU Admissions Assistant</b>\n\n"
+        f"Здравствуйте, <b>{user_name}</b>!\n"
+        f"Ваш проверочный код для подтверждения регистрации на сайте:\n\n"
+        f"👉 <code>{code}</code>\n\n"
+        f"⏱ <i>Код действителен в течение 15 минут.</i>\n"
+        f"Введите этот код на сайте для завершения регистрации."
+    )
+    logger.info(f"🔑 [Telegram Reg Code] Code for chat {chat_id}: {code}")
+    return send_telegram_message(chat_id, message)
+
+
 def process_telegram_update(update: dict, db: Session) -> dict:
     """
     Processes an incoming Telegram Webhook or Polling update.
-    Handles /start reset_<CODE> commands from users.
+    Handles /start reset_<CODE> and /start verify_<CODE> commands from users.
     """
-    from app.models import PasswordResetToken, User
+    from app.models import PasswordResetToken, AccountVerificationToken, User
 
     msg = update.get("message") or update.get("edited_message")
     if not msg:
@@ -118,7 +138,7 @@ def process_telegram_update(update: dict, db: Session) -> dict:
                 PasswordResetToken.code == code,
                 PasswordResetToken.is_used == False
             )
-            .order_by(PasswordResetToken.created_at.desc())
+            .order_by(PasswordResetToken.id.desc())
             .first()
         )
 
@@ -148,6 +168,44 @@ def process_telegram_update(update: dict, db: Session) -> dict:
         )
         send_telegram_message(chat_id, reply_text)
         return {"status": "ok", "action": "reset_code_delivered", "chat_id": chat_id, "code": code}
+
+    elif text.startswith("/start verify_") or text.startswith("/start reg_"):
+        code = text.replace("/start verify_", "").replace("/start reg_", "").strip()
+        token_entry = (
+            db.query(AccountVerificationToken)
+            .filter(
+                AccountVerificationToken.code == code,
+                AccountVerificationToken.is_used == False
+            )
+            .order_by(AccountVerificationToken.created_at.desc())
+            .first()
+        )
+
+        if not token_entry or token_entry.expires_at < datetime.utcnow():
+            reply_text = (
+                "❌ <b>Код подтверждения недействителен или истек.</b>\n\n"
+                "Пожалуйста, запросите новый код подтверждения на сайте SDU Admissions."
+            )
+            send_telegram_message(chat_id, reply_text)
+            return {"status": "error", "message": "code invalid or expired"}
+
+        user = token_entry.user
+        if user:
+            user.telegram_chat_id = chat_id
+            if username:
+                user.telegram_username = username
+            db.commit()
+
+        reply_text = (
+            f"🏛️ <b>SDU Admissions Assistant</b>\n\n"
+            f"Здравствуйте, <b>{user.full_name if user else first_name}</b>!\n"
+            f"Ваш 6-значный проверочный код подтверждения регистрации:\n\n"
+            f"👉 <code>{code}</code>\n\n"
+            f"⏱ <i>Код действителен в течение 15 минут.</i>\n"
+            f"Введите этот код в окне подтверждения на сайте для активации аккаунта."
+        )
+        send_telegram_message(chat_id, reply_text)
+        return {"status": "ok", "action": "registration_code_delivered", "chat_id": chat_id, "code": code}
 
     elif text.startswith("/start"):
         reply_text = (

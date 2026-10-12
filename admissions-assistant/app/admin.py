@@ -77,8 +77,8 @@ class RequirementAdmin(ModelView, model=Requirement):
 # ==========================================
 
 class UserAdmin(ModelView, model=User):
-    column_list = [User.id, User.email, User.full_name, User.role, User.is_active, User.created_at]
-    column_searchable_list = [User.email, User.full_name]
+    column_list = [User.id, User.email, User.phone, User.full_name, User.role, User.is_verified, User.is_active, User.created_at]
+    column_searchable_list = [User.email, User.phone, User.full_name]
     name = "User Account"
     name_plural = "User Accounts"
     icon = "fa-solid fa-users"

@@ -537,8 +537,8 @@
       <!-- Login Form -->
       <form id="form-login" onsubmit="handleLoginSubmit(event)">
         <div class="auth-form-group">
-          <label>Email Address</label>
-          <input type="email" id="login-email" required placeholder="applicant@sdu.edu.kz">
+          <label>Email Address or Phone Number</label>
+          <input type="text" id="login-email" required placeholder="applicant@sdu.edu.kz or +7 777 123 4567">
         </div>
         <div class="auth-form-group">
           <label>Password</label>
@@ -560,10 +560,39 @@
           <label>Full Name</label>
           <input type="text" id="reg-name" required placeholder="Arman Kassymov">
         </div>
-        <div class="auth-form-group">
-          <label>Email Address</label>
-          <input type="email" id="reg-email" required placeholder="applicant@sdu.edu.kz">
+
+        <p style="font-size: 13px; color: var(--muted); margin-top: 0; margin-bottom: 8px;">
+          Register with:
+        </p>
+        <div class="auth-channel-selector" style="margin-bottom: 12px;">
+          <button type="button" id="reg-channel-email" class="auth-channel-btn active" onclick="setRegisterChannel('email')">
+            📧 Email
+          </button>
+          <button type="button" id="reg-channel-phone" class="auth-channel-btn" onclick="setRegisterChannel('phone')">
+            📱 Phone Number
+          </button>
         </div>
+
+        <div id="reg-email-group" class="auth-form-group">
+          <label>Email Address</label>
+          <input type="email" id="reg-email" placeholder="applicant@sdu.edu.kz">
+          <div class="form-hint" style="font-size: 11px; color: var(--muted); margin-top: 3px;">A 6-digit confirmation code will be sent to your email.</div>
+        </div>
+
+        <div id="reg-phone-group" class="auth-form-group" style="display: none;">
+          <label>Phone Number</label>
+          <input type="tel" id="reg-phone" placeholder="+7 777 123 4567">
+          <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">Receive code via:</div>
+          <div class="auth-channel-selector" style="margin-top: 4px; margin-bottom: 6px;">
+            <button type="button" id="reg-phone-via-sms" class="auth-channel-btn active" onclick="setPhoneDeliveryMethod('phone_sms')" style="padding: 6px 10px; font-size: 12px;">
+              💬 SMS Code
+            </button>
+            <button type="button" id="reg-phone-via-tg" class="auth-channel-btn" onclick="setPhoneDeliveryMethod('phone_telegram')" style="padding: 6px 10px; font-size: 12px;">
+              ✈️ Telegram Bot
+            </button>
+          </div>
+        </div>
+
         <div class="auth-form-group">
           <label>Password (at least 6 chars)</label>
           <div class="password-wrapper">
@@ -579,7 +608,29 @@
           </div>
         </div>
         <div id="reg-error" class="auth-form-error"></div>
-        <button type="submit" class="auth-form-submit">Create Account</button>
+        <button type="submit" id="reg-submit-btn" class="auth-form-submit">Continue & Get Code</button>
+      </form>
+
+      <!-- Verify Registration Form (Step 2) -->
+      <form id="form-verify-reg" style="display: none;" onsubmit="handleVerifyRegSubmit(event)">
+        <div id="verify-reg-notice" class="auth-notice-box">
+          A 6-digit verification code has been sent. Please enter it below to activate your account.
+        </div>
+        <div id="verify-reg-tg-container" style="display: none; margin-bottom: 12px;">
+          <a id="verify-reg-tg-link" href="#" target="_blank" class="auth-tg-btn">
+            ✈️ Open in Telegram Bot to Get Code
+          </a>
+        </div>
+        <div class="auth-form-group">
+          <label>6-Digit Verification Code</label>
+          <input type="text" id="verify-reg-code" maxlength="6" class="auth-code-input" required placeholder="123456">
+        </div>
+        <div id="verify-reg-error" class="auth-form-error"></div>
+        <button type="submit" class="auth-form-submit">Verify & Activate Account</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 12px;">
+          <a href="#" class="auth-forgot-link" onclick="handleResendCode(); return false;">🔄 Resend Code</a>
+          <a href="#" class="auth-forgot-link" onclick="switchAuthTab('register'); return false;">&larr; Back to edit details</a>
+        </div>
       </form>
 
       <!-- Forgot Password Form (Step 1) -->

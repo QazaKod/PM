@@ -1,4 +1,5 @@
 import uuid
+import random
 import pytest
 from fastapi.testclient import TestClient
 from app.main import app
@@ -19,11 +20,23 @@ def test_register_applicant_success():
     response = client.post("/auth/register", json=payload)
     assert response.status_code == 200, response.text
     data = response.json()
-    assert "access_token" in data
-    assert data["token_type"] == "bearer"
-    assert data["user"]["email"] == TEST_EMAIL
-    assert data["user"]["role"] == "applicant"
-    assert data["user"]["profile"]["citizenship"] == "domestic"
+    assert data["status"] == "pending_verification"
+    assert "debug_code" in data
+    code = data["debug_code"]
+
+    # Step 2: Verify registration with 6-digit code
+    verify_resp = client.post("/auth/verify-registration", json={
+        "identifier": TEST_EMAIL,
+        "code": code
+    })
+    assert verify_resp.status_code == 200, verify_resp.text
+    vdata = verify_resp.json()
+    assert "access_token" in vdata
+    assert vdata["token_type"] == "bearer"
+    assert vdata["user"]["email"] == TEST_EMAIL
+    assert vdata["user"]["is_verified"] is True
+    assert vdata["user"]["role"] == "applicant"
+    assert vdata["user"]["profile"]["citizenship"] == "domestic"
 
 
 def test_register_password_mismatch():
@@ -308,5 +321,87 @@ def test_telegram_password_reset_and_webhook():
     assert user_me.status_code == 200
     assert user_me.json()["telegram_chat_id"] == "12345678"
     assert user_me.json()["telegram_username"] == "aslan_sdu"
+
+
+def test_register_via_phone_and_sms():
+    phone_test = f"+7701{random.randint(1000000, 9999999)}"
+    reg_payload = {
+        "full_name": "Marat PhoneUser",
+        "password": "SecretPassword123!",
+        "confirm_password": "SecretPassword123!",
+        "channel": "phone_sms",
+        "phone": phone_test
+    }
+    reg_resp = client.post("/auth/register", json=reg_payload)
+    assert reg_resp.status_code == 200, reg_resp.text
+    reg_data = reg_resp.json()
+    assert reg_data["status"] == "pending_verification"
+    assert reg_data["channel"] == "phone_sms"
+    code = reg_data["debug_code"]
+    assert code is not None
+
+    # Verify code
+    verify_resp = client.post("/auth/verify-registration", json={
+        "identifier": phone_test,
+        "code": code
+    })
+    assert verify_resp.status_code == 200
+    vdata = verify_resp.json()
+    assert vdata["user"]["phone"] == phone_test
+    assert vdata["user"]["is_verified"] is True
+
+    # Login with phone
+    login_resp = client.post("/auth/login", json={
+        "email": phone_test,
+        "password": "SecretPassword123!"
+    })
+    assert login_resp.status_code == 200
+    assert "access_token" in login_resp.json()
+
+
+def test_register_via_phone_and_telegram():
+    phone_test = f"+7702{random.randint(1000000, 9999999)}"
+    reg_payload = {
+        "full_name": "Dana TelegramUser",
+        "password": "SecretPassword123!",
+        "confirm_password": "SecretPassword123!",
+        "channel": "phone_telegram",
+        "phone": phone_test
+    }
+    reg_resp = client.post("/auth/register", json=reg_payload)
+    assert reg_resp.status_code == 200, reg_resp.text
+    reg_data = reg_resp.json()
+    assert reg_data["status"] == "pending_verification"
+    assert reg_data["channel"] == "phone_telegram"
+    assert "bot_url" in reg_data
+    code = reg_data["debug_code"]
+
+    # Simulate user sending /start verify_<CODE> to Telegram bot
+    webhook_payload = {
+        "update_id": 88888,
+        "message": {
+            "message_id": 2,
+            "from": {"id": 87654321, "first_name": "Dana", "username": "dana_sdu"},
+            "chat": {"id": 87654321, "type": "private"},
+            "date": 1728000000,
+            "text": f"/start verify_{code}"
+        }
+    }
+    webhook_resp = client.post("/auth/telegram-webhook", json=webhook_payload)
+    assert webhook_resp.status_code == 200
+    assert webhook_resp.json()["ok"] is True
+    assert webhook_resp.json()["result"]["action"] == "registration_code_delivered"
+
+    # Complete web verification
+    verify_resp = client.post("/auth/verify-registration", json={
+        "identifier": phone_test,
+        "code": code
+    })
+    assert verify_resp.status_code == 200
+    vdata = verify_resp.json()
+    assert vdata["user"]["phone"] == phone_test
+    assert vdata["user"]["telegram_chat_id"] == "87654321"
+    assert vdata["user"]["telegram_username"] == "dana_sdu"
+
 
 

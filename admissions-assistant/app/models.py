@@ -77,11 +77,14 @@ class User(Base):
     __tablename__ = "users"
 
     id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String, unique=True, index=True, nullable=False)
+    email = Column(String, unique=True, index=True, nullable=True)
+    phone = Column(String, unique=True, index=True, nullable=True)
     hashed_password = Column(String, nullable=False)
     full_name = Column(String, nullable=False)
     role = Column(String, default="applicant")  # applicant | manager | admin
     is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    registration_channel = Column(String, default="email")  # email | phone_sms | phone_telegram
     created_at = Column(DateTime, default=datetime.utcnow)
     telegram_chat_id = Column(String, nullable=True, index=True)
     telegram_username = Column(String, nullable=True)
@@ -90,6 +93,7 @@ class User(Base):
     profile = relationship("ApplicantProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")
     chat_sessions = relationship("ChatSession", back_populates="user", cascade="all, delete-orphan")
     saved_programs = relationship("SavedProgram", back_populates="user", cascade="all, delete-orphan")
+    verification_tokens = relationship("AccountVerificationToken", back_populates="user", cascade="all, delete-orphan")
 
 
 class ApplicantProfile(Base):
@@ -157,7 +161,21 @@ class PasswordResetToken(Base):
     code = Column(String, index=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     is_used = Column(Boolean, default=False)
+    user = relationship("User")
+
+
+class AccountVerificationToken(Base):
+    __tablename__ = "account_verification_tokens"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
+    code = Column(String, index=True, nullable=False)
+    channel = Column(String, default="email")  # email | phone_sms | phone_telegram
+    destination = Column(String, nullable=True)  # email address or phone number
+    expires_at = Column(DateTime, nullable=False)
+    is_used = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    user = relationship("User")
+    user = relationship("User", back_populates="verification_tokens")
+
 

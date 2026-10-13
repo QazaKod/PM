@@ -12,24 +12,12 @@ load_dotenv()
 
 logger = logging.getLogger("admissions_api")
 
-# Fallback credentials for team development (encoded to avoid raw token exposure in public repos)
-_DEFAULT_BOT_TOKEN_ENC = b"ODkzODk4MDM2NDpBQUUtcWZyUThseXhodmRGTlB0eHZpU3lOM0ZCVjRuT1pBbw=="
-
-
 def get_bot_token() -> str:
     """
-    Returns the Telegram Bot API token from .env if present,
-    or falls back to the team default bot credentials so the bot
-    works seamlessly on any collaborator's machine out-of-the-box.
+    Returns the Telegram Bot API token from environment (.env).
+    Tokens must NEVER be hardcoded or committed into repository code.
     """
-    token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
-    if not token:
-        try:
-            token = base64.b64decode(_DEFAULT_BOT_TOKEN_ENC).decode("utf-8").strip()
-        except Exception:
-            token = ""
-    return token
-
+    return os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
 
 
 TELEGRAM_BOT_TOKEN = get_bot_token()

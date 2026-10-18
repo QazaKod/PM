@@ -112,7 +112,7 @@ class LogsAdmin(BaseView):
 
     @expose("/logs", methods=["GET"])
     async def logs_page(self, request):
-        log_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "app.log")
+        log_path = os.getenv("LOG_FILE") or os.path.join(os.path.dirname(os.path.dirname(__file__)), "app.log")
         log_content = "No logs recorded yet. Interact with the chat to generate logs."
 
         if os.path.exists(log_path):

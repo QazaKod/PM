@@ -31,7 +31,7 @@ from app.routers import auth, admissions
 
 # Set up logging to file
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-log_file = PROJECT_ROOT / "app.log"
+log_file = Path(os.getenv("LOG_FILE", str(PROJECT_ROOT / "app.log")))
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s | %(levelname)s | %(message)s",

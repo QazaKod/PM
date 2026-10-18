@@ -26,7 +26,7 @@ from typing import Dict, List, Optional, Tuple
 
 from app.database import load_programs, load_faq
 from app.requirements import answer_requirements, language_of
-from app.services.admission_guide import get_admission_guide
+from app.services.admission_guide import get_admission_guide, GuideUnavailable, TEXT as GUIDE_TEXT
 from app.services.official_links import get_official_links
 from app.services.unt_calculator import (
     match_unt_eligibility,
@@ -136,7 +136,8 @@ GUIDE_PATTERN = re.compile(
     r"|step[- ]by[- ]step\s+admission"
     r"|how\s+to\s+apply\s+to\s+sdu"
     r"|түсу\s+(?:жол\w*|қадам\w*|кезең\w*|нұсқау\w*)"
-    r"|қалай\s+түсуге\s+болады",
+    r"|қалай\s+түсуге\s+болады"
+    r"|қабылдау\s+(?:нұсқаулығы|қадамдары|кезеңдері)",
     re.IGNORECASE
 )
 
@@ -170,53 +171,67 @@ def _handle_admission_guide(message: str, context: Optional[dict] = None, langua
     if not GUIDE_PATTERN.search(message):
         return None
 
-    # Check for category / level in message or context
     ctx = context or {}
-    msg_lower = message.lower()
-
-    if re.search(r"иностран|шетел|foreign|international", msg_lower):
+    text = message.lower()
+    lang = language or language_of(message, ctx.get("language", "en"))
+    from app.database import load_requirements
+    from app.requirements import _program_matches
+    programs = load_requirements()
+    matches = _program_matches(text, programs)
+    if len(matches) > 1:
+        clarification = {
+            'ru': 'Выберите одну программу для гида поступления.',
+            'kk': 'Қабылдау нұсқаулығы үшін бір бағдарламаны таңдаңыз.',
+            'en': 'Please select one program for the admission guide.',
+        }
+        return {"answer": clarification[lang], "confident": False, "source": "admission_guide"}
+    program_id = matches[0] if matches else ctx.get("program_id")
+    # Program names such as International Law are not applicant categories.
+    route_text = text
+    for pid in matches:
+        for alias in [programs[pid]['name'], *programs[pid].get('aliases', [])]:
+            route_text = re.sub(r'(?<!\w)' + re.escape(alias.lower()) + r'(?!\w)', '', route_text)
+    category = ctx.get("category") or "domestic"
+    if re.search(r"иностран|шетел|foreign|international", route_text):
         category = "international"
-    else:
-        category = ctx.get("category") or "domestic"
-
-    if re.search(r"магистр|master|graduate|postgrad", msg_lower):
+    elif re.search(r"граждан\w*\s+рк|отандық|domestic|казахстан", route_text):
+        category = "domestic"
+    level = ctx.get("study_level") or "undergraduate"
+    if re.search(r"бакалавр|bachelor|\bundergraduate\b", route_text):
+        level = "undergraduate"
+    elif re.search(r"магистр|магист|master|\bgraduate\b|postgrad", route_text):
         level = "graduate"
-    else:
-        level = ctx.get("study_level") or "undergraduate"
-
-    lang = language or language_of(message, ctx.get("language", "ru"))
-    guide = get_admission_guide(category=category, level=level, lang=lang)
-
-    lines = [f"📋 **{guide['title']}**\n"]
-    if lang == "kk":
-        lines.append("SDU University-ге түсудің негізгі қадамдық кезеңдері:\n")
-    elif lang == "en":
-        lines.append("Key steps of the admission procedure at SDU University:\n")
-    else:
-        lines.append("Основные этапы процедуры поступления в SDU University:\n")
-
-    for item in guide["steps"]:
-        timeline = f" *({item['timeline']})*" if item.get("timeline") else ""
-        lines.append(f"**Шаг {item['step']}: {item['title']}**{timeline}")
-        lines.append(f"{item['description']}")
-        if item.get("tips"):
-            lines.append(f"💡 *Совет: {item['tips']}*\n")
-        else:
-            lines.append("")
-
-    portal_link = guide["official_admissions_portal"]
-    if lang == "kk":
-        lines.append(f"🔗 Толық ақпарат және құжат тапсыру: {portal_link}")
-    elif lang == "en":
-        lines.append(f"🔗 For application and detailed info, visit: {portal_link}")
-    else:
-        lines.append(f"🔗 Подробная информация и подача документов: {portal_link}")
-
+    try:
+        guide = get_admission_guide(category=category, level=level, lang=lang, program_id=program_id)
+    except GuideUnavailable:
+        return {"answer": GUIDE_TEXT[lang]['unavailable'], "confident": False, "source": "admission_guide"}
+    except ValueError:
+        message = {
+            'ru': 'Выбранная программа не соответствует уровню обучения или недоступна. Выберите программу и уровень в разделе «Гид поступления».',
+            'kk': 'Таңдалған бағдарлама оқу деңгейіне сәйкес келмейді немесе қолжетімсіз. Нұсқаулықтан бағдарлама мен деңгейді таңдаңыз.',
+            'en': 'The selected program does not match this study level or is unavailable. Select a program and level in the Admission Guide.',
+        }
+        return {"answer": message[lang], "confident": False, "source": "admission_guide"}
+    lang = guide['language']
+    step_label, review_label = {'ru': ('Шаг', 'Проверено'), 'kk': ('Қадам', 'Тексерілген'), 'en': ('Step', 'Reviewed')}[lang]
+    lines = [f"**{guide['title']}**", guide['notice'],
+             f"{review_label}: {guide['verified_on']} · {guide['version']}"]
+    if guide['program_note']:
+        lines.append(guide['program_note'])
+        if guide['program_note_source']:
+            lines.append(f"{review_label}: {guide['program_note_verified_on']} · {guide['program_note_source']}")
+    for item in guide['steps']:
+        lines.extend([f"**{step_label} {item['step']}: {item['title']}**", item['description']])
+        if item['timeline']:
+            lines.append(item['timeline'])
+        if item['warning']:
+            lines.append(item['warning'])
+        lines.append(item['source_url'])
+    lines.append(guide['official_admissions_portal'])
     return {
-        "answer": "\n".join(lines).strip(),
-        "confident": True,
-        "source": "admission_guide",
-        "matched_id": f"guide_{category}_{level}"
+        "answer": "\n\n".join(lines), "confident": True, "source": "admission_guide",
+        "matched_id": f"guide_{category}_{level}",
+        "context": {"category": category, "study_level": level, "language": lang, "program_id": program_id},
     }
 
 

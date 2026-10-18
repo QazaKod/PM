@@ -468,10 +468,10 @@
           <div class="section-header">
             <div>
               <div class="title-with-badge">
-                <h2>Step-by-Step Admission Guide</h2>
+                <h2 id="guide-heading">Пошаговый гид поступления</h2>
                 <span class="preview-badge">US7</span>
               </div>
-              <p>Your step-by-step roadmap from UNT to enrollment, fees, and campus life.</p>
+              <p id="guide-subtitle">Выберите программу, категорию и уровень обучения.</p>
             </div>
             <div class="guide-controls" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
               <div class="filter-controls">
@@ -480,10 +480,10 @@
               </div>
               <div class="filter-controls">
                 <button class="guide-level-btn filter-btn active" data-level="undergraduate">Bachelor</button>
-                <button class="guide-level-btn filter-btn" data-level="graduate">Master / PhD</button>
+                <button class="guide-level-btn filter-btn" data-level="graduate">Магистратура</button>
               </div>
               <div class="filter-controls">
-                <select id="guide-lang-select" class="form-select-sm" style="padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); font-weight: 600; background: var(--surface); color: var(--text);">
+                <select aria-label="Язык гида / Guide language / Нұсқаулық тілі" id="guide-lang-select" class="form-select-sm" style="padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); font-weight: 600; background: var(--surface); color: var(--text);">
                   <option value="ru" selected>Русский (RU)</option>
                   <option value="kk">Қазақша (KK)</option>
                   <option value="en">English (EN)</option>
@@ -492,7 +492,13 @@
             </div>
           </div>
 
-          <div id="guide-steps-container" class="guide-steps-timeline">
+          <div class="guide-toolbar">
+            <label for="guide-program-select" id="guide-program-label">Программа</label>
+            <select id="guide-program-select"><option value="">Общий маршрут</option></select>
+            <button id="guide-refresh" class="btn btn-secondary" type="button">Обновить гид</button>
+            <button id="guide-open-chat" class="btn btn-secondary" type="button">Спросить в чате</button>
+          </div>
+          <div id="guide-steps-container" class="guide-steps-timeline" aria-live="polite" aria-busy="false">
             <div class="loading-spinner">Loading admission guide roadmap...</div>
           </div>
         </div>

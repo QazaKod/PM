@@ -376,3 +376,24 @@
   color: var(--muted, #5C7085);
   margin-top: 2px;
 }
+
+/* US7 guide controls and progress follow the active theme. */
+.guide-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 20px; }
+.guide-toolbar select { max-width: 100%; min-width: 180px; padding: 10px; background: var(--surface); color: var(--text); border: 1px solid var(--line); border-radius: 8px; }
+.guide-notice, .guide-warning { background: var(--surface); border-left: 3px solid var(--steppe); padding: 12px; margin: 12px 0; }
+.guide-review { color: var(--muted); font-size: .85rem; overflow-wrap: anywhere; }
+.guide-progress { display: grid; gap: 8px; margin: 16px 0; }
+.guide-progress progress { width: 100%; accent-color: var(--steppe); }
+.guide-progress small { color: var(--muted); }
+.guide-step-check { display: flex; align-items: flex-start; gap: 8px; margin-top: 16px; cursor: pointer; }
+.guide-step-check input { margin-top: 4px; accent-color: var(--steppe); }
+#guide-steps-container { overflow-wrap: anywhere; }
+#guide-steps-container h3 { margin: 12px 0; }
+#guide-steps-container h4 { margin: 0; }
+@media (max-width: 600px) {
+  .guide-toolbar { align-items: stretch; flex-direction: column; }
+  .guide-toolbar select { width: 100%; min-width: 0; }
+  #section-guide .section-header { align-items: flex-start; }
+  #section-guide .guide-controls { width: 100%; }
+  #section-guide .filter-controls { flex-wrap: wrap; }
+}

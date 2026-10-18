@@ -17,7 +17,7 @@ from app.schemas import (
     TuitionCalculatorRequest,
     TuitionCalculatorResponse,
 )
-from app.services.admission_guide import get_admission_guide
+from app.services.admission_guide import get_admission_guide, GuideUnavailable
 from app.services.official_links import get_official_links
 from app.services.unt_calculator import match_unt_eligibility
 from app.services.tuition_calculator import calculate_tuition_and_grant
@@ -29,10 +29,16 @@ router = APIRouter(prefix="/admissions", tags=["Admissions & Calculators"])
 def admission_guide_endpoint(
     category: Optional[str] = Query(default="domestic", description="Applicant category: 'domestic' or 'international'"),
     level: Optional[str] = Query(default="undergraduate", description="Degree level: 'undergraduate' or 'graduate'"),
-    lang: Optional[str] = Query(default="ru", description="Response language: 'ru', 'kk', or 'en'")
+    lang: str = Query(default="ru", description="Response language: 'ru', 'kk', or 'en'"),
+    program_id: Optional[str] = Query(default=None, min_length=1, max_length=100),
 ):
     """US7: Retrieve ordered step-by-step admission procedure guide with localized instructions."""
-    return get_admission_guide(category=category, level=level, lang=lang)
+    try:
+        return get_admission_guide(category=category, level=level, lang=lang, program_id=program_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
+    except GuideUnavailable as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.get("/links", response_model=OfficialLinksResponse)

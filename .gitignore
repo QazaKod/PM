@@ -8,3 +8,5 @@ __pycache__/
 *.sqlite
 *.sqlite3
 app.log
+.venv/
+.demo/

@@ -9,6 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
   <link id="theme-stylesheet" rel="stylesheet" href="/static/steppe.css">
   <link rel="stylesheet" href="/static/auth.css">
+  <link rel="stylesheet" href="/static/admissions.css">
 
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script>
@@ -75,24 +76,26 @@
           <i class="ph ph-question nav-icon"></i>
           <span class="nav-label">FAQ</span>
         </button>
+        <button class="nav-item" data-tab="guide">
+          <i class="ph ph-compass nav-icon"></i>
+          <span class="nav-label">Admission Guide</span>
+          <span class="nav-tag demo-tag">US7</span>
+        </button>
+        <button class="nav-item" data-tab="calculator">
+          <i class="ph ph-calculator nav-icon"></i>
+          <span class="nav-label">Calculators</span>
+          <span class="nav-tag demo-tag">US18/19</span>
+        </button>
         <button class="nav-item" data-tab="documents">
           <i class="ph ph-file-text nav-icon"></i>
           <span class="nav-label">Documents</span>
           <span class="nav-tag demo-tag">US4</span>
         </button>
-        <!-- ВРЕМЕННО СКРЫТО ПО ПРОСЬБЕ
-        <button class="nav-item" data-tab="deadlines">
-          <i class="ph ph-calendar nav-icon"></i>
-          <span class="nav-label">Deadlines</span>
-          <span class="nav-tag demo-tag">US8</span>
-        </button>
-
         <button class="nav-item" data-tab="links">
           <i class="ph ph-link nav-icon"></i>
           <span class="nav-label">Official Links</span>
           <span class="nav-tag demo-tag">US9</span>
         </button>
-        -->
       </nav>
 
       <div class="sidebar-footer">
@@ -459,6 +462,183 @@
       </section>
 
 
+      <!-- ================= SECTION: ADMISSION GUIDE (US7) ================= -->
+      <section id="section-guide" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>Step-by-Step Admission Guide</h2>
+                <span class="preview-badge">US7</span>
+              </div>
+              <p>Your step-by-step roadmap from UNT to enrollment, fees, and campus life.</p>
+            </div>
+            <div class="guide-controls" style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+              <div class="filter-controls">
+                <button class="guide-cat-btn filter-btn active" data-category="domestic">Domestic (РК)</button>
+                <button class="guide-cat-btn filter-btn" data-category="international">International</button>
+              </div>
+              <div class="filter-controls">
+                <button class="guide-level-btn filter-btn active" data-level="undergraduate">Bachelor</button>
+                <button class="guide-level-btn filter-btn" data-level="graduate">Master / PhD</button>
+              </div>
+              <div class="filter-controls">
+                <select id="guide-lang-select" class="form-select-sm" style="padding: 7px 12px; border-radius: 8px; border: 1px solid var(--line); font-weight: 600; background: var(--surface); color: var(--text);">
+                  <option value="ru" selected>Русский (RU)</option>
+                  <option value="kk">Қазақша (KK)</option>
+                  <option value="en">English (EN)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div id="guide-steps-container" class="guide-steps-timeline">
+            <div class="loading-spinner">Loading admission guide roadmap...</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: CALCULATORS (US18 & US19) ================= -->
+      <section id="section-calculator" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>Admissions & Aid Calculators</h2>
+                <span class="preview-badge">US18 & US19</span>
+              </div>
+              <p>Match UNT profile subjects against SDU programs and calculate tuition fees, discounts, and grant probabilities.</p>
+            </div>
+            <div class="calc-subtabs filter-controls">
+              <button class="calc-subtab-btn filter-btn active" data-subtab="unt">🎯 UNT Matcher (US18)</button>
+              <button class="calc-subtab-btn filter-btn" data-subtab="tuition">💰 Tuition & Grants (US19)</button>
+            </div>
+          </div>
+
+          <!-- SUBTAB 1: UNT Matcher -->
+          <div id="calc-subtab-unt" class="calc-panel active">
+            <div class="card" style="padding: 24px; margin-bottom: 24px;">
+              <form id="unt-matcher-form">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                  <div class="auth-form-group" style="margin-bottom: 0;">
+                    <label for="unt-subject-1">Profile Subject 1</label>
+                    <select id="unt-subject-1" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-family: var(--font-ui); color: var(--text);">
+                      <option value="Mathematics" selected>Mathematics (Математика)</option>
+                      <option value="Computer Science">Computer Science (Информатика)</option>
+                      <option value="Physics">Physics (Физика)</option>
+                      <option value="Geography">Geography (География)</option>
+                      <option value="World History">World History (Всемирная история)</option>
+                      <option value="Fundamentals of Law">Fundamentals of Law (Основы права)</option>
+                      <option value="Foreign Language">Foreign Language (Иностранный язык)</option>
+                      <option value="Creative Exams">Creative Exams (Творческие экзамены)</option>
+                      <option value="Biology">Biology (Биология)</option>
+                      <option value="Chemistry">Chemistry (Химия)</option>
+                    </select>
+                  </div>
+
+                  <div class="auth-form-group" style="margin-bottom: 0;">
+                    <label for="unt-subject-2">Profile Subject 2</label>
+                    <select id="unt-subject-2" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-family: var(--font-ui); color: var(--text);">
+                      <option value="Computer Science" selected>Computer Science (Информатика)</option>
+                      <option value="Mathematics">Mathematics (Математика)</option>
+                      <option value="Physics">Physics (Физика)</option>
+                      <option value="Geography">Geography (География)</option>
+                      <option value="World History">World History (Всемирная история)</option>
+                      <option value="Fundamentals of Law">Fundamentals of Law (Основы права)</option>
+                      <option value="Foreign Language">Foreign Language (Иностранный язык)</option>
+                      <option value="Creative Exams">Creative Exams (Творческие экзамены)</option>
+                      <option value="Biology">Biology (Биология)</option>
+                      <option value="Chemistry">Chemistry (Химия)</option>
+                    </select>
+                  </div>
+
+                  <div class="auth-form-group" style="margin-bottom: 0;">
+                    <label for="unt-score-input">Total UNT Score (0 - 140)</label>
+                    <input type="number" id="unt-score-input" min="0" max="140" value="85" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); font-family: var(--font-ui); color: var(--text);">
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <button type="submit" class="btn btn-secondary" style="padding: 10px 22px;">
+                    <i class="ph ph-magnifying-glass"></i> Find Eligible Programs
+                  </button>
+                  <span id="unt-matcher-loading" style="display: none; color: var(--muted); font-size: 0.88rem;">Matching programs...</span>
+                </div>
+              </form>
+            </div>
+
+            <div id="unt-matcher-results" style="display: none;">
+              <!-- Results rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- SUBTAB 2: Tuition & Grant Calculator -->
+          <div id="calc-subtab-tuition" class="calc-panel" style="display: none;">
+            <div class="card" style="padding: 24px; margin-bottom: 24px;">
+              <form id="tuition-calc-form">
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin-bottom: 20px;">
+                  <div class="auth-form-group" style="margin-bottom: 0;">
+                    <label for="tuition-program-select">Target Academic Program</label>
+                    <select id="tuition-program-select" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); font-family: var(--font-ui); color: var(--text);">
+                      <option value="sdu-cs">Computer Science (1 850 000 ₸/yr)</option>
+                      <option value="sdu-is">Information Systems (1 850 000 ₸/yr)</option>
+                      <option value="sdu-se">Software Engineering (1 850 000 ₸/yr)</option>
+                      <option value="sdu-mcm">Mathematical and Computer Modeling (1 750 000 ₸/yr)</option>
+                      <option value="sdu-fin">Finance (1 650 000 ₸/yr)</option>
+                      <option value="sdu-acc">Accounting and Audit (1 650 000 ₸/yr)</option>
+                      <option value="sdu-mgmt">Management (1 650 000 ₸/yr)</option>
+                      <option value="sdu-mkt">Marketing (1 650 000 ₸/yr)</option>
+                      <option value="sdu-law">Jurisprudence / Law (1 700 000 ₸/yr)</option>
+                      <option value="sdu-ir">International Relations (1 600 000 ₸/yr)</option>
+                      <option value="sdu-trans">Translation Studies (1 550 000 ₸/yr)</option>
+                      <option value="sdu-2fl">Two Foreign Languages (1 550 000 ₸/yr)</option>
+                    </select>
+                  </div>
+
+                  <div class="auth-form-group" style="margin-bottom: 0;">
+                    <label for="tuition-unt-score">UNT Score (optional, for state grants & 110+ discount)</label>
+                    <input type="number" id="tuition-unt-score" min="0" max="140" placeholder="e.g. 115" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--line); font-family: var(--font-ui); color: var(--text);">
+                  </div>
+                </div>
+
+                <div style="margin-bottom: 20px;">
+                  <label style="display: block; font-weight: 650; margin-bottom: 10px; font-size: 0.9rem;">Eligible Scholarships & SDU Discounts (Capped at 50%):</label>
+                  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 10px;">
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem;">
+                      <input type="checkbox" name="discount" value="altyn_belgi">
+                      <span>🏅 Altyn Belgi (15%)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem;">
+                      <input type="checkbox" name="discount" value="high_unt">
+                      <span>📈 High UNT (20% for 110+, 30% for 120+)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem;">
+                      <input type="checkbox" name="discount" value="sibling">
+                      <span>👨‍👩‍👧 Sibling Discount (10%)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.88rem;">
+                      <input type="checkbox" name="discount" value="spt_winner">
+                      <span>🏆 SDU SPT Winner (30%)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; align-items: center;">
+                  <button type="submit" class="btn btn-secondary" style="padding: 10px 22px;">
+                    <i class="ph ph-currency-circle-dollar"></i> Calculate Tuition & Aid
+                  </button>
+                  <span id="tuition-calc-loading" style="display: none; color: var(--muted); font-size: 0.88rem;">Calculating...</span>
+                </div>
+              </form>
+            </div>
+
+            <div id="tuition-calc-results" style="display: none;">
+              <!-- Results rendered dynamically -->
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- ================= SECTION: OFFICIAL LINKS ================= -->
       <section id="section-links" class="tab-section">
         <div class="section-container">
@@ -472,12 +652,30 @@
             </div>
           </div>
 
-          <div class="links-grid">
-            <a href="https://testcenter.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
+          <div id="official-links-grid" class="links-grid">
+            <a href="https://sdu.edu.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
               <div class="link-icon">🏛️</div>
               <div class="link-details">
-                <h3>National Testing Center</h3>
-                <p>Official ENT registration, scores, and testing schedules.</p>
+                <h3>Portal SDU</h3>
+                <p>Main official university website (news, structure, academics).</p>
+                <span class="link-arrow">Visit site →</span>
+              </div>
+            </a>
+
+            <a href="https://admissions.sdu.edu.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">🎓</div>
+              <div class="link-details">
+                <h3>Admissions Office Portal</h3>
+                <p>Applicant portal, online document submission, status tracking.</p>
+                <span class="link-arrow">Visit portal →</span>
+              </div>
+            </a>
+
+            <a href="https://testcenter.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">📝</div>
+              <div class="link-details">
+                <h3>National Testing Center (ЕНТ)</h3>
+                <p>Official UNT registration, scores, certificates, and testing schedules.</p>
                 <span class="link-arrow">Visit site →</span>
               </div>
             </a>
@@ -485,9 +683,45 @@
             <a href="https://egov.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
               <div class="link-icon">📑</div>
               <div class="link-details">
-                <h3>eGov Public Services</h3>
-                <p>Digital submission of academic certificates and medical documents.</p>
-                <span class="link-arrow">Visit site →</span>
+                <h3>eGov Public Services (Госгранты)</h3>
+                <p>Digital submission for Kazakhstan Republic state educational grants.</p>
+                <span class="link-arrow">Visit eGov →</span>
+              </div>
+            </a>
+
+            <a href="https://spt.sdu.edu.kz" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">🏆</div>
+              <div class="link-details">
+                <h3>SDU SPT Olympiad</h3>
+                <p>National olympiad for high school graduates with 100% university grants.</p>
+                <span class="link-arrow">Visit SPT →</span>
+              </div>
+            </a>
+
+            <a href="https://wa.me/77020001133" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">💬</div>
+              <div class="link-details">
+                <h3>WhatsApp Admissions Office</h3>
+                <p>Direct consultation with admissions officers via WhatsApp: +7 702 000 11 33.</p>
+                <span class="link-arrow">Open WhatsApp →</span>
+              </div>
+            </a>
+
+            <a href="https://t.me/sdu_admissions_registration_bot" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">✈️</div>
+              <div class="link-details">
+                <h3>Telegram Admissions Bot</h3>
+                <p>Official registration & notification bot: @sdu_admissions_registration_bot.</p>
+                <span class="link-arrow">Open Telegram →</span>
+              </div>
+            </a>
+
+            <a href="https://sdu.edu.kz/dormitory" target="_blank" rel="noopener noreferrer" class="link-card card">
+              <div class="link-icon">🏢</div>
+              <div class="link-details">
+                <h3>Student Dormitory Info</h3>
+                <p>Campus housing conditions, room types, pricing, and rules.</p>
+                <span class="link-arrow">View dormitory →</span>
               </div>
             </a>
 

@@ -27,7 +27,7 @@ from app.admin import (
     AdminAuth,
 )
 from app.security import SECRET_KEY, get_optional_current_user
-from app.routers import auth
+from app.routers import auth, admissions
 
 # Set up logging to file
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -66,6 +66,7 @@ app = FastAPI(
 
 # Mount Routers
 app.include_router(auth.router)
+app.include_router(admissions.router)
 
 # Initialize SQLAdmin with secure authentication backend
 admin_auth = AdminAuth(secret_key=SECRET_KEY)

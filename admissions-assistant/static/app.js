@@ -67,6 +67,10 @@ document.addEventListener("DOMContentLoaded", () => {
       loadPrograms();
     } else if (tabId === "faq" && faqData.length === 0) {
       loadFAQ();
+    } else if (tabId === "guide") {
+      loadAdmissionGuide();
+    } else if (tabId === "links") {
+      loadOfficialLinks();
     }
 
     // Focus input if switched to chat
@@ -1030,6 +1034,467 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
+  // ================= 7. STEP-BY-STEP ADMISSION GUIDE (US7) =================
+  let guideCategory = "domestic";
+  let guideLevel = "undergraduate";
+  let guideLang = "ru";
+
+  async function loadAdmissionGuide() {
+    const container = document.getElementById("guide-steps-container");
+    if (!container) return;
+    container.innerHTML = `<div class="loading-spinner">Loading admission guide roadmap...</div>`;
+    try {
+      const res = await fetch(`/admissions/guide?category=${encodeURIComponent(guideCategory)}&level=${encodeURIComponent(guideLevel)}&lang=${encodeURIComponent(guideLang)}`);
+      if (!res.ok) throw new Error("Failed to load guide: HTTP " + res.status);
+      const data = await res.json();
+      renderAdmissionGuide(data);
+    } catch (err) {
+      container.innerHTML = `
+        <div class="card" style="color: #b91c1c; padding: 20px;">
+          <p>Failed to load admission guide. Please try again.</p>
+          <button class="btn btn-secondary" onclick="loadAdmissionGuide()" style="margin-top: 10px;">🔄 Try Again</button>
+        </div>
+      `;
+      console.error("loadAdmissionGuide error:", err);
+    }
+  }
+  window.loadAdmissionGuide = loadAdmissionGuide;
+
+  function renderAdmissionGuide(data) {
+    const container = document.getElementById("guide-steps-container");
+    if (!container) return;
+    if (!data.steps || data.steps.length === 0) {
+      container.innerHTML = `<div class="card"><p>No guide steps available for this selection.</p></div>`;
+      return;
+    }
+
+    const stepsHtml = data.steps.map((s) => `
+      <div class="guide-step-card">
+        <div class="guide-step-header">
+          <div class="guide-step-title-wrap">
+            <div class="guide-step-num">${s.step}</div>
+            <div class="guide-step-title">${escapeHtml(s.title)}</div>
+          </div>
+          <span class="guide-step-timeline-badge"><i class="ph ph-calendar"></i> ${escapeHtml(s.timeline)}</span>
+        </div>
+        <div class="guide-step-desc">${escapeHtml(s.description)}</div>
+        ${s.tips ? `
+          <div class="guide-step-tips">
+            <i class="ph-fill ph-lightbulb"></i>
+            <span><strong>Совет:</strong> ${escapeHtml(s.tips)}</span>
+          </div>
+        ` : ""}
+      </div>
+    `).join("");
+
+    container.innerHTML = `
+      <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <span style="font-weight: 700; font-size: 0.95rem; color: var(--steppe);">${escapeHtml(data.title)} (${data.total_steps} этапов)</span>
+        <a href="${data.official_admissions_portal}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
+          <i class="ph ph-arrow-square-out"></i> Подать документы онлайн
+        </a>
+      </div>
+      <div class="guide-steps-timeline">
+        ${stepsHtml}
+      </div>
+    `;
+  }
+
+  // Wire up guide control buttons
+  document.querySelectorAll(".guide-cat-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".guide-cat-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      guideCategory = btn.dataset.category;
+      loadAdmissionGuide();
+    });
+  });
+
+  document.querySelectorAll(".guide-level-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      document.querySelectorAll(".guide-level-btn").forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      guideLevel = btn.dataset.level;
+      loadAdmissionGuide();
+    });
+  });
+
+  const guideLangSelect = document.getElementById("guide-lang-select");
+  if (guideLangSelect) {
+    guideLangSelect.addEventListener("change", (e) => {
+      guideLang = e.target.value;
+      loadAdmissionGuide();
+    });
+  }
+
+  // ================= 8. CALCULATORS (US18 & US19) =================
+  // Subtab toggling
+  const calcSubtabBtns = document.querySelectorAll(".calc-subtab-btn");
+  calcSubtabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      calcSubtabBtns.forEach((b) => b.classList.remove("active"));
+      btn.classList.add("active");
+      const subtab = btn.dataset.subtab;
+      document.querySelectorAll(".calc-panel").forEach((panel) => {
+        panel.classList.remove("active");
+        panel.style.display = "none";
+      });
+      const targetPanel = document.getElementById(`calc-subtab-${subtab}`);
+      if (targetPanel) {
+        targetPanel.classList.add("active");
+        targetPanel.style.display = "block";
+      }
+    });
+  });
+
+  // US18: UNT Eligibility Matcher
+  const untForm = document.getElementById("unt-matcher-form");
+  if (untForm) {
+    untForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const s1 = document.getElementById("unt-subject-1").value;
+      const s2 = document.getElementById("unt-subject-2").value;
+      const scoreVal = parseInt(document.getElementById("unt-score-input").value, 10);
+      const loadingEl = document.getElementById("unt-matcher-loading");
+      const resultsEl = document.getElementById("unt-matcher-results");
+
+      if (loadingEl) loadingEl.style.display = "inline";
+      if (resultsEl) resultsEl.style.display = "none";
+
+      try {
+        const res = await fetch("/admissions/unt-matcher", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            subject_1: s1,
+            subject_2: s2,
+            score: scoreVal
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Matcher failed: HTTP " + res.status);
+        }
+        renderUNTMatcherResults(data);
+      } catch (err) {
+        if (resultsEl) {
+          resultsEl.innerHTML = `
+            <div class="result-status-banner warning">
+              <i class="ph ph-warning-circle" style="font-size: 1.2rem;"></i>
+              <span>${escapeHtml(err.message)}</span>
+            </div>
+          `;
+          resultsEl.style.display = "block";
+        }
+      } finally {
+        if (loadingEl) loadingEl.style.display = "none";
+      }
+    });
+  }
+
+  function renderUNTMatcherResults(data) {
+    const resultsEl = document.getElementById("unt-matcher-results");
+    if (!resultsEl) return;
+
+    let eligibleHtml = "";
+    if (data.eligible_programs && data.eligible_programs.length > 0) {
+      eligibleHtml = `
+        <h3 style="font-size: 1.1rem; margin-top: 20px; margin-bottom: 12px; color: var(--ok);">
+          ✅ Eligible Programs (${data.eligible_programs.length})
+        </h3>
+        <div class="calc-results-grid">
+          ${data.eligible_programs.map((p) => `
+            <div class="program-match-card eligible">
+              <div class="match-header">
+                <div>
+                  <div class="match-title">${escapeHtml(p.name)}</div>
+                  <div class="match-faculty">${escapeHtml(p.faculty || "")}</div>
+                </div>
+                <span class="metric-pill" style="background: var(--ok-lo); color: var(--ok);">Eligible</span>
+              </div>
+              <div class="match-metrics">
+                <span class="metric-pill">Pass Score: ${p.min_score}</span>
+                <span class="metric-pill" style="color: var(--ok);">Your Surplus: +${p.points_surplus || 0} pts</span>
+                ${p.approx_cost_per_year_kzt ? `<span class="metric-pill">${p.approx_cost_per_year_kzt.toLocaleString()} ₸/yr</span>` : ""}
+                ${p.grant_chance ? `<span class="grant-pill ${p.grant_chance}">Grant Chance: ${p.grant_chance.toUpperCase()}</span>` : ""}
+              </div>
+              <div style="margin-top: 8px;">
+                <button class="btn btn-outline" style="font-size: 0.78rem; padding: 5px 12px;" onclick="calculateTuitionForProgram('${p.id}', ${data.score})">
+                  💰 Calculate Tuition
+                </button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    let deficitHtml = "";
+    if (data.deficit_programs && data.deficit_programs.length > 0) {
+      deficitHtml = `
+        <h3 style="font-size: 1.1rem; margin-top: 24px; margin-bottom: 12px; color: var(--warn);">
+          ⚠️ Programs Needing Higher UNT Score (${data.deficit_programs.length})
+        </h3>
+        <div class="calc-results-grid">
+          ${data.deficit_programs.map((p) => `
+            <div class="program-match-card deficit">
+              <div class="match-header">
+                <div>
+                  <div class="match-title">${escapeHtml(p.name)}</div>
+                  <div class="match-faculty">${escapeHtml(p.faculty || "")}</div>
+                </div>
+                <span class="metric-pill" style="background: var(--warn-lo); color: var(--warn);">Need +${p.points_needed} pts</span>
+              </div>
+              <div class="match-metrics">
+                <span class="metric-pill">Threshold: ${p.min_score}</span>
+                <span class="metric-pill">Your Score: ${p.user_score}</span>
+                ${p.approx_cost_per_year_kzt ? `<span class="metric-pill">${p.approx_cost_per_year_kzt.toLocaleString()} ₸/yr</span>` : ""}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    resultsEl.innerHTML = `
+      <div class="result-status-banner ${data.eligible_programs.length > 0 ? "success" : "warning"}">
+        <i class="ph ${data.eligible_programs.length > 0 ? "ph-check-circle" : "ph-info"}" style="font-size: 1.4rem;"></i>
+        <div>
+          <div><strong>${escapeHtml(data.status_message)}</strong></div>
+          <div style="font-size: 0.82rem; margin-top: 2px;">Subjects: ${escapeHtml(data.subjects_normalized.join(" + "))} | Total Matched: ${data.total_matched}</div>
+        </div>
+      </div>
+      ${eligibleHtml}
+      ${deficitHtml}
+    `;
+    resultsEl.style.display = "block";
+  }
+
+  window.calculateTuitionForProgram = function(progId, untScore) {
+    const tuitionTabBtn = document.querySelector('.calc-subtab-btn[data-subtab="tuition"]');
+    if (tuitionTabBtn) tuitionTabBtn.click();
+    const progSelect = document.getElementById("tuition-program-select");
+    if (progSelect) progSelect.value = progId;
+    const untInput = document.getElementById("tuition-unt-score");
+    if (untInput && untScore) untInput.value = untScore;
+    const form = document.getElementById("tuition-calc-form");
+    if (form) form.dispatchEvent(new Event("submit"));
+  };
+
+  // US19: Tuition & Grant Calculator
+  const tuitionForm = document.getElementById("tuition-calc-form");
+  if (tuitionForm) {
+    tuitionForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const progId = document.getElementById("tuition-program-select").value;
+      const scoreRaw = document.getElementById("tuition-unt-score").value;
+      const untScoreVal = scoreRaw !== "" ? parseInt(scoreRaw, 10) : null;
+      const discountCheckboxes = document.querySelectorAll('#tuition-calc-form input[name="discount"]:checked');
+      const discounts = Array.from(discountCheckboxes).map((cb) => cb.value);
+
+      const loadingEl = document.getElementById("tuition-calc-loading");
+      const resultsEl = document.getElementById("tuition-calc-results");
+
+      if (loadingEl) loadingEl.style.display = "inline";
+      if (resultsEl) resultsEl.style.display = "none";
+
+      try {
+        const res = await fetch("/admissions/tuition-calculator", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            program_id: progId,
+            unt_score: untScoreVal,
+            discounts: discounts
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Calculation failed: HTTP " + res.status);
+        }
+        renderTuitionCalculatorResults(data);
+      } catch (err) {
+        if (resultsEl) {
+          resultsEl.innerHTML = `
+            <div class="result-status-banner warning">
+              <i class="ph ph-warning-circle" style="font-size: 1.2rem;"></i>
+              <span>${escapeHtml(err.message)}</span>
+            </div>
+          `;
+          resultsEl.style.display = "block";
+        }
+      } finally {
+        if (loadingEl) loadingEl.style.display = "none";
+      }
+    });
+  }
+
+  function renderTuitionCalculatorResults(data) {
+    const resultsEl = document.getElementById("tuition-calc-results");
+    if (!resultsEl) return;
+
+    let discountsHtml = "";
+    if (data.applied_discounts && data.applied_discounts.length > 0) {
+      discountsHtml = `
+        <div class="tuition-discounts-list">
+          <h4>Applied Scholarships & Discounts:</h4>
+          ${data.applied_discounts.map((d) => `
+            <div class="discount-item-row">
+              <span><strong>${escapeHtml(d.title)}</strong> (${d.percentage}%)</span>
+              <span style="color: var(--ok); font-weight: 700;">-${d.percentage}%</span>
+            </div>
+          `).join("")}
+          ${data.is_discount_capped ? `
+            <div style="font-size: 0.78rem; color: var(--warn); margin-top: 8px;">
+              ℹ️ Note: Total university scholarship discount is capped at maximum 50%.
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    const grantInfo = data.grant_probability;
+    let grantBannerHtml = "";
+    if (grantInfo && grantInfo.chance) {
+      grantBannerHtml = `
+        <div class="result-status-banner ${grantInfo.chance === "high" ? "success" : "warning"}" style="margin-top: 16px;">
+          <i class="ph ${grantInfo.chance === "high" ? "ph-check-circle" : "ph-chart-line-up"}" style="font-size: 1.4rem;"></i>
+          <div>
+            <div><strong>Государственный грант РК: Шанс ${grantInfo.chance.toUpperCase()}</strong></div>
+            <div style="font-size: 0.84rem; margin-top: 2px;">${escapeHtml(grantInfo.description)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    resultsEl.innerHTML = `
+      <div class="tuition-summary-card">
+        <div class="tuition-header-row">
+          <div>
+            <div class="tuition-program-name">${escapeHtml(data.program_name)}</div>
+            <div class="tuition-faculty-name">${escapeHtml(data.faculty || "")} &bull; ${data.degree} (${data.duration_years} Years)</div>
+          </div>
+          <div class="tuition-total-tag">
+            <div class="tuition-total-amount">${data.discounted_annual_fee.toLocaleString()} ₸</div>
+            <div class="tuition-total-label">Final Annual Tuition (${data.total_discount_percent}% off)</div>
+          </div>
+        </div>
+
+        <div class="tuition-details-grid">
+          <div class="tuition-box">
+            <span class="tuition-box-label">Base Annual Fee</span>
+            <span class="tuition-box-value">${data.base_annual_fee.toLocaleString()} ₸</span>
+          </div>
+          <div class="tuition-box">
+            <span class="tuition-box-label">Annual Savings</span>
+            <span class="tuition-box-value" style="color: var(--ok);">${data.discount_amount_kzt.toLocaleString()} ₸</span>
+          </div>
+          <div class="tuition-box">
+            <span class="tuition-box-label">4-Year Degree Total</span>
+            <span class="tuition-box-value">${data.discounted_total_fee.toLocaleString()} ₸</span>
+          </div>
+        </div>
+
+        ${discountsHtml}
+
+        <div class="payment-schedule-card">
+          <div style="font-weight: 700; font-size: 0.95rem; color: var(--text);">
+            📅 50/50 Semester Payment Schedule & Enrollment
+          </div>
+          <div class="payment-schedule-grid">
+            <div class="payment-installment-box">
+              <div class="installment-title">Semester 1 Fee (50%)</div>
+              <div class="installment-amount">${data.payment_schedule.semester_1.toLocaleString()} ₸</div>
+              <div class="installment-note">Due upon contract signing</div>
+            </div>
+            <div class="payment-installment-box">
+              <div class="installment-title">Mandatory Student Fee</div>
+              <div class="installment-amount">${data.registration_fee_kzt.toLocaleString()} ₸</div>
+              <div class="installment-note">One-time first-year registration</div>
+            </div>
+            <div class="payment-installment-box" style="background: var(--steppe-lo); border-color: var(--steppe);">
+              <div class="installment-title">First Payment Total</div>
+              <div class="installment-amount" style="color: var(--steppe);">${data.payment_schedule.first_payment_total.toLocaleString()} ₸</div>
+              <div class="installment-note">Initial deposit for enrollment</div>
+            </div>
+            <div class="payment-installment-box">
+              <div class="installment-title">Semester 2 Fee (50%)</div>
+              <div class="installment-amount">${data.payment_schedule.semester_2.toLocaleString()} ₸</div>
+              <div class="installment-note">Due before spring semester</div>
+            </div>
+          </div>
+        </div>
+
+        ${grantBannerHtml}
+      </div>
+    `;
+    resultsEl.style.display = "block";
+  }
+
+  // ================= 9. OFFICIAL LINKS (US9) =================
+  async function loadOfficialLinks() {
+    const grid = document.getElementById("official-links-grid");
+    if (!grid) return;
+    try {
+      const res = await fetch("/admissions/links");
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data.links && data.links.length > 0) {
+        renderOfficialLinks(data.links);
+      }
+    } catch (err) {
+      console.error("loadOfficialLinks error:", err);
+    }
+  }
+  window.loadOfficialLinks = loadOfficialLinks;
+
+  function renderOfficialLinks(links) {
+    const grid = document.getElementById("official-links-grid");
+    if (!grid) return;
+    const iconMap = {
+      sdu_portal: "🏛️",
+      admissions_portal: "🎓",
+      testcenter: "📝",
+      egov: "📑",
+      sdu_spt: "🏆",
+      whatsapp_admissions: "💬",
+      telegram_bot: "✈️",
+      dormitory: "🏢"
+    };
+
+    const dynamicCards = links.map((l) => `
+      <a href="${l.url}" target="_blank" rel="noopener noreferrer" class="link-card card">
+        <div class="link-icon">${iconMap[l.id] || "🔗"}</div>
+        <div class="link-details">
+          <h3>${escapeHtml(l.title)}</h3>
+          <p>${escapeHtml(l.description || l.name_ru || "")}</p>
+          <span class="link-arrow">Visit link →</span>
+        </div>
+      </a>
+    `).join("");
+
+    grid.innerHTML = dynamicCards + `
+      <div class="link-card card" onclick="window.location.href='mailto:admission@sdu.edu.kz'">
+        <div class="link-icon">✉️</div>
+        <div class="link-details">
+          <h3>Admissions Support Email</h3>
+          <p>Contact officers directly: <code>admission@sdu.edu.kz</code></p>
+          <span class="link-arrow">Send email →</span>
+        </div>
+      </div>
+
+      <div class="link-card card" onclick="alert('Admissions Hotline: +7 (727) 307-95-65\\nOffice: Abylai Khan str., 1/1, Kaskelen\\nHours: Mon-Fri 09:00 - 18:00')">
+        <div class="link-icon">📞</div>
+        <div class="link-details">
+          <h3>Admissions Hotline & Campus Office</h3>
+          <p>+7 (727) 307-95-65 &bull; Mon-Fri 09:00 - 18:00</p>
+          <span class="link-arrow">View details →</span>
+        </div>
+      </div>
+    `;
+  }
+
   // Initialize Auth on page load
   initAuth();
 });
+

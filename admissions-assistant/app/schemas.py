@@ -252,3 +252,125 @@ class SavedProgramOut(BaseModel):
     id: int
     program_id: str
     created_at: datetime
+
+
+# ==========================================
+# SPRINT 3: ADMISSIONS & CALCULATORS SCHEMAS
+# ==========================================
+
+class AdmissionStepOut(BaseModel):
+    step: int
+    title: str
+    timeline: Optional[str] = None
+    description: str
+    tips: Optional[str] = None
+
+
+class AdmissionGuideResponse(BaseModel):
+    category: str
+    level: str
+    language: str
+    title: str
+    total_steps: int
+    steps: List[AdmissionStepOut]
+    official_admissions_portal: str
+    contacts: Optional[dict] = None
+
+
+class OfficialLinkItem(BaseModel):
+    id: str
+    title: str
+    name_ru: Optional[str] = None
+    url: str
+    category: str
+    description: Optional[str] = None
+
+
+class OfficialLinksResponse(BaseModel):
+    verified: bool
+    total: int
+    links: List[OfficialLinkItem]
+    urls: dict
+
+
+class UNTMatcherRequest(BaseModel):
+    subject_1: str = Field(min_length=1, max_length=100)
+    subject_2: str = Field(min_length=1, max_length=100)
+    score: int = Field(ge=0, le=140)
+
+
+class ProgramMatchItem(BaseModel):
+    id: str
+    code: Optional[str] = None
+    name: str
+    faculty: Optional[str] = None
+    degree: Optional[str] = "Bachelor"
+    min_score: int
+    user_score: int
+    approx_cost_per_year_kzt: Optional[int] = None
+    unt_subjects: List[str] = []
+    grant_chance: Optional[str] = None
+    grant_cutoff: Optional[int] = None
+    points_surplus: Optional[int] = None
+    points_needed: Optional[int] = None
+
+
+class UNTMatcherResponse(BaseModel):
+    score: int
+    subjects_normalized: List[str]
+    total_matched: int
+    eligible_programs: List[ProgramMatchItem]
+    deficit_programs: List[ProgramMatchItem]
+    status_message: str
+
+
+class TuitionCalculatorRequest(BaseModel):
+    program_id: str = Field(min_length=1, max_length=100)
+    unt_score: Optional[int] = Field(default=None, ge=0, le=140)
+    discounts: Optional[List[str]] = Field(default_factory=list)
+
+
+class DiscountDetail(BaseModel):
+    code: str
+    title: str
+    percentage: int
+    description: Optional[str] = None
+
+
+class PaymentScheduleDetail(BaseModel):
+    semester_1: int
+    semester_2: int
+    registration_fee: int
+    first_payment_total: int
+    payment_rules: Optional[str] = None
+
+
+class GrantProbabilityDetail(BaseModel):
+    chance: Optional[str] = None
+    estimated_cutoff: int
+    field_type: str
+    score: Optional[int] = None
+    description: str
+
+
+class TuitionCalculatorResponse(BaseModel):
+    program_id: str
+    program_code: Optional[str] = None
+    program_name: str
+    faculty: Optional[str] = None
+    degree: str
+    duration_years: int
+    base_annual_fee: int
+    base_total_fee: int
+    applied_discounts: List[DiscountDetail]
+    raw_discount_percent: int
+    total_discount_percent: int
+    is_discount_capped: bool
+    discount_amount_kzt: int
+    discounted_annual_fee: int
+    discounted_total_fee: int
+    total_savings_kzt: int
+    registration_fee_kzt: int
+    payment_schedule: PaymentScheduleDetail
+    grant_probability: GrantProbabilityDetail
+

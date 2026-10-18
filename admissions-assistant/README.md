@@ -9,6 +9,7 @@ Programs, FAQs, requirements, accounts, profiles and chat history are stored in 
 Run from the repository's `admissions-assistant/` directory. Python 3.12 is recommended for the pinned Pydantic wheels; the tested interpreter on this machine is:
 
 ```bash
+cd /Users/maratsaken/Documents/PM/admissions-assistant
 /Users/maratsaken/.cache/codex-runtimes/codex-primary-runtime/dependencies/python/bin/python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements.txt
 mkdir -p .demo
@@ -16,11 +17,34 @@ export DATABASE_URL="sqlite:///$PWD/.demo/admissions.db"
 export LOG_FILE="$PWD/.demo/app.log"
 export TESTING=1
 export GEMINI_API_KEY=""
+unset ADMISSION_GUIDE_FILE
 .venv/bin/python scripts/migrate_to_sqlite.py --demo
 .venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
 On another machine replace the long interpreter path with `python3.12`. Open [the application](http://127.0.0.1:8000) and [API documentation](http://127.0.0.1:8000/docs). If a server already occupies port 8000, use a different port. Stop with Ctrl+C.
+
+## Normal startup, alternate port and stopping
+
+For subsequent starts on this Mac, use the already installed environment and seeded demo database:
+
+```bash
+cd /Users/maratsaken/Documents/PM/admissions-assistant
+export DATABASE_URL="sqlite:///$PWD/.demo/admissions.db"
+export LOG_FILE="$PWD/.demo/app.log"
+export TESTING=1
+export GEMINI_API_KEY=""
+unset ADMISSION_GUIDE_FILE
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+If port 8000 is occupied, either use the application already running there or change the last command to:
+
+```bash
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8001
+```
+
+Then open [http://127.0.0.1:8001](http://127.0.0.1:8001). Stop a server launched in your terminal with **Control+C** in that terminal. Unsetting `ADMISSION_GUIDE_FILE` selects the checked-in guide instead of an old test-file override. The database environment variable must remain set for every startup.
 
 The `.venv/` and `.demo/` directories are ignored by Git. For subsequent starts, reuse the environment and database; the four `export` commands and the Uvicorn command are sufficient. Initialization is explicit: the server does not create or seed tables on startup. `init_db()` uses SQLAlchemy `create_all`, not a schema migration system; it does not upgrade old tables. Use a new demo database instead of changing an existing user's schema.
 
@@ -49,7 +73,8 @@ Tests set `DATABASE_URL` **before app import**, create a temporary seeded databa
 - Applicant category: `domestic` / `international`; level: `undergraduate` / `graduate`; language: `ru` / `kk` / `en`.
 - `program_id` is optional. The seeded catalog has Bachelor programs only; Master currently offers a clearly labeled general route. Unknown programs, mismatched degrees and invalid parameters return 422.
 - Expired, future-dated, malformed, incomplete or unreviewed procedures return 503 with no steps. The chatbot offers the admissions portal instead of substituting another applicant route.
-- Past 2026 deadlines are visibly labeled as a closed cycle. Unknown deadlines are explicitly referred to admissions.
+- Past 2026 deadlines are visibly labeled as a closed cycle. The international Bachelor route distinguishes the published fall and spring periods; spring dates are not applied to the general Master route. Unknown deadlines are explicitly referred to admissions.
+- The domestic Bachelor route adds a special examination action for teacher education and a creative-route confirmation for journalism before the grant step. International language assessment precedes the coordinator interview.
 - Checkboxes persist in the current browser/device, keyed by version, applicant category, level and program. They are not evidence of an application submitted to SDU. A new version starts separate progress.
 
 ### Updating reviewed procedures
@@ -60,3 +85,9 @@ Tests set `DATABASE_URL` **before app import**, create a temporary seeded databa
 4. Click **Refresh guide** or request the guide in chat. The next request reads the new file without restarting Uvicorn. Already displayed pages update on refresh, not by background push. For a separately managed policy file, set `ADMISSION_GUIDE_FILE` before starting the server.
 
 This is the reviewed-data update workflow specified in the Trello US7 card. It does not automatically scrape or approve upstream university website changes. See [Sprint 3 report and 3–5 minute defense script](docs/sprint_3_report.md). Earlier US3 documentation describes the original JSON-era design and must be read together with the current SQLite implementation.
+
+## Final acceptance audit
+
+The independently tested previously published baseline is `6f7cf57ef73f22fa7ab1300c6ea0e378a1cd955a`. Its 157 tests passed in a clean environment, but additional acceptance checks found a complete-storage-denial startup failure and acceptance of whitespace-only procedure text. The final audited corrections add coverage; the finalization rerun passes 168 tests with 49 warnings, with no failures or skips. The broader Excel automatic-synchronization requirement remains unimplemented, and Master remains a general route. See [the Russian acceptance audit](docs/sprint_3_acceptance_audit.md) and the updated English Sprint 3 report for the exact scope, evidence and remaining requirements conflicts.
+
+The clean install also emitted a yanked-release warning for the existing `google-genai==0.5.0` pin, citing Pillow vulnerability issues. `pip check` checks dependency compatibility, not security. The optional SDK was not upgraded during this US7 audit; review it separately before a production deployment.

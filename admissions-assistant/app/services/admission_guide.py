@@ -10,7 +10,7 @@ from typing import Literal
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
-from pydantic import BaseModel, Field, ValidationError, model_validator
+from pydantic import BaseModel, ConfigDict, Field, ValidationError, model_validator
 
 from app.database import load_programs, load_requirements
 from app.requirements import _status
@@ -23,6 +23,7 @@ class GuideUnavailable(Exception):
 
 
 class LocalizedStep(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     title: str = Field(min_length=1)
     description: str = Field(min_length=1)
 
@@ -44,9 +45,11 @@ class ProcedureRoute(BaseModel):
     category: Literal['domestic', 'international']
     level: Literal['undergraduate', 'graduate']
     steps: list[ProcedureStep] = Field(min_length=1)
+    program_steps: dict[str, list[ProcedureStep]] = Field(default_factory=dict)
 
 
 class ProcedureSource(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     title: str = Field(min_length=1)
     url: str
 
@@ -59,6 +62,7 @@ class ProcedureSource(BaseModel):
 
 
 class ProcedureCatalog(BaseModel):
+    model_config = ConfigDict(str_strip_whitespace=True)
     version: str = Field(min_length=1)
     status: Literal['reviewed']
     verified_on: date
@@ -75,10 +79,12 @@ class ProcedureCatalog(BaseModel):
         if self.review_due < self.verified_on or (self.review_due - self.verified_on).days > 30:
             raise ValueError('Review period must be between 0 and 30 days')
         for route in self.routes:
-            if len({s.id for s in route.steps}) != len(route.steps):
-                raise ValueError('Duplicate step ID')
-            if any(s.source_id not in self.sources for s in route.steps):
-                raise ValueError('Missing source')
+            variants = [route.steps] + [route.steps + extra for extra in route.program_steps.values()]
+            for steps in variants:
+                if len({s.id for s in steps}) != len(steps):
+                    raise ValueError('Duplicate step ID')
+                if any(s.source_id not in self.sources for s in steps):
+                    raise ValueError('Missing source')
         return self
 
 
@@ -102,7 +108,7 @@ TEXT = {
     'ru': {
         'title': 'Пошаговый гид поступления SDU', 'domestic': 'Граждане РК', 'international': 'Иностранные абитуриенты',
         'undergraduate': 'Бакалавриат', 'graduate': 'Магистратура',
-        'notice': 'Общий проверенный маршрут. Точные баллы, платежи и условия выбранной программы уточняйте у комиссии. Сроки 2026 года не переносятся на следующий набор.',
+        'notice': 'Общий проверенный маршрут. Точные баллы, платежи и условия выбранной программы уточняйте у комиссии. Сроки относятся к конкретному набору; прошедшие даты не открывают новый приём.',
         'master': 'На странице магистратуры есть даты прошлых лет. Актуальные сроки и условия магистратуры необходимо подтвердить у комиссии.',
         'deadline': 'Срок действия: до', 'closed': 'Цикл приёма 2026 закрыт для этого действия',
         'unknown': 'Срок уточните у комиссии до выполнения шага.',
@@ -112,7 +118,7 @@ TEXT = {
     'kk': {
         'title': 'SDU-ға түсудің қадамдық нұсқаулығы', 'domestic': 'ҚР азаматтары', 'international': 'Шетелдік талапкерлер',
         'undergraduate': 'Бакалавриат', 'graduate': 'Магистратура',
-        'notice': 'Тексерілген жалпы жол. Таңдалған бағдарламаның нақты балдарын, төлемдері мен шарттарын комиссиядан анықтаңыз. 2026 мерзімдері келесі қабылдауға қолданылмайды.',
+        'notice': 'Тексерілген жалпы жол. Таңдалған бағдарламаның нақты балдарын, төлемдері мен шарттарын комиссиядан анықтаңыз. Мерзімдер нақты қабылдауға қатысты; өткен күндер жаңа қабылдауды ашпайды.',
         'master': 'Магистратура бетінде өткен жылдардың мерзімдері бар. Қазіргі мерзімдер мен шарттарды комиссиядан растау қажет.',
         'deadline': 'Мерзімі:', 'closed': 'Бұл әрекет үшін 2026 қабылдау кезеңі жабық',
         'unknown': 'Қадамды орындамас бұрын мерзімін комиссиядан нақтылаңыз.',
@@ -122,7 +128,7 @@ TEXT = {
     'en': {
         'title': 'SDU Step-by-Step Admission Guide', 'domestic': 'Domestic applicants', 'international': 'International applicants',
         'undergraduate': 'Bachelor', 'graduate': 'Master',
-        'notice': 'Reviewed general route. Confirm program-specific scores, payments and conditions with admissions. The 2026 deadlines do not apply to the next intake.',
+        'notice': 'Reviewed general route. Confirm program-specific scores, payments and conditions with admissions. Deadlines are intake-specific; past dates do not open a new intake.',
         'master': 'The master’s page contains dates from earlier years. Confirm current master’s deadlines and conditions with admissions.',
         'deadline': 'Deadline:', 'closed': 'The 2026 admission cycle is closed for this action',
         'unknown': 'Confirm the deadline with admissions before taking this step.',
@@ -159,7 +165,10 @@ def get_admission_guide(category='domestic', level='undergraduate', lang='ru', p
             program_note_source = requirement['source']
             program_note_verified_on = requirement['verified_on']
     steps = []
-    for index, item in enumerate(route.steps, 1):
+    # Additional entrance actions precede funding/document submission, rather
+    # than appearing only as a note after the generic route.
+    route_steps = [route.steps[0], *route.program_steps.get(program_id, []), *route.steps[1:]]
+    for index, item in enumerate(route_steps, 1):
         source = catalog.sources[item.source_id]
         closed = item.deadline is not None and item.deadline < today
         steps.append({

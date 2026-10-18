@@ -1,4 +1,6 @@
-# Sprint 3 Delivery Review
+# Sprint 3 Delivery Review — corrected by final acceptance audit
+
+**Important correction:** the published commit `6f7cf57ef73f22fa7ab1300c6ea0e378a1cd955a` passed 157 tests but failed additional final acceptance checks, including complete storage-read denial. That blocking case was missed by the earlier write-only fixture. The final audited corrections pass 168 tests with 49 warnings; finalization repeats the suite on the exact final tree. Read [the final acceptance audit](sprint_3_acceptance_audit.md) and the updated report for the current verdict. The following records the earlier review scope; it is not standalone acceptance proof.
 
 **Date:** October 18, 2026<br>
 **Scope:** Saken's complete local US7 delivery relative to team commit `344a093`; report translation and preparation for branch publication.
@@ -30,7 +32,7 @@
 
 Earlier browser verification covered normal progress persistence after reload, EN/RU/KK, program selection, guide-to-chat transfer, desktop/mobile layout, loading, HTTP 503/retry and a reviewed replacement appearing without restart. The final review additionally checked the blocked-storage fallback in the actual interface. External delivery and AI calls were not tested.
 
-No unresolved blocking defect was found in the reviewed US7 delivery. This is a review of the changed implementation and its compatibility checks, not a claim of complete security or business-data validation of the whole repository.
+The earlier conclusion that no blocking defect remained was too strong: the final audit reproduced a blocking initialization failure when storage reads were denied, plus acceptance gaps. They are corrected in the final delivery; unchanged baseline `6f7cf57` retains them. This is a review of the changed implementation and its compatibility checks, not a claim of complete security or business-data validation of the whole repository.
 
 ## Remaining Boundaries
 
@@ -40,4 +42,4 @@ The report follows the earlier sprint reports' numbered overview, user-story, ar
 
 ## Publication Hygiene
 
-Commit only the reviewed application/configuration/test/documentation files and the two application screenshots. Exclude `.venv`, `.demo`, database files, logs, secrets and the original untracked `admissions-assistant-iteration1/` directory. Keep the Safari screenshot with unrelated tabs as local evidence. Publish the delivery branch normally, without force-pushing or merging into main.
+Commit only the reviewed application/configuration/test/documentation files and the two application screenshots. Exclude `.venv`, `.demo`, database files, logs, secrets and the original untracked `admissions-assistant-iteration1/` directory. Keep the Safari screenshot with unrelated tabs as local evidence. The independent audit made no publication changes. The subsequent finalization instruction authorizes a separate fast-forward commit on `codex/sprint-3-saken-defense`; it does not authorize force-pushing or merging into main. See the updated report and acceptance audit for the final results and unresolved requirements.

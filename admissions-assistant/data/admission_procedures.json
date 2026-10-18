@@ -1,5 +1,5 @@
 {
-  "version": "2026-10-18.1",
+  "version": "2026-10-18.2",
   "verified_on": "2026-10-18",
   "review_due": "2026-11-01",
   "status": "reviewed",
@@ -136,7 +136,49 @@
             }
           }
         }
-      ]
+      ],
+      "program_steps": {
+        "sdu-two-lang": [
+          {
+            "id": "pedagogical-exam",
+            "source_id": "admission",
+            "text": {
+              "ru": {
+                "title": "Специальный педагогический экзамен",
+                "description": "Для педагогической программы уточните и пройдите специальный экзамен. Проверьте, когда результат нужен для конкурса грантов и зачисления, до подачи заявления."
+              },
+              "kk": {
+                "title": "Арнайы педагогикалық емтихан",
+                "description": "Педагогикалық бағдарлама үшін арнайы емтиханды нақтылап, тапсырыңыз. Грант конкурсы мен қабылдау үшін нәтиже қашан қажет екенін өтініш бермес бұрын тексеріңіз."
+              },
+              "en": {
+                "title": "Special pedagogical examination",
+                "description": "For this teacher-education route, confirm and complete the special examination. Check when its result is required for the grant competition and enrollment before applying."
+              }
+            }
+          }
+        ],
+        "sdu-journalism": [
+          {
+            "id": "creative-exam",
+            "source_id": "admission",
+            "text": {
+              "ru": {
+                "title": "Творческий экзамен и актуальная программа журналистики",
+                "description": "На официальной странице журналистика выделена в творческий маршрут. Уточните актуальное название и код программы, формат экзамена, интервью/эссе и сроки до подачи на грант. Название в демонстрационном каталоге может быть устаревшим."
+              },
+              "kk": {
+                "title": "Шығармашылық емтихан және қазіргі журналистика бағдарламасы",
+                "description": "Ресми бетте журналистика шығармашылық бағытқа жатады. Грантқа өтініш бермес бұрын бағдарламаның қазіргі атауы мен кодын, емтихан, сұхбат/эссе түрін және мерзімдерін нақтылаңыз. Демо каталогтағы атау ескірген болуы мүмкін."
+              },
+              "en": {
+                "title": "Creative examination and current journalism program",
+                "description": "The official page identifies journalism as a creative-exam route. Confirm the current program name/code, exam, interview/essay format and dates before applying for a grant. The demo catalog label may be outdated."
+              }
+            }
+          }
+        ]
+      }
     },
     {
       "category": "domestic",
@@ -262,15 +304,34 @@
           "text": {
             "ru": {
               "title": "Выбор программы и онлайн-заявка",
-              "description": "Выберите программу и заполните заявку на официальном портале. Согласуйте маршрут иностранного абитуриента с международной комиссией."
+              "description": "Выберите программу и заполните заявку на официальном портале. Согласуйте маршрут иностранного абитуриента с международной комиссией. На странице опубликован срок заявки весеннего набора 30 ноября 2026; осенний срок 31 июля 2026 уже прошёл. Подтвердите доступность выбранной программы в этом наборе."
             },
             "kk": {
               "title": "Бағдарламаны таңдау және онлайн өтініш",
-              "description": "Бағдарламаны таңдап, ресми порталда өтініш толтырыңыз. Шетелдік талапкердің жолын халықаралық комиссиямен келісіңіз."
+              "description": "Бағдарламаны таңдап, ресми порталда өтініш толтырыңыз. Шетелдік талапкердің жолын халықаралық комиссиямен келісіңіз. Бетте көктемгі қабылдауға өтініш мерзімі 2026 жылғы 30 қараша деп көрсетілген; күзгі 2026 жылғы 31 шілде мерзімі өтті. Осы қабылдауда бағдарламаның қолжетімділігін растаңыз."
             },
             "en": {
               "title": "Program selection and online application",
-              "description": "Choose a program and apply through the official portal. Confirm the international applicant route with international admissions."
+              "description": "Choose a program and apply through the official portal. Confirm the international applicant route with international admissions. The page lists November 30, 2026 for spring applications; the fall deadline of July 31, 2026 has passed. Confirm that the selected program is available in that intake."
+            }
+          },
+          "deadline": "2026-11-30"
+        },
+        {
+          "id": "language",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Языковой сертификат или Placement Test",
+              "description": "До собеседования уточните допустимый сертификат. При отсутствии принятого сертификата следуйте указаниям комиссии по языковому Placement Test."
+            },
+            "kk": {
+              "title": "Тіл сертификаты немесе Placement Test",
+              "description": "Сұхбатқа дейін жарамды сертификатты нақтылаңыз. Қабылданатын сертификат болмаса, комиссияның тілдік Placement Test нұсқауларын орындаңыз."
+            },
+            "en": {
+              "title": "Language certificate or Placement Test",
+              "description": "Before the interview, confirm the accepted certificate. Without an accepted certificate, follow admissions instructions for the language Placement Test."
             }
           }
         },
@@ -279,34 +340,16 @@
           "source_id": "international",
           "text": {
             "ru": {
-              "title": "Собеседование и рассмотрение заявки",
-              "description": "Следуйте приглашению комиссии на языковое тестирование и собеседование. Требования зависят от программы."
+              "title": "Онлайн-собеседование с координатором",
+              "description": "После языкового теста или подтверждения освобождения от него следуйте приглашению координатора на собеседование и дождитесь решения комиссии."
             },
             "kk": {
-              "title": "Сұхбат және өтінішті қарау",
-              "description": "Комиссияның тіл сынағына және сұхбатқа шақыруын орындаңыз. Талаптар бағдарламаға байланысты."
+              "title": "Координатормен онлайн сұхбат",
+              "description": "Тіл сынағынан немесе одан босату расталғаннан кейін координатордың сұхбат шақыруын орындап, комиссия шешімін күтіңіз."
             },
             "en": {
-              "title": "Interview and application review",
-              "description": "Follow admissions instructions for placement testing and interview. Requirements depend on the program."
-            }
-          }
-        },
-        {
-          "id": "language",
-          "source_id": "international",
-          "text": {
-            "ru": {
-              "title": "Подтверждение английского языка",
-              "description": "Уточните допустимый сертификат или формат языкового экзамена для выбранной программы. Не используйте общий порог вместо требований программы."
-            },
-            "kk": {
-              "title": "Ағылшын тілін растау",
-              "description": "Таңдалған бағдарлама үшін жарамды сертификатты немесе тіл емтиханының түрін нақтылаңыз. Жалпы шекті бағдарлама талабымен алмастырмаңыз."
-            },
-            "en": {
-              "title": "English proficiency verification",
-              "description": "Confirm the accepted certificate or language exam for your program. Check program-specific requirements before booking a test."
+              "title": "Online interview with the coordinator",
+              "description": "After placement testing or confirmation of an accepted exemption, follow the coordinator’s interview invitation and await the admissions decision."
             }
           }
         },
@@ -334,17 +377,18 @@
           "text": {
             "ru": {
               "title": "Оригиналы документов и признание образования",
-              "description": "Уточните порядок представления оригиналов, переводов и признания предыдущего образования для вашего маршрута."
+              "description": "Уточните порядок представления оригиналов, переводов и признания предыдущего образования для вашего маршрута. Указанный срок оригиналов относится к весеннему набору: 20 декабря 2026. Осенний срок 20 августа 2026 прошёл."
             },
             "kk": {
               "title": "Құжат түпнұсқалары және білімді тану",
-              "description": "Таңдалған жол үшін түпнұсқалар, аудармалар және алдыңғы білімді тану тәртібін нақтылаңыз."
+              "description": "Таңдалған жол үшін түпнұсқалар, аудармалар және алдыңғы білімді тану тәртібін нақтылаңыз. Түпнұсқалардың көрсетілген мерзімі көктемгі қабылдауға қатысты: 2026 жылғы 20 желтоқсан. Күзгі 2026 жылғы 20 тамыз мерзімі өтті."
             },
             "en": {
               "title": "Original documents and recognition",
-              "description": "Confirm original documents, translations and recognition requirements for your previous education and application route."
+              "description": "Confirm original documents, translations and recognition requirements for your previous education and application route. The displayed originals deadline applies to spring intake: December 20, 2026. The fall originals deadline of August 20, 2026 has passed."
             }
-          }
+          },
+          "deadline": "2026-12-20"
         },
         {
           "id": "arrival",
@@ -389,38 +433,38 @@
           }
         },
         {
-          "id": "selection",
-          "source_id": "international",
-          "text": {
-            "ru": {
-              "title": "Собеседование и рассмотрение заявки",
-              "description": "Следуйте приглашению комиссии на языковое тестирование и собеседование. Требования зависят от программы."
-            },
-            "kk": {
-              "title": "Сұхбат және өтінішті қарау",
-              "description": "Комиссияның тіл сынағына және сұхбатқа шақыруын орындаңыз. Талаптар бағдарламаға байланысты."
-            },
-            "en": {
-              "title": "Interview and application review",
-              "description": "Follow admissions instructions for placement testing and interview. Requirements depend on the program."
-            }
-          }
-        },
-        {
           "id": "language",
           "source_id": "international",
           "text": {
             "ru": {
-              "title": "Подтверждение английского языка",
-              "description": "Уточните допустимый сертификат или формат языкового экзамена для выбранной программы. Не используйте общий порог вместо требований программы."
+              "title": "Языковой сертификат или Placement Test",
+              "description": "До собеседования уточните допустимый сертификат. При отсутствии принятого сертификата следуйте указаниям комиссии по языковому Placement Test."
             },
             "kk": {
-              "title": "Ағылшын тілін растау",
-              "description": "Таңдалған бағдарлама үшін жарамды сертификатты немесе тіл емтиханының түрін нақтылаңыз. Жалпы шекті бағдарлама талабымен алмастырмаңыз."
+              "title": "Тіл сертификаты немесе Placement Test",
+              "description": "Сұхбатқа дейін жарамды сертификатты нақтылаңыз. Қабылданатын сертификат болмаса, комиссияның тілдік Placement Test нұсқауларын орындаңыз."
             },
             "en": {
-              "title": "English proficiency verification",
-              "description": "Confirm the accepted certificate or language exam for your program. Check program-specific requirements before booking a test."
+              "title": "Language certificate or Placement Test",
+              "description": "Before the interview, confirm the accepted certificate. Without an accepted certificate, follow admissions instructions for the language Placement Test."
+            }
+          }
+        },
+        {
+          "id": "selection",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Онлайн-собеседование с координатором",
+              "description": "После языкового теста или подтверждения освобождения от него следуйте приглашению координатора на собеседование и дождитесь решения комиссии."
+            },
+            "kk": {
+              "title": "Координатормен онлайн сұхбат",
+              "description": "Тіл сынағынан немесе одан босату расталғаннан кейін координатордың сұхбат шақыруын орындап, комиссия шешімін күтіңіз."
+            },
+            "en": {
+              "title": "Online interview with the coordinator",
+              "description": "After placement testing or confirmation of an accepted exemption, follow the coordinator’s interview invitation and await the admissions decision."
             }
           }
         },

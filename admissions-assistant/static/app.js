@@ -1,6 +1,24 @@
 // Smart University Admissions Assistant — Iteration 1 Frontend Logic
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Storage can be disabled completely (not just full). Earlier sections must
+  // not abort initialization before the guide handlers have been registered.
+  const storageMemory = new Map();
+  const safeStorage = {
+    getItem(key) {
+      if (storageMemory.has(key)) return storageMemory.get(key);
+      try { return window.localStorage.getItem(key); } catch (_) { return null; }
+    },
+    setItem(key, value) {
+      storageMemory.set(key, String(value));
+      try { window.localStorage.setItem(key, value); } catch (_) { /* Session only. */ }
+    },
+    removeItem(key) {
+      storageMemory.set(key, null);
+      try { window.localStorage.removeItem(key); } catch (_) { /* Session only. */ }
+    }
+  };
+
   // DOM Elements
   const navItems = document.querySelectorAll(".nav-item");
   const tabSections = document.querySelectorAll(".tab-section");
@@ -209,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const typingId = showTypingIndicator();
 
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = safeStorage.getItem("auth_token");
       const headers = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -462,7 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let checkedCount = 0;
 
     docCheckboxes.forEach((cb) => {
-      const saved = localStorage.getItem(`doc_${cb.dataset.docId}`);
+      const saved = safeStorage.getItem(`doc_${cb.dataset.docId}`);
       if (saved === "true") {
         cb.checked = true;
       }
@@ -477,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   docCheckboxes.forEach((cb) => {
     cb.addEventListener("change", () => {
-      localStorage.setItem(`doc_${cb.dataset.docId}`, cb.checked);
+      safeStorage.setItem(`doc_${cb.dataset.docId}`, cb.checked);
       updateDocumentsProgress();
     });
   });
@@ -511,7 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= 6. AUTH & USER PROFILES =================
   async function initAuth() {
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) {
       renderAuthWidget(null);
       return;
@@ -527,14 +545,14 @@ document.addEventListener("DOMContentLoaded", () => {
       renderAuthWidget(currentUser);
       await loadFavorites();
     } catch (err) {
-      localStorage.removeItem("auth_token");
+      safeStorage.removeItem("auth_token");
       currentUser = null;
       renderAuthWidget(null);
     }
   }
 
   async function loadFavorites() {
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) return;
     try {
       const res = await fetch("/auth/favorites", {
@@ -757,7 +775,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorEl.textContent = data.detail || "Login failed";
         return;
       }
-      localStorage.setItem("auth_token", data.access_token);
+      safeStorage.setItem("auth_token", data.access_token);
       currentUser = data.user;
       renderAuthWidget(currentUser);
       closeAuthModal();
@@ -903,7 +921,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      localStorage.setItem("auth_token", data.access_token);
+      safeStorage.setItem("auth_token", data.access_token);
       currentUser = data.user;
       renderAuthWidget(currentUser);
       closeAuthModal();
@@ -973,7 +991,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) return;
 
     try {
@@ -1002,7 +1020,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.handleLogout = function() {
-    localStorage.removeItem("auth_token");
+    safeStorage.removeItem("auth_token");
     currentUser = null;
     userFavorites = new Set();
     renderAuthWidget(null);
@@ -1010,7 +1028,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.toggleFavorite = async function(programId) {
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) {
       openAuthModal('login');
       return;
@@ -1128,8 +1146,9 @@ document.addEventListener("DOMContentLoaded", () => {
     let saved = guideMemory[key] || [];
     let storageAvailable = true;
     try {
+      const storedValue = localStorage.getItem(key);
       if (!(key in guideMemory)) {
-        const stored = JSON.parse(localStorage.getItem(key) || "[]");
+        const stored = JSON.parse(storedValue || "[]");
         if (Array.isArray(stored)) saved = stored;
       }
       localStorage.setItem(key, JSON.stringify(saved));

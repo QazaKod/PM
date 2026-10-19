@@ -1,6 +1,24 @@
 // Smart University Admissions Assistant — Iteration 1 Frontend Logic
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Storage can be disabled completely (not just full). Earlier sections must
+  // not abort initialization before the guide handlers have been registered.
+  const storageMemory = new Map();
+  const safeStorage = {
+    getItem(key) {
+      if (storageMemory.has(key)) return storageMemory.get(key);
+      try { return window.localStorage.getItem(key); } catch (_) { return null; }
+    },
+    setItem(key, value) {
+      storageMemory.set(key, String(value));
+      try { window.localStorage.setItem(key, value); } catch (_) { /* Session only. */ }
+    },
+    removeItem(key) {
+      storageMemory.set(key, null);
+      try { window.localStorage.removeItem(key); } catch (_) { /* Session only. */ }
+    }
+  };
+
   // DOM Elements
   const navItems = document.querySelectorAll(".nav-item");
   const tabSections = document.querySelectorAll(".tab-section");
@@ -21,7 +39,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const programsGrid = document.getElementById("programs-grid");
   const faqList = document.getElementById("faq-list");
   const faqSearch = document.getElementById("faq-search");
-  const filterBtns = document.querySelectorAll(".filter-btn");
+  const filterBtns = document.querySelectorAll("#section-programs .filter-btn");
 
   // Documents Checklist Elements
   const docCheckboxes = document.querySelectorAll("#documents-checklist input[type='checkbox']");
@@ -148,7 +166,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let sourceBadgeHtml = "";
     if (isBot && meta.source) {
       const badgeClass = meta.source === "program" ? "source-program" : "source-faq";
-      const badgeLabel = meta.source === "requirements" ? "Admission Requirements" : meta.source === "program" ? "Program Match" : "FAQ Match";
+      const badgeLabel = meta.source === "admission_guide" ? "Admission Guide · US7" : meta.source === "requirements" ? "Admission Requirements" : meta.source === "program" ? "Program Match" : "FAQ Match";
       sourceBadgeHtml = `<span class="msg-badge ${badgeClass}">${badgeLabel}</span>`;
     } else if (isBot && meta.isFallback) {
       sourceBadgeHtml = `<span class="msg-badge source-fallback">Admissions Staff Offer</span>`;
@@ -209,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const typingId = showTypingIndicator();
 
     try {
-      const token = localStorage.getItem("auth_token");
+      const token = safeStorage.getItem("auth_token");
       const headers = { "Content-Type": "application/json" };
       if (token) headers["Authorization"] = `Bearer ${token}`;
 
@@ -462,7 +480,7 @@ document.addEventListener("DOMContentLoaded", () => {
     let checkedCount = 0;
 
     docCheckboxes.forEach((cb) => {
-      const saved = localStorage.getItem(`doc_${cb.dataset.docId}`);
+      const saved = safeStorage.getItem(`doc_${cb.dataset.docId}`);
       if (saved === "true") {
         cb.checked = true;
       }
@@ -477,7 +495,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   docCheckboxes.forEach((cb) => {
     cb.addEventListener("change", () => {
-      localStorage.setItem(`doc_${cb.dataset.docId}`, cb.checked);
+      safeStorage.setItem(`doc_${cb.dataset.docId}`, cb.checked);
       updateDocumentsProgress();
     });
   });
@@ -511,7 +529,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // ================= 6. AUTH & USER PROFILES =================
   async function initAuth() {
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) {
       renderAuthWidget(null);
       return;
@@ -527,14 +545,14 @@ document.addEventListener("DOMContentLoaded", () => {
       renderAuthWidget(currentUser);
       await loadFavorites();
     } catch (err) {
-      localStorage.removeItem("auth_token");
+      safeStorage.removeItem("auth_token");
       currentUser = null;
       renderAuthWidget(null);
     }
   }
 
   async function loadFavorites() {
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) return;
     try {
       const res = await fetch("/auth/favorites", {
@@ -757,7 +775,7 @@ document.addEventListener("DOMContentLoaded", () => {
         errorEl.textContent = data.detail || "Login failed";
         return;
       }
-      localStorage.setItem("auth_token", data.access_token);
+      safeStorage.setItem("auth_token", data.access_token);
       currentUser = data.user;
       renderAuthWidget(currentUser);
       closeAuthModal();
@@ -903,7 +921,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      localStorage.setItem("auth_token", data.access_token);
+      safeStorage.setItem("auth_token", data.access_token);
       currentUser = data.user;
       renderAuthWidget(currentUser);
       closeAuthModal();
@@ -973,7 +991,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     }
 
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) return;
 
     try {
@@ -1002,7 +1020,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.handleLogout = function() {
-    localStorage.removeItem("auth_token");
+    safeStorage.removeItem("auth_token");
     currentUser = null;
     userFavorites = new Set();
     renderAuthWidget(null);
@@ -1010,7 +1028,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.toggleFavorite = async function(programId) {
-    const token = localStorage.getItem("auth_token");
+    const token = safeStorage.getItem("auth_token");
     if (!token) {
       openAuthModal('login');
       return;
@@ -1038,94 +1056,154 @@ document.addEventListener("DOMContentLoaded", () => {
   let guideCategory = "domestic";
   let guideLevel = "undergraduate";
   let guideLang = "ru";
-
+  let guideProgram = "";
+  let guideRequest = 0;
+  let guideController = null;
+  let guideCatalog = null;
+  const guideCopy = {
+    ru: {heading: "Пошаговый гид поступления", subtitle: "Выберите программу, категорию и уровень обучения.", domestic: "Граждане РК", international: "Иностранные абитуриенты", undergraduate: "Бакалавриат", graduate: "Магистратура", program: "Программа", general: "Общий маршрут", refresh: "Обновить гид", chat: "Спросить в чате", loading: "Загрузка проверенного гида…", error: "Гид недоступен. Не удалось получить проверенные данные. Повторите запрос или обратитесь в приёмную комиссию.", empty: "Для выбранного маршрута нет проверенных шагов.", reviewed: "Проверено", due: "Перепроверка до", version: "Версия", source: "Официальный источник", done: "Выполнено", storage: "Прогресс сохраняется на этом устройстве для выбранного маршрута и версии.", noStorage: "Хранилище браузера недоступно: прогресс сохранится только до перезагрузки.", portal: "Портал приёмной комиссии"},
+    kk: {heading: "Қадамдық қабылдау нұсқаулығы", subtitle: "Бағдарламаны, талапкер санатын және оқу деңгейін таңдаңыз.", domestic: "ҚР азаматтары", international: "Шетелдік талапкерлер", undergraduate: "Бакалавриат", graduate: "Магистратура", program: "Бағдарлама", general: "Жалпы жол", refresh: "Нұсқаулықты жаңарту", chat: "Чатта сұрау", loading: "Тексерілген нұсқаулық жүктелуде…", error: "Нұсқаулық қолжетімсіз. Тексерілген деректер алынбады. Қайталап көріңіз немесе қабылдау комиссиясына хабарласыңыз.", empty: "Таңдалған жол үшін тексерілген қадамдар жоқ.", reviewed: "Тексерілген", due: "Қайта тексеру мерзімі", version: "Нұсқа", source: "Ресми дереккөз", done: "Орындалды", storage: "Осы жол мен нұсқа бойынша прогресс осы құрылғыда сақталады.", noStorage: "Браузер жады қолжетімсіз: прогресс қайта жүктегенге дейін ғана сақталады.", portal: "Қабылдау комиссиясының порталы"},
+    en: {heading: "Step-by-Step Admission Guide", subtitle: "Select a program, applicant category and study level.", domestic: "Domestic applicants", international: "International applicants", undergraduate: "Bachelor", graduate: "Master", program: "Program", general: "General route", refresh: "Refresh guide", chat: "Ask in chat", loading: "Loading reviewed guide…", error: "The guide is unavailable. Reviewed data could not be loaded. Retry or contact admissions.", empty: "No reviewed steps are available for this route.", reviewed: "Reviewed", due: "Review due", version: "Version", source: "Official source", done: "Completed", storage: "Progress is saved on this device for the selected route and version.", noStorage: "Browser storage is unavailable: progress lasts only until reload.", portal: "Admissions portal"}
+  };
+  const guideProgramSelect = document.getElementById("guide-program-select");
+  const guideMemory = {};
+  function localizeGuideControls() {
+    const t = guideCopy[guideLang];
+    for (const [id, key] of [["guide-heading", "heading"], ["guide-subtitle", "subtitle"], ["guide-program-label", "program"], ["guide-refresh", "refresh"], ["guide-open-chat", "chat"]]) {
+      document.getElementById(id).textContent = t[key];
+    }
+    document.getElementById("section-guide").lang = guideLang;
+    document.querySelectorAll(".guide-cat-btn").forEach(btn => {
+      btn.textContent = t[btn.dataset.category];
+      btn.setAttribute("aria-pressed", String(btn.dataset.category === guideCategory));
+    });
+    document.querySelectorAll(".guide-level-btn").forEach(btn => {
+      btn.textContent = t[btn.dataset.level];
+      btn.setAttribute("aria-pressed", String(btn.dataset.level === guideLevel));
+    });
+  }
+  function updateGuidePrograms() {
+    const t = guideCopy[guideLang];
+    const degree = guideLevel === "undergraduate" ? "Bachelor" : "Master";
+    const available = (guideCatalog || []).filter(p => p.degree === degree);
+    if (!available.some(p => p.id === guideProgram)) guideProgram = "";
+    guideProgramSelect.innerHTML = `<option value="">${escapeHtml(t.general)}</option>` + available.map(p =>
+      `<option value="${escapeHtml(p.id)}">${escapeHtml(p.name)}</option>`).join("");
+    guideProgramSelect.value = guideProgram;
+  }
   async function loadAdmissionGuide() {
     const container = document.getElementById("guide-steps-container");
     if (!container) return;
-    container.innerHTML = `<div class="loading-spinner">Loading admission guide roadmap...</div>`;
+    const request = ++guideRequest;
+    if (guideController) guideController.abort();
+    const controller = new AbortController();
+    guideController = controller;
+    const timer = setTimeout(() => controller.abort(), 10000);
+    localizeGuideControls();
+    const t = guideCopy[guideLang];
+    container.setAttribute("aria-busy", "true");
+    container.innerHTML = `<div class="loading-spinner">${t.loading}</div>`;
     try {
-      const res = await fetch(`/admissions/guide?category=${encodeURIComponent(guideCategory)}&level=${encodeURIComponent(guideLevel)}&lang=${encodeURIComponent(guideLang)}`);
-      if (!res.ok) throw new Error("Failed to load guide: HTTP " + res.status);
+      if (!guideCatalog) {
+        const response = await fetch("/programs", {signal: controller.signal, cache: "no-store"});
+        if (!response.ok) throw new Error("Program catalog unavailable");
+        const catalog = await response.json();
+        if (!Array.isArray(catalog)) throw new Error("Invalid program catalog");
+        if (request !== guideRequest) return;
+        guideCatalog = catalog;
+      }
+      if (request !== guideRequest) return;
+      updateGuidePrograms();
+      const params = new URLSearchParams({category: guideCategory, level: guideLevel, lang: guideLang});
+      if (guideProgram) params.set("program_id", guideProgram);
+      const res = await fetch(`/admissions/guide?${params}`, {signal: controller.signal, cache: "no-store"});
+      if (!res.ok) throw new Error("Guide unavailable: HTTP " + res.status);
       const data = await res.json();
+      if (request !== guideRequest) return;
       renderAdmissionGuide(data);
     } catch (err) {
-      container.innerHTML = `
-        <div class="card" style="color: #b91c1c; padding: 20px;">
-          <p>Failed to load admission guide. Please try again.</p>
-          <button class="btn btn-secondary" onclick="loadAdmissionGuide()" style="margin-top: 10px;">🔄 Try Again</button>
-        </div>
-      `;
-      console.error("loadAdmissionGuide error:", err);
+      if (request !== guideRequest) return;
+      container.innerHTML = `<div class="card" role="alert"><p>${t.error}</p>
+        <button class="btn btn-secondary" id="guide-retry">${t.refresh}</button>
+        <a href="https://admissions.sdu.edu.kz" target="_blank" rel="noopener noreferrer">${t.portal}</a></div>`;
+      document.getElementById("guide-retry").addEventListener("click", loadAdmissionGuide);
+    } finally {
+      clearTimeout(timer);
+      if (request === guideRequest) container.setAttribute("aria-busy", "false");
     }
   }
   window.loadAdmissionGuide = loadAdmissionGuide;
-
   function renderAdmissionGuide(data) {
     const container = document.getElementById("guide-steps-container");
-    if (!container) return;
-    if (!data.steps || data.steps.length === 0) {
-      container.innerHTML = `<div class="card"><p>No guide steps available for this selection.</p></div>`;
+    const t = guideCopy[guideLang];
+    if (!Array.isArray(data.steps) || !data.steps.length) {
+      container.innerHTML = `<div class="card" role="status"><p>${t.empty}</p><button id="guide-empty-retry" class="btn btn-secondary">${t.refresh}</button></div>`;
+      document.getElementById("guide-empty-retry").addEventListener("click", loadAdmissionGuide);
       return;
     }
-
-    const stepsHtml = data.steps.map((s) => `
-      <div class="guide-step-card">
-        <div class="guide-step-header">
-          <div class="guide-step-title-wrap">
-            <div class="guide-step-num">${s.step}</div>
-            <div class="guide-step-title">${escapeHtml(s.title)}</div>
-          </div>
-          <span class="guide-step-timeline-badge"><i class="ph ph-calendar"></i> ${escapeHtml(s.timeline)}</span>
-        </div>
-        <div class="guide-step-desc">${escapeHtml(s.description)}</div>
-        ${s.tips ? `
-          <div class="guide-step-tips">
-            <i class="ph-fill ph-lightbulb"></i>
-            <span><strong>Совет:</strong> ${escapeHtml(s.tips)}</span>
-          </div>
-        ` : ""}
-      </div>
-    `).join("");
-
+    // Key includes version and program so policy changes cannot inherit completed steps.
+    const key = `admission-guide:${data.version}:${data.category}:${data.level}:${data.program_id || "general"}`;
+    let saved = guideMemory[key] || [];
+    let storageAvailable = true;
+    try {
+      const storedValue = localStorage.getItem(key);
+      if (!(key in guideMemory)) {
+        const stored = JSON.parse(storedValue || "[]");
+        if (Array.isArray(stored)) saved = stored;
+      }
+      localStorage.setItem(key, JSON.stringify(saved));
+    } catch (_) { storageAvailable = false; }
+    const completed = new Set(saved.filter(id => data.steps.some(s => s.id === id)));
+    guideMemory[key] = [...completed];
     container.innerHTML = `
-      <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
-        <span style="font-weight: 700; font-size: 0.95rem; color: var(--steppe);">${escapeHtml(data.title)} (${data.total_steps} этапов)</span>
-        <a href="${data.official_admissions_portal}" target="_blank" rel="noopener noreferrer" class="btn btn-secondary" style="font-size: 0.8rem; padding: 6px 14px;">
-          <i class="ph ph-arrow-square-out"></i> Подать документы онлайн
-        </a>
-      </div>
-      <div class="guide-steps-timeline">
-        ${stepsHtml}
-      </div>
-    `;
+      <h3>${escapeHtml(data.title)}</h3>
+      <div class="guide-notice" role="note">${escapeHtml(data.notice)}</div>
+      <p class="guide-review">${t.reviewed}: ${escapeHtml(data.verified_on)} · ${t.due}: ${escapeHtml(data.review_due)} · ${t.version}: ${escapeHtml(data.version)}</p>
+      ${data.program_note ? `<p class="guide-program-note">${escapeHtml(data.program_note)}</p>` : ""}
+      ${data.program_note_source ? `<p class="guide-review">${t.reviewed}: ${escapeHtml(data.program_note_verified_on)} · <a href="${escapeHtml(data.program_note_source)}" target="_blank" rel="noopener noreferrer">${t.source}</a></p>` : ""}
+      <div class="guide-progress"><label for="guide-progress-bar" id="guide-progress-text"></label><progress id="guide-progress-bar" max="${data.steps.length}" value="0"></progress><small id="guide-storage-note">${storageAvailable ? t.storage : t.noStorage}</small></div>
+      <div class="guide-steps-timeline">${data.steps.map(s => `
+        <article class="guide-step-card">
+          <div class="guide-step-header"><div class="guide-step-title-wrap"><div class="guide-step-num">${s.step}</div><h4 class="guide-step-title">${escapeHtml(s.title)}</h4></div></div>
+          <p class="guide-step-desc">${escapeHtml(s.description)}</p>
+          ${s.timeline ? `<p>${escapeHtml(s.timeline)}</p>` : ""}
+          ${s.warning ? `<p class="guide-warning" ${s.deadline_status === "closed" ? 'role="note"' : ""}>${escapeHtml(s.warning)}</p>` : ""}
+          <a href="${escapeHtml(s.source_url)}" target="_blank" rel="noopener noreferrer">${t.source}: ${escapeHtml(s.source_title)}</a>
+          <label class="guide-step-check"><input type="checkbox" data-step-id="${escapeHtml(s.id)}" ${completed.has(s.id) ? "checked" : ""}> ${t.done}: ${escapeHtml(s.title)}</label>
+        </article>`).join("")}</div>
+      <a href="https://admissions.sdu.edu.kz" target="_blank" rel="noopener noreferrer" class="btn btn-secondary">${t.portal}</a>`;
+    const updateProgress = () => {
+      document.getElementById("guide-progress-text").textContent = `${t.done}: ${completed.size} / ${data.steps.length}`;
+      document.getElementById("guide-progress-bar").value = completed.size;
+    };
+    container.querySelectorAll("input[data-step-id]").forEach(input => input.addEventListener("change", () => {
+      if (input.checked) completed.add(input.dataset.stepId); else completed.delete(input.dataset.stepId);
+      guideMemory[key] = [...completed];
+      try { localStorage.setItem(key, JSON.stringify([...completed])); }
+      catch (_) { document.getElementById("guide-storage-note").textContent = t.noStorage; }
+      updateProgress();
+    }));
+    updateProgress();
   }
-
-  // Wire up guide control buttons
-  document.querySelectorAll(".guide-cat-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".guide-cat-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      guideCategory = btn.dataset.category;
-      loadAdmissionGuide();
-    });
+  document.querySelectorAll(".guide-cat-btn").forEach(btn => btn.addEventListener("click", () => {
+    guideCategory = btn.dataset.category;
+    document.querySelectorAll(".guide-cat-btn").forEach(b => b.classList.toggle("active", b === btn));
+    loadAdmissionGuide();
+  }));
+  document.querySelectorAll(".guide-level-btn").forEach(btn => btn.addEventListener("click", () => {
+    guideLevel = btn.dataset.level;
+    document.querySelectorAll(".guide-level-btn").forEach(b => b.classList.toggle("active", b === btn));
+    loadAdmissionGuide();
+  }));
+  document.getElementById("guide-lang-select").addEventListener("change", e => {guideLang = e.target.value; loadAdmissionGuide();});
+  guideProgramSelect.addEventListener("change", e => {guideProgram = e.target.value; loadAdmissionGuide();});
+  document.getElementById("guide-refresh").addEventListener("click", loadAdmissionGuide);
+  document.getElementById("guide-open-chat").addEventListener("click", () => {
+    requirementContext = {category: guideCategory, study_level: guideLevel, language: guideLang, program_id: guideProgram || null};
+    document.getElementById("requirements-language").value = guideLang;
+    switchTab("chat");
+    handleUserMessage({ru: "Пошаговый гид поступления", kk: "Қабылдау нұсқаулығы", en: "Admission guide"}[guideLang]);
   });
-
-  document.querySelectorAll(".guide-level-btn").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      document.querySelectorAll(".guide-level-btn").forEach((b) => b.classList.remove("active"));
-      btn.classList.add("active");
-      guideLevel = btn.dataset.level;
-      loadAdmissionGuide();
-    });
-  });
-
-  const guideLangSelect = document.getElementById("guide-lang-select");
-  if (guideLangSelect) {
-    guideLangSelect.addEventListener("change", (e) => {
-      guideLang = e.target.value;
-      loadAdmissionGuide();
-    });
-  }
 
   // ================= 8. CALCULATORS (US18 & US19) =================
   // Subtab toggling

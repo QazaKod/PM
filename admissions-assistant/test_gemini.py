@@ -1,20 +1,27 @@
-import asyncio
-from app import chatbot
-from app.database import load_programs, load_faq
-import os
-from dotenv import load_dotenv
+"""Manual network diagnostic; never execute during pytest collection."""
 
-load_dotenv()
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-print("Key exists:", bool(GEMINI_API_KEY))
+def main():
+    import asyncio
+    from app import chatbot
+    from app.database import load_programs, load_faq
+    import os
+    from dotenv import load_dotenv
 
-programs = chatbot.get_scored_programs("Are scholarships available?")
-faqs = chatbot.get_scored_faqs("Are scholarships available?")
+    load_dotenv()
+    GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+    print("Key exists:", bool(GEMINI_API_KEY))
 
-top_p = [p[0] for p in programs[:3]]
-top_f = [f[0] for f in faqs[:3]]
+    programs = chatbot.get_scored_programs("Are scholarships available?")
+    faqs = chatbot.get_scored_faqs("Are scholarships available?")
 
-print(f"Top FAQS passed to Gemini: {[f['id'] for f in top_f]}")
+    top_p = [p[0] for p in programs[:3]]
+    top_f = [f[0] for f in faqs[:3]]
 
-res = chatbot.get_ai_fallback_response("Are scholarships available?", top_p, top_f)
-print("Result:", res)
+    print(f"Top FAQS passed to Gemini: {[f['id'] for f in top_f]}")
+
+    res = chatbot.get_ai_fallback_response("Are scholarships available?", top_p, top_f)
+    print("Result:", res)
+
+
+if __name__ == "__main__":
+    main()

@@ -8,3 +8,9 @@ __pycache__/
 *.sqlite
 *.sqlite3
 app.log
+.venv/
+.demo/
+
+# Local Python virtual environments in any project copy
+venv/
+.venv/

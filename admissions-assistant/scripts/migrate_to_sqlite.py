@@ -12,15 +12,20 @@ from app.models import Program, FAQ, Requirement
 
 DATA_DIR = PROJECT_ROOT / "data"
 
+def read_legacy(name):
+    """Tracked backups are legacy demo fixtures, not current admission policy."""
+    path = DATA_DIR / f"{name}.json"
+    if not path.exists():
+        path = DATA_DIR / f"{name}.json.bak"
+    return json.loads(path.read_text(encoding="utf-8"))
+
 def migrate_programs(db):
     print("Migrating programs...")
-    with open(DATA_DIR / "programs.json", encoding="utf-8") as f:
-        programs = json.load(f)
+    programs = read_legacy("programs")
     
     # We will temporarily load requirements.json just to extract aliases/codes 
     # to store them in the Program table directly, as requested by our unified model.
-    with open(DATA_DIR / "requirements.json", encoding="utf-8") as f:
-        req_data = json.load(f)
+    req_data = read_legacy("requirements")
 
     for p in programs:
         pid = p["id"]
@@ -49,8 +54,7 @@ def migrate_programs(db):
 
 def migrate_faqs(db):
     print("Migrating FAQs...")
-    with open(DATA_DIR / "faq.json", encoding="utf-8") as f:
-        faqs = json.load(f)
+    faqs = read_legacy("faq")
     
     for faq in faqs:
         f = FAQ(
@@ -65,8 +69,7 @@ def migrate_faqs(db):
 
 def migrate_requirements(db):
     print("Migrating requirements (flattening)...")
-    with open(DATA_DIR / "requirements.json", encoding="utf-8") as f:
-        req_data = json.load(f)
+    req_data = read_legacy("requirements")
     
     for pid, pdata in req_data.items():
         reqs = pdata.get("requirements", {})
@@ -94,10 +97,24 @@ def migrate_requirements(db):
                         text_ru=text_dict.get("ru"),
                         text_kk=text_dict.get("kk")
                     )
-                    db.add(r)
+                    existing = db.query(Requirement).filter_by(
+                        program_id=pid, category=category, level=level, topic=topic
+                    ).first()
+                    if existing:
+                        for column in Requirement.__table__.columns:
+                            if column.name != "id":
+                                setattr(existing, column.name, getattr(r, column.name))
+                    else:
+                        db.add(r)
     db.commit()
 
 def main():
+    if "--demo" not in sys.argv or not os.getenv("DATABASE_URL"):
+        raise SystemExit("Demo seed only: set DATABASE_URL to a separate SQLite database and pass --demo. Legacy data includes unverified estimates.")
+    from sqlalchemy.engine import make_url
+    url = make_url(os.environ["DATABASE_URL"])
+    if url.drivername != "sqlite" or not url.database or Path(url.database).resolve() == (DATA_DIR / "app.db").resolve():
+        raise SystemExit("Use a separate SQLite demo database, never data/app.db.")
     print("Initializing Database...")
     init_db()
     db = SessionLocal()
@@ -109,6 +126,7 @@ def main():
     except Exception as e:
         print(f"Error during migration: {e}")
         db.rollback()
+        raise
     finally:
         db.close()
 

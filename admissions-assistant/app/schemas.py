@@ -259,14 +259,29 @@ class SavedProgramOut(BaseModel):
 # ==========================================
 
 class AdmissionStepOut(BaseModel):
+    id: str
     step: int
     title: str
     timeline: Optional[str] = None
     description: str
     tips: Optional[str] = None
+    deadline: Optional[str] = None
+    deadline_status: Literal['closed', 'upcoming', 'confirm']
+    warning: Optional[str] = None
+    source_url: str
+    source_title: str
 
 
 class AdmissionGuideResponse(BaseModel):
+    program_id: Optional[str] = None
+    program_name: Optional[str] = None
+    program_note: Optional[str] = None
+    program_note_source: Optional[str] = None
+    program_note_verified_on: Optional[str] = None
+    version: str
+    verified_on: str
+    review_due: str
+    notice: str
     category: str
     level: str
     language: str

@@ -1,237 +1,251 @@
-# Отчёт по Sprint 3 (Итерация 3)
-**Проект:** Smart University Admissions Assistant (Интеллектуальный портал приёмной комиссии SDU)  
-**Команда:** Arman, Saken, Shadiyar, Yertai, Collaborators  
-**Период выполнения:** 12 октября – 25 октября 2026  
-**Репозиторий:** [GitHub: QazaKod/PM](https://github.com/QazaKod/PM)  
-**Статус автоматических тестов:** 103 / 103 PASS (100%)  
-**Результат сборки Frontend:** Node.js syntax check — 0 errors  
+# Sprint 3 Final Report — Saken's Contribution
+
+**Project:** Smart University Admissions Assistant<br>
+**Assignee:** Saken Marat<br>
+**Date:** October 18, 2026<br>
+**Defense:** October 19, 2026<br>
+**Repository:** [QazaKod/PM](https://github.com/QazaKod/PM)<br>
+**Delivery branch:** `codex/sprint-3-saken-defense`<br>
+**Audit verdict:** Ready for defense with limitations — audited final delivery<br>
+**Previously published baseline tested:** `6f7cf57ef73f22fa7ab1300c6ea0e378a1cd955a`<br>
+**Baseline suite:** 157 passed; **final delivery suite:** 168 passed, 49 warnings; both exit code 0
 
 ---
 
-## 1. Цели и скоуп Спринта 3 (Sprint Goal)
+## 1. Sprint Overview and Scope
 
-Основная цель Спринта 3 — **предоставление абитуриентам интерактивных инструментов академической и финансовой навигации**:
-1. Разработка сервиса **пошагового руководства по поступлению** (US7) с локализацией на 3 языка (RU, KK, EN) и сегментацией по категориям абитуриентов (граждане РК и иностранные граждане, бакалавриат и магистратура).
-2. Формирование каталога **официальных проверенных источников и каналов связи** (US9) для безопасной верификации информации (порталы SDU, НЦТ, eGov, олимпиада SPT, WhatsApp, Telegram, общежития).
-3. Создание интеллектуального **калькулятора соответствия баллам ЕНТ** (US18) с поддержкой нечеткого сопоставления профильных предметов, проверки пороговых баллов SDU (50/65/75) и выделения программ с нехваткой баллов (`points_needed`).
-4. Внедрение **финансового калькулятора стоимости обучения и грантов** (US19): расчет 4-летней стоимости, скидок SDU («Алтын белгі» 15%, ЕНТ 110+ 20–30%, скидка для братьев и сестер 10%, олимпиада SPT 30% с капом до 50%), графика платежей 50/50, сбора первокурсника (60 000 ₸) и прогноза шансов на государственный образовательный грант РК.
-5. Интеграция всех сервисов в **единый чат-бот** с сохранением 100% обратной совместимости с US1 (программы), US3 (проверенные требования) и US5 (FAQ).
-6. Реализация **полноценного интерфейса SPA** с динамической сменой вкладок, интерактивными формами и отдельным модулем стилей `admissions.css`.
-7. Автоматизированное тестирование: написание 22 новых интеграционных тестов с расширением тестового набора до **103 тестов**.
+The goal of Saken's Sprint 3 work was to complete **US7 — Step-by-Step Admission Guide**: help applicants choose a program, understand the admission sequence, track their progress and check the official sources.
 
----
+The existing FastAPI, SQLAlchemy and vanilla JavaScript architecture was retained. Authentication, applicant profiles, saved programs, chat history and earlier user stories remain integrated with the application. US7 works without a Gemini API key.
 
-## 2. Реализованные User Stories
+**Scope confirmation:** the Trello board was inspected in Safari. The card currently in Done and assigned to Saken is [US7 — Step-by-Step Admission Guide](https://trello.com/c/OBJu9S2F/7-us-7-step-by-step-admission-guide-saken), due October 18, 2026. Its acceptance criteria cover ordered program/category steps, deadline warnings, EN/RU/KK, device-local progress, official sources, review dates, next-request updates and withholding stale data. The card is marked **Done / Complete**. This final audit did not change its status. The previously published baseline still contained a blocking full-storage-denial defect despite that status. The corrections in this delivery supersede that baseline; the Trello status itself is not acceptance evidence.
 
-### 🗺️ US7: Step-by-Step Admission Guide (Пошаговый гид поступления)
-* **Story Points:** 5 | **Ответственный:** Saken | **Тесты:** `US7QATest`
-* **Описание:** Как абитуриент, я хочу получить пошаговую инструкцию по процедуре поступления, чтобы четко понимать последовательность действий от сдачи ЕНТ до заселения в общежитие.
-* **Реализация в Backend:**
-  - Создан сервис `app/services/admission_guide.py` с функцией `get_admission_guide(category, level, lang)`.
-  - Маршрут разбит на 6 ключевых этапов:
-    1. *Этап 1:* Сдача ЕНТ и выбор профильных предметов (пороговые баллы SDU 50/65/75, не менее 5 баллов по каждому предмету).
-    2. *Этап 2:* Подача заявления на Республиканский конкурс госгрантов РК (13–20 июля через eGov) или участие в олимпиаде SDU SPT (скидки до 100%).
-    3. *Этап 3:* Онлайн (admissions.sdu.edu.kz) или очная подача документов в кампус SDU (аттестат, сертификат ЕНТ, удостоверение личности, медсправка 075-У, карта прививок 063-У, 6 фото 3х4).
-    4. *Этап 4:* Подтверждение уровня английского языка (IELTS 5.5+, TOEFL iBT 46+ или внутренний тест SDU Proficiency Exam B1+ / курс Foundation).
-    5. *Этап 5:* Подписание договора и оплата первого семестрового взноса (50%) + обязательный разовый сбор первокурсника (60 000 KZT).
-    6. *Этап 6:* Подача заявки на общежитие и регистрация на учебные дисциплины (20–42 ECTS) через Portal SDU.
-  - Поддержка трех языков (**RU**, **KK/KZ**, **EN**) и двух категорий поступающих (**Domestic** vs. **International**). Для иностранных студентов ЕНТ заменяется визовой поддержкой и нострификацией документов.
-* **API Эндпоинт:** `GET /admissions/guide?category=domestic&level=undergraduate&lang=ru`.
+The User Story Schedule also assigns US7 to Saken. US9 belongs to Arman, US18 to Shadiyar and US19 to Yertai. This report covers Saken's contribution; it does not claim completion of the whole team's Sprint 3. No teammate messages were sent.
 
 ---
 
-### 🔗 US9: Official Source Links (Официальные проверенные ссылки)
-* **Story Points:** 2 | **Ответственный:** Arman | **Тесты:** `US9QATest`
-* **Описание:** Как абитуриент, я хочу получать ссылки на официальные университетские и государственные порталы, чтобы самостоятельно проверять достоверность информации и не стать жертвой мошенников.
-* **Реализация в Backend:**
-  - Создан сервис `app/services/official_links.py` с функцией `get_official_links()`.
-  - В реестр включены 8 верифицированных источников:
-    - `sdu_portal`: Официальный сайт SDU University (`https://sdu.edu.kz`)
-    - `admissions_portal`: Портал приемной комиссии (`https://admissions.sdu.edu.kz`)
-    - `testcenter`: Национальный центр тестирования РК (`https://testcenter.kz`)
-    - `egov`: Электронное правительство РК / Госгранты (`https://egov.kz`)
-    - `sdu_spt`: Республиканская олимпиада SDU SPT (`https://spt.sdu.edu.kz`)
-    - `whatsapp_admissions`: Официальный WhatsApp приемной комиссии (`https://wa.me/77020001133`)
-    - `telegram_bot`: Telegram-бот регистрации и оповещений (`https://t.me/sdu_admissions_registration_bot`)
-    - `dormitory`: Информация о студенческих общежитиях (`https://sdu.edu.kz/dormitory`)
-  - Прямые каналы связи: телефон горячей линии `+7 (727) 307-95-65` и email `admission@sdu.edu.kz`.
-* **API Эндпоинт:** `GET /admissions/links`.
+## 2. Implemented US7 Scope and Limits
+
+### US7: Step-by-Step Admission Guide — 5 Story Points
+
+The behavior below describes the corrected final delivery. It must not be attributed in full to baseline commit `6f7cf57`, which passed its own suite but failed additional acceptance checks.
+
+> **As an applicant**, I want to receive a step-by-step guide to the admission procedure, so that I understand what actions I need to take.
+
+**Program and applicant selection**
+
+- Applicants can select a program, domestic/international category and Bachelor/Master level in the active Admission Guide interface.
+- The service provides four distinct applicant routes, each available in English, Russian and Kazakh: **12 localized combinations**.
+- The selected program is validated against the catalog and degree level. Published, current program-specific prerequisites are shown with their own source and verification date.
+- The seeded catalog contains 14 Bachelor programs. Master currently provides a clearly labeled general route; Bachelor programs are not presented as verified Master offerings.
+
+**Ordered instructions and progress**
+
+- Each route displays stable step identifiers, sequential numbering, instructions and official source links. General routes have six steps; selected teacher-education and journalism routes now add an entrance action before funding. International language assessment now precedes the interview, matching the source sequence.
+- Checkboxes and a completion counter persist in the current browser, separately for each version, category, level and program. Changing the display language retains the same progress.
+- A new procedure version starts separate progress. If browser storage is unavailable, progress remains in the current page session with an explicit warning.
+
+**Deadlines and reviewed information**
+
+- Published 2026 deadlines are labeled as a **closed admission cycle** after their date. The August 25 document deadline is explicitly limited to tuition-based admission. The international Bachelor route now labels the published fall dates as past and shows spring application/original-document dates with their intake scope; these dates are not assigned to the general Master route.
+- Unknown deadlines and unverified program conditions are referred to admissions rather than invented.
+- Unsupported numerical thresholds, payment amounts and accommodation guarantees were removed from US7. It does not reuse the legacy calculators' figures.
+- The guide shows its version, verification date and review deadline. Program conditions retain their separate verification date.
+
+**One service for the interface, API and chatbot**
+
+- The standalone guide and all three chat endpoints use the same admission guide service.
+- “Ask in chat” transfers the selected program, applicant category, level and language.
+- Invalid API selections return HTTP 422. Missing, malformed, unreviewed, future-dated or expired procedure publications return HTTP 503 without admission steps. The chatbot offers the admissions portal instead of substituting another route.
+- Loading feedback, a 10-second client timeout, retry and protection against outdated parallel responses are implemented.
+
+**Reviewed updates without restarting**
+
+Procedure data is stored in `data/admission_procedures.json` and validated on every request. A reviewed replacement appears on the next UI/API/chat request without restarting the application. `scripts/validate_admission_guide.py` checks a candidate publication before it is deployed.
+
+This implements the current Trello card's reviewed-publication workflow. It does not automatically scrape, approve or synchronize changes from the university website. Already displayed content updates when the applicant refreshes the guide or requests it again.
 
 ---
 
-### 🎯 US18: UNT Eligibility Matcher (Подбор программ по баллам ЕНТ)
-* **Story Points:** 5 | **Ответственный:** Shadiyar | **Тесты:** `US18QATest`
-* **Описание:** Как абитуриент, я хочу ввести свои два профильных предмета ЕНТ и общий балл, чтобы моментально узнать, на какие специальности SDU я прохожу по пороговым баллам.
-* **Реализация в Backend:**
-  - Создан сервис `app/services/unt_calculator.py` с функцией `match_unt_eligibility(subject_1, subject_2, score)`.
-  - Двунаправленная мультиязычная нормализация названий предметов (RU, KZ, EN) через регулярные выражения (Mathematics, Computer Science, Physics, Geography, World History, Fundamentals of Law, Foreign Language, Creative Exams, Biology, Chemistry).
-  - Валидация пороговых баллов SDU:
-    - Общий порог для бизнес-направлений и MCM: **50 баллов**
-    - Педагогические и социальные науки (Два языка, Перевод, МО): **65 баллов**
-    - Юриспруденция и IT-направления (CS, IS, SE, Law): **75 баллов**
-    - По каждому предмету ЕНТ — не менее 5 баллов.
-  - Сопоставление профильных комбинаций предметов:
-    - *Математика + Информатика* → Computer Science, Information Systems, Software Engineering
-    - *Математика + Физика* → Mathematical and Computer Modeling (MCM)
-    - *Математика + География* → Finance, Accounting and Audit, Management, Marketing
-    - *Всемирная история + Основы права* → Jurisprudence (Law)
-    - *Иностранный язык + Всемирная история* → Translation Studies, Two Foreign Languages, International Relations
-  - Формирование ответа: список доступных программ (`eligible_programs`), список программ с нехваткой баллов (`deficit_programs` с указанием `points_needed`), расчет профицита баллов (`points_surplus`) и шанса на государственный грант.
-* **API Эндпоинт:** `POST /admissions/unt-matcher`.
+## 3. Before and After
+
+| Area | Before | After |
+| :--- | :--- | :--- |
+| Applicant route | International Master could fall back to domestic Bachelor | Four independent routes; no silent substitution |
+| Program selection | No program selector in the guide | Catalog selection, degree validation and reviewed prerequisites |
+| Languages | Missing translations silently fell back to Russian | Complete EN/RU/KK route text; incomplete publications rejected |
+| Progress | No guide progress tracking | Versioned, device-local checkboxes and counter |
+| Information quality | Precise scores, fees and dates without freshness controls | Official links, review dates, closed-cycle warnings and withheld stale data |
+| Updates | Procedure text embedded in Python | Validated JSON read on each request |
+| Startup | Conflicting dependency pins; seed expected absent JSON files | Compatible SQLAdmin pin, explicit demo database and repeatable seed |
 
 ---
 
-### 💰 US19: Tuition & Grant Calculator (Калькулятор стоимости обучения и скидок)
-* **Story Points:** 5 | **Ответственный:** Yertai | **Тесты:** `US19QATest`
-* **Описание:** Как абитуриент, я хочу рассчитать точную стоимость обучения с учетом моих индивидуальных скидок и баллов ЕНТ, узнать график семестровых платежей и оценить вероятность получения государственного гранта.
-* **Реализация в Backend:**
-  - Создан сервис `app/services/tuition_calculator.py` с функцией `calculate_tuition_and_grant(program_id, unt_score, discounts)`.
-  - Получение базовой стоимости программы из каталога (от 1 550 000 до 1 850 000 KZT/год) и расчет 4-летнего цикла обучения.
-  - Реализация правил университетских скидок:
-    - `altyn_belgi`: **15% скидка** для обладателей знака «Алтын белгі»
-    - `high_unt`: **20% скидка** при 110–119 баллах ЕНТ, **30% скидка** при 120+ баллах ЕНТ
-    - `sibling`: **10% семейная скидка** при одновременном обучении двух и более детей из одной семьи
-    - `spt_winner`: **30% скидка** для призеров Республиканской олимпиады SDU SPT
-    - Ограничение (Cap): суммарная университетская скидка **не может превышать 50%**.
-  - График платежей (50/50 Semester Schedule):
-    - Семестр 1: 50% годовой суммы при заключении договора
-    - Разовый обязательный сбор первокурсника: **60 000 KZT**
-    - Итоговый первый взнос: Семестр 1 + 60 000 KZT
-    - Семестр 2: 50% до начала весеннего семестра
-  - Прогнозирование шансов на государственный образовательный грант РК по историческим проходным баллам:
-    - IT-направления (проходной ~115): `>= 115` → **HIGH**, `100–114` → **MEDIUM**, `< 100` → **LOW**
-    - Бизнес-направления (проходной ~105): `>= 105` → **HIGH**, `90–104` → **MEDIUM**, `< 90` → **LOW**
-    - Право и гуманитарные науки (проходной ~110): `>= 110` → **HIGH**, `95–109` → **MEDIUM**, `< 95` → **LOW**
-* **API Эндпоинт:** `POST /admissions/tuition-calculator`.
-
----
-
-## 3. Чат-бот и NLP интеграция (`app/chatbot.py`)
-
-Все сервисы Спринта 3 бесшовно интегрированы в интеллектуальный маршрутизатор чат-бота:
-* **Вопросы по этапам поступления:** Запросы вроде *"Как поступить в SDU?"*, *"Каковы шаги поступления?"* распознаются и возвращают упорядоченный список этапов поступления с прямой ссылкой на портал (`source="admission_guide"`).
-* **Вопросы по официальным ссылкам:** Запросы вроде *"Официальный сайт"*, *"Где сайт ЕНТ?"*, *"Дай ссылки SDU"* возвращают проверенные адреса порталов (`source="official_links"`).
-* **Вопросы по баллам ЕНТ:** Запросы вроде *"У меня 85 баллов, физика и математика, куда поступлю?"* парсят баллы и предметы, вызывают matcher и выводят подходящие специальности (`source="unt_matcher"`).
-* **Вопросы по стоимости и грантам:** Запросы вида *"Сколько стоит Computer Science со скидкой Алтын белгі?"* запускают калькулятор и возвращают расчет первого платежа и график 50/50 (`source="tuition_calculator"`).
-* **Сохранение совместимости:** Сохранены строгие правила изоляции данных US3 (Admission Requirements), исключающие галлюцинации языковой модели или утечку неподтвержденных данных.
-
----
-
-## 4. Frontend и пользовательский интерфейс (UI/UX)
-
-1. **Боковая панель навигации (`static/index.html`):**
-   - Добавлена вкладка `Admission Guide` (US7) с иконкой `ph-compass`.
-   - Добавлена вкладка `Calculators` (US18/19) с иконкой `ph-calculator`.
-   - Активирована и разблокирована вкладка `Official Links` (US9) с иконкой `ph-link`.
-2. **Экран пошагового гида (`#section-guide`):**
-   - Интерактивные фильтры: *Domestic (РК) / International*, *Bachelor / Master*, селектор языков *RU / KK / EN*.
-   - Динамический рендеринг карточек шагов с номерами, бейджами сроков, подробными инструкциями и плашками советов.
-   - Быстрая кнопка перехода к онлайн-подаче документов на портале SDU.
-3. **Экран калькуляторов (`#section-calculator`):**
-   - Подвкладка 1 (UNT Matcher): выбор двух профильных предметов из выпадающих списков, ввод баллов ЕНТ (0–140), кнопка расчета, карточки доступных программ с индикаторами шансов на грант и карточки дефицитных программ с расчетом нужных баллов. Быстрая кнопка «💰 Calculate Tuition» для моментального переноса программы в калькулятор.
-   - Подвкладка 2 (Tuition Calculator): выбор специальности, ввод баллов ЕНТ, чекбоксы доступных скидок SDU, расчет годовой и 4-летней суммы, расчет экономии, визуализация графика 50/50 и оценка вероятности гранта.
-4. **Стилистика (`static/admissions.css`):**
-   - Гармонично интегрирована в дизайн-систему Steppe/Metro с поддержкой адаптивной мобильной верстки.
-
----
-
-## 5. Архитектура системы
+## 4. System Architecture
 
 ```mermaid
 flowchart TD
-    Client["Браузер пользователя (SPA / HTML5 / JS / admissions.css)"]
-    
-    subgraph FastAPI_Backend ["FastAPI Backend Application"]
-        RouterMain["Main Router (app.main)"]
-        RouterAuth["Auth Router (/auth/*)"]
-        RouterAdmissions["Admissions Router (/admissions/*)"]
-        RouterChat["Chatbot Router (/chat)"]
-        
-        subgraph Services ["Слой бизнес-логики (app/services)"]
-            GuideSvc["admission_guide.py (US7)"]
-            LinksSvc["official_links.py (US9)"]
-            UntSvc["unt_calculator.py (US18)"]
-            TuitionSvc["tuition_calculator.py (US19)"]
-        end
-        
-        ChatbotEngine["Hybrid NLP Engine (app/chatbot.py)"]
-    end
-    
-    subgraph Data_Layer ["Слой данных"]
-        CatalogDB[("SDU Programs & Requirements Catalog")]
-        SQLiteDB[("SQLite Database: app.db")]
-    end
-    
-    Client -->|GET /admissions/guide| RouterAdmissions
-    Client -->|GET /admissions/links| RouterAdmissions
-    Client -->|POST /admissions/unt-matcher| RouterAdmissions
-    Client -->|POST /admissions/tuition-calculator| RouterAdmissions
-    Client -->|POST /chat| RouterChat
-    
-    RouterAdmissions --> GuideSvc
-    RouterAdmissions --> LinksSvc
-    RouterAdmissions --> UntSvc
-    RouterAdmissions --> TuitionSvc
-    
-    RouterChat --> ChatbotEngine
-    ChatbotEngine --> GuideSvc
-    ChatbotEngine --> LinksSvc
-    ChatbotEngine --> UntSvc
-    ChatbotEngine --> TuitionSvc
-    
-    UntSvc --> CatalogDB
-    TuitionSvc --> CatalogDB
-    RouterAuth --> SQLiteDB
+    UI["Active SPA: admissions-assistant/static — Steppe theme"]
+    GuideAPI["GET /admissions/guide"]
+    ChatAPI["POST /chat, /chat/programs, /chat/faq"]
+    Chat["Chatbot intent and selection context"]
+    Service["US7 service: validation, freshness, routing, localization"]
+    Policy["Versioned procedure JSON: four reviewed routes"]
+    DB["SQLite / SQLAlchemy: programs and published requirements"]
+    Progress["Browser localStorage: version / category / level / program"]
+    Reviewer["Reviewer checks official sources and validates publication"]
+
+    UI --> GuideAPI --> Service
+    UI --> ChatAPI --> Chat --> Service
+    Service --> Policy
+    Service --> DB
+    UI --> Progress
+    Reviewer --> Policy
+```
+
+`app/main.py` serves `admissions-assistant/static/index.html` and mounts that directory at `/static`. `static/config.json` selects Steppe. The separate `theme-steppe/` directory is not served by this application.
+
+Programs, FAQs, requirements, users, profiles and chat history are stored in SQLite. `DATABASE_URL` selects the database; `data/app.db` remains the default. US7 procedure JSON is read separately on each request. `LOG_FILE` controls both server logging and the authenticated admin log view.
+
+Database initialization uses SQLAlchemy `create_all`; it is not a schema migration system. A separate demo database is seeded explicitly from the tracked legacy JSON backups. Tests use a disposable database selected before application import, and stub outbound AI and messaging services.
+
+---
+
+## 5. Independent Final Acceptance Results
+
+A clean source archive of commit `6f7cf57ef73f22fa7ab1300c6ea0e378a1cd955a` was extracted into a new temporary directory. A new Python 3.12 virtual environment was created and dependencies installed using README. No prepared workspace environment or user database was used. Demo seeding exited 0; the documented Uvicorn startup was exercised on the free audit port 8010.
+
+**Actual commands and results**
+
+| Check | Command from the isolated application directory | Result |
+| --- | --- | --- |
+| Clean installation | `.venv/bin/python -m pip install -r requirements.txt` | Exit 0; yanked-SDK warning described below |
+| Clean demo seed | `DATABASE_URL=sqlite:///.../.demo/admissions.db .venv/bin/python scripts/migrate_to_sqlite.py --demo` | Exit 0 |
+| Unmodified published suite | `.venv/bin/python -m pytest -q -ra` | Exit 0; **157 passed, 49 warnings, 6.09 s** |
+| Corrected suite in isolated audit environment | `.venv/bin/python -m pytest -q -ra` | Exit 0; **168 passed, 49 warnings, 5.94 s** |
+| Finalization rerun on the exact final source and documentation tree | `.venv/bin/python -m pytest -q -ra` | Exit 0; **168 passed, 49 warnings**, no failures or skips |
+| Dependencies | `.venv/bin/python -m pip check` | Exit 0; no broken requirements |
+| Policy validation | `.venv/bin/python scripts/validate_admission_guide.py data/admission_procedures.json` | Exit 0; version `2026-10-18.2`, four general routes |
+| JavaScript | `node --check static/app.js` | Exit 0 |
+| Whitespace | `git diff --check origin/main...HEAD` and `git diff --check` | Exit 0 |
+
+There were no pytest failures or skips in the baseline, corrected audit or finalization runs. The 49 warnings concern deprecated `datetime.utcnow()` and Starlette/multipart and AnyIO compatibility APIs; they do not establish external integration success. Installation also warned that the pre-existing `google-genai==0.5.0` release is yanked, citing Pillow vulnerability issues. That optional SDK remains pinned; production dependency security is not certified by this audit.
+
+Tests freeze the guide review date for repeatability and stub outbound AI/messaging. These are appropriate isolation boundaries, but they do not prove real-time source accuracy or provider delivery. Some existing authentication tests share ordered setup state. The audit therefore also ran separate real HTTP checks with the actual service clock and no guide-service mocks: **32 checks passed after correction**, plus **12 authentication/profile/catalog/FAQ/chat regression checks** with outbound sockets blocked. The unmodified commit had failed the whitespace-only-publication check even though its 157 tests passed.
+
+| Requirement | Implementation | Automated / HTTP evidence | Browser evidence | Result for final corrections |
+| --- | --- | --- | --- | --- |
+| Ordered guide for selected program/category | Guide service, procedure JSON, admissions router | Route/program checks; special exam ordering tests | Computer Science prerequisites; teacher-education extra step | PASS for supported general/Bachelor routes |
+| Deadline warnings and closed 2026 cycle | Procedure JSON and guide service | Boundary and scoped-deadline checks | Past domestic dates; scoped international guidance | PASS |
+| RU / KK / EN | Procedure text and active frontend | Twelve API combinations | All twelve UI combinations inspected | PASS |
+| Device-local progress | Active `static/app.js` | Source/key review | Reload; language; program/category/level/version separation | PASS when storage is available |
+| Graceful storage denial | Safe storage initialization and guide fallback | Changed code inspected | Denied reads and denied writes; session progress and warning | PASS in final delivery; FAIL in baseline `6f7cf57` |
+| Official links and review metadata | Guide/requirements publication checks | Source/date validation | Visible links and distinct review dates | PASS for provenance display |
+| Complete, currently approved program procedure | General guidance and limited catalog | Metadata cannot prove this | General Master limitation and legacy labels visible | UNVERIFIED |
+| Reviewed local update without restart | Per-request catalog loading | Live API/chat replacement | New revision after retry; version-specific progress | PASS |
+| Withhold invalid/stale data | Catalog schema and freshness gate | Missing/malformed/future/draft/expired/empty/blank checks | Expired policy hidden, retry recovers | PASS in final delivery |
+| Automatic upstream university synchronization (spreadsheet) | Not implemented | No synchronizer exists | Manual local replacement only | FAIL against broader spreadsheet wording |
+| Clean startup and earlier features | Setup/seed/config; existing modules | Clean install; full suite; 12 real HTTP regressions | Actual active Steppe frontend, catalog and FAQ | PASS for local demonstration |
+
+**Browser checks performed in this audit:** isolated ports 8010/8011; program prerequisites; twelve route/language combinations; progress after reload and language changes; separation across program, category, level and publication version; full read denial and write denial; guide-to-chat transfer of International/Bachelor/Computer Science/Kazakh; loading, the client timeout, retry, a delayed old response not replacing the latest category, and expired-data replacement without restarting. Desktop 1280×900 and mobile 390×844 were inspected; document width equaled viewport width. The inspected normal-flow console had no errors or warnings. The original full-storage-denial run had SecurityError and guide-initialization ReferenceError, which were reproduced before fixing. The existing favicon 404 is a nonblocking resource failure; intentional 503/abort requests belong to negative tests.
+
+Source files and policy copies used for failure injection were isolated from the working demo. Copies/configuration were restored and auxiliary servers were stopped after checks. Real provider delivery and Gemini calls remain UNVERIFIED.
+
+---
+
+## 6. Final Audit Findings and Corrections
+
+The whole delivery diff against main was inspected, including backend, all procedure routes/translations, chatbot, active frontend, setup/dependencies, tests and documentation. The final audit found gaps that the earlier review had not covered:
+
+1. **Blocking: complete storage-read denial aborted page initialization.** The earlier document-checklist read threw before guide variables/handlers were initialized. Only write denial had previously been tested. Existing storage consumers now use a guarded session fallback; the guide still reports when durable persistence is unavailable. Both denial modes were rechecked in the real browser, including preservation of the warning after refresh.
+2. **Whitespace-only translations were accepted as reviewed content.** Publication strings are now stripped before non-empty validation; such content returns 503 and is withheld from chat.
+3. **Program-specific entrance actions were missing.** The teacher-education route now contains a special exam action; journalism has a creative-route/current-program confirmation before funding. Unknown dates are not invented.
+4. **The international route put language confirmation after the interview.** Its assessment/certificate step now precedes the coordinator interview, following the official page. Published spring Bachelor dates are scoped separately from closed fall dates; Master dates remain unconfirmed.
+5. **Expiry tests could fail schema validation before reaching the freshness gate.** New checks use well-formed but genuinely expired/future publications and verify the freshness-specific response.
+
+The previously reviewed branch fixes for International Law category parsing, ambiguous program questions, in-memory progress, stale catalog responses, admin logs and date-stable functional tests remain in place and passed the rerun. See [the review correction](sprint_3_review.md) and [the Russian final acceptance audit](sprint_3_acceptance_audit.md).
+
+These corrections and documentation updates are reviewed changes over baseline `6f7cf57`. The independent audit made no publication changes. Finalization reruns the suite and dependency, policy, JavaScript and whitespace checks on the final tree, then publishes a separate fast-forward commit to `codex/sprint-3-saken-defense`. The exact final commit is identified by Git history and the final delivery response. No force-push or merge into main is part of this delivery. A passing corrected tree does not retroactively make the unchanged baseline pass acceptance.
+
+---
+
+## 7. Deliverables and Startup
+
+**Implementation files:** `app/services/admission_guide.py`, `data/admission_procedures.json`, `app/chatbot.py`, `app/routers/admissions.py`, `app/schemas.py`, active HTML/JS/CSS, database/log configuration and admin log handling.
+
+**Verification and setup:** acceptance/review tests, isolated fixtures, `pytest.ini`, compatible dependencies, demo seed and procedure validator. [README](../README.md) and [architecture](../architecture.md) describe the actual SQLite implementation.
+
+For the already prepared local environment:
+
+```bash
+cd /Users/maratsaken/Documents/PM/admissions-assistant
+export DATABASE_URL="sqlite:///$PWD/.demo/admissions.db"
+export LOG_FILE="$PWD/.demo/app.log"
+export TESTING=1
+export GEMINI_API_KEY=""
+unset ADMISSION_GUIDE_FILE
+.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
+
+Open [the application](http://127.0.0.1:8000) or [API documentation](http://127.0.0.1:8000/docs). If the demo is already running on port 8000, do not start a second process. `TESTING=1` disables Telegram background polling; an empty Gemini key keeps the demonstration independent of external AI.
+
+Full environment creation and safe demo seeding are documented in README. Never seed over a real user database. `.venv/`, `.demo/`, credentials, generated databases and runtime logs are excluded from the delivery. The original untracked `admissions-assistant-iteration1/` directory is preserved and excluded from the commit. The Safari screenshot containing unrelated browser tabs remains local; it is not used as acceptance proof. First-time setup, subsequent startup, alternate-port and Control+C instructions are separate in README.
+
+Reproduce the checks from the application directory:
+
+```bash
+.venv/bin/python -m pytest -q
+.venv/bin/python -m pip check
+.venv/bin/python scripts/validate_admission_guide.py data/admission_procedures.json
+node --check static/app.js
 ```
 
 ---
 
-## 6. Метрики тестирования и качества
+## 8. Defense Demonstration — 3–5 Minutes
 
-В рамках Спринта 3 набор автоматизированных тестов расширен с 81 до **103 тестов** (+22 новых теста в `tests/test_admissions.py`):
+1. **0:00–0:30 — Introduce the contribution.** “My Sprint 3 task is US7, the admission guide. The application uses FastAPI, SQLite and vanilla JavaScript. This feature works without Gemini.”
+2. **0:30–1:20 — Show the applicant journey.** Open Admission Guide; select Domestic, Bachelor, Russian and Computer Science. Show the program's reviewed prerequisites, separate source dates, the ordered steps and closed 2026 deadline warnings. For the extra program action, also select Two Foreign Languages.
+3. **1:20–2:00 — Show progress.** Check a step, reload the page and reselect the same route/program. Explain that the restored progress belongs to the current browser and does not submit an application to SDU.
+4. **2:00–2:40 — Switch languages and routes.** Select Kazakh and show the same progress. Then select English, International and Master. Explain the distinct route and the current general-Master limitation.
+5. **2:40–3:20 — Show chat consistency.** Return to Domestic, Bachelor, Computer Science and click “Ask in chat.” Sample questions: `Admission guide for Computer Science undergraduate`; `Пошаговый гид поступления Computer Science`; `Computer Science қабылдау нұсқаулығы`.
+6. **3:20–4:10 — Show verification.** Run pytest: the final corrected suite has 168 tests. Show publication replacement, real expiry and whitespace rejection tests. Explain that reviewers publish a validated version and the next request reads it. Do not modify the working catalog live just to demonstrate an error.
+7. **4:10–4:40 — State limitations.** External delivery is unverified, Master has a general route, and the next review is due by November 1. Do not present the other contributors' legacy calculator outputs as verified fees or statistical grant probabilities.
 
-| Модуль тестов | Количество тестов | Статус | Проверяемый функционал |
-| :--- | :---: | :---: | :--- |
-| `tests/test_admissions.py` | **22** | **PASS** | US7 (шаги, мультиязычность RU/KK/EN, иностранные абитуриенты), US9 (верификация ссылок, API), US18 (нормализация предметов, пороги 50/65/75, дефицитные программы, валидация 0–140), US19 (скидки, кап 50%, график 50/50, сбор 60 000 ₸, оценка грантов, 404/400 ошибки), интеграция чат-бота со всеми 4 сервисами |
-| `tests/test_requirements.py` | **51** | **PASS** | US3 (проверенные академические требования, слот-филлинг, изоляция контекста, 3 языка) |
-| `tests/test_auth.py` | **17** | **PASS** | Регистрация, подтверждение кодом, JWT, профиль, избранное, сброс паролей через Email и Telegram |
-| `tests/test_chatbot.py` | **8** | **PASS** | Распознавание интентов программ и FAQ, fallback на Gemini, фильтрация стоп-слов |
-| `tests/test_api.py` | **5** | **PASS** | Базовые эндпоинты программ, поиск, FAQ, проверка доступности сервиса |
-| **ИТОГО:** | **103** | **PASS** | **100% успешное прохождение всего набора тестов (0 failures, 5.94s)** |
-
-### Лог выполнения pytest:
-```text
-tests/test_admissions.py::test_us7_admission_guide_default_domestic_undergraduate PASSED
-tests/test_admissions.py::test_us7_admission_guide_localized_versions PASSED
-tests/test_admissions.py::test_us7_admission_guide_international PASSED
-tests/test_admissions.py::test_us7_admission_guide_api_endpoint PASSED
-tests/test_admissions.py::test_us9_official_links_service PASSED
-tests/test_admissions.py::test_us9_official_links_api_endpoint PASSED
-tests/test_admissions.py::test_us18_normalize_subjects PASSED
-tests/test_admissions.py::test_us18_unt_matcher_eligible_cs PASSED
-tests/test_admissions.py::test_us18_unt_matcher_deficit_programs PASSED
-tests/test_admissions.py::test_us18_unt_matcher_invalid_scores PASSED
-tests/test_admissions.py::test_us18_unt_matcher_api_endpoint PASSED
-tests/test_admissions.py::test_us19_tuition_calculator_base PASSED
-tests/test_admissions.py::test_us19_tuition_calculator_with_discounts PASSED
-tests/test_admissions.py::test_us19_tuition_calculator_discount_cap PASSED
-tests/test_admissions.py::test_us19_tuition_calculator_grant_probability PASSED
-tests/test_admissions.py::test_us19_tuition_calculator_api_endpoint PASSED
-tests/test_admissions.py::test_us19_tuition_calculator_not_found PASSED
-tests/test_admissions.py::test_chatbot_integration_guide_query PASSED
-tests/test_admissions.py::test_chatbot_integration_links_query PASSED
-tests/test_admissions.py::test_chatbot_integration_unt_query PASSED
-tests/test_admissions.py::test_chatbot_integration_tuition_query PASSED
-tests/test_admissions.py::test_chatbot_preserves_us1_and_us3_compatibility PASSED
-======================= 103 passed, 1 warning in 5.94s ========================
-```
+**Short contribution statement:** “I implemented the admission guide journey with program selection, separate applicant routes, three languages and saved progress. I unified the interface and chatbot responses, added official sources and deadline warnings, and made the service withhold expired procedure data. I also prepared isolated tests, reproducible setup instructions and the defense demonstration.”
 
 ---
 
-## 7. Достигнутые результаты (Deliverables)
+## 9. Official Sources and Maintenance
 
-1. **4 полностью реализованные User Stories Спринта 3:** US7, US9, US18, US19 покрыты бэкендом, валидацией Pydantic v2, RESTful API, чат-ботом и веб-интерфейсом.
-2. **Высокая надежность и валидация:** обработка некорректных баллов ЕНТ (`< 0` или `> 140`), защита от неизвестных ID программ (HTTP 404), ограничение скидок по регламенту университета (Cap 50%).
-3. **Безупречный UI/UX:** интуитивная навигация, адаптивность под мобильные устройства, бесшовное переключение между подбором по ЕНТ и расчетом стоимости.
-4. **Безопасность репозитория:** конфиденциальные токены, пароли и локальные базы данных надежно исключены из Git (`.gitignore`).
-5. **Git Синхронизация:** Все файлы зафиксированы в коммите `344a093` и успешно отправлены в ветку `main` удаленного репозитория [GitHub: QazaKod/PM](https://github.com/QazaKod/PM).
+Sources reviewed during preparation on October 18, 2026:
+
+- [SDU Bachelor Admissions](https://sdu.edu.kz/en/admission-3-2/): general process, documents and the published 2026 grant/tuition-based deadlines.
+- [SDU International Admissions](https://sdu.edu.kz/en/international-admissions/): international application, review and document guidance.
+- [SDU Master Admissions](https://sdu.edu.kz/en/master/): general Master guidance; older dates on the page are not treated as current deadlines.
+- [SDU Admissions Portal](https://admissions.sdu.edu.kz): official application portal.
+
+This is sourced general guidance, not a personalized admission decision or a claim that university staff approved this software's full procedure. Program-specific conditions are displayed only when their publication metadata passes the existing freshness checks.
+
+**Remaining maintenance and dependencies:**
+
+- Review the procedure publication by **November 1, 2026**; after expiry, steps are withheld until a new reviewed publication is provided.
+- Expand the catalog with verified Master programs before claiming program-specific Master support.
+- Keep a reviewer-controlled publication process; automatic upstream synchronization and background updates of already open pages are not implemented.
+- Verify external providers separately before demonstrating real messaging delivery.
+- US18/US19 retain earlier contributors' legacy amounts, thresholds and heuristic grant labels. Their existing tests passing does not validate current real-world financial/admission accuracy.
+- No schema migration framework was introduced. Use a separate demo database instead of modifying an existing user's schema.
+
+**Unresolved source conflicts:** the spreadsheet requires automatic updates when university procedure changes; the Trello card requires next-request loading of reviewed local updates. Only the latter is implemented. Backlog gives US9 an October 25 deadline whereas the spreadsheet gives October 18 and adds US18/US19 to Sprint 3. The card still mentions `feat/sprint-3`, while the actual delivery branch is `codex/sprint-3-saken-defense`. These inconsistencies were recorded, not silently resolved or edited in Trello.
+
+---
+
+## 10. Screenshots
+
+**Desktop: program selection, source dates and progress — final audit capture**
+
+![US7 desktop guide](sprint3/guide-desktop.png)
+
+**Mobile: general international Master route at 390×844 — final audit capture**
+
+![US7 mobile guide](sprint3/guide-mobile.png)

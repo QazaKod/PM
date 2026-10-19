@@ -1,89 +1,29 @@
-# Архитектура проекта и ERD (Smart University Admissions Assistant)
+# Архитектура Smart University Admissions Assistant
 
-## 1. ER-Диаграмма (Модель данных)
-Эта схема показывает, какие сущности существуют в системе и как они связаны. Основные данные хранятся в JSON файлах (`programs.json` и `faq.json`), к которым обращается NLP-движок.
+Актуализировано 18 октября 2026 года по коду приложения.
 
-```mermaid
-erDiagram
-    APPLICANT ||--o{ CHAT_QUERY : "задает"
-    CHAT_QUERY }|--|| NLP_ENGINE : "обрабатывается"
-    NLP_ENGINE ||--o{ EDUCATIONAL_PROGRAM : "ищет в"
-    NLP_ENGINE ||--o{ FAQ_ENTRY : "ищет в"
-    NLP_ENGINE ||--o| GEMINI_LLM : "fallback (если не нашел)"
-    
-    EDUCATIONAL_PROGRAM {
-        string id PK
-        string name "Название (IT, Finance)"
-        int duration "Срок обучения"
-        int cost "Стоимость"
-        string format "Формат (Офлайн)"
-        string[] subjects "Профильные предметы"
-    }
-    
-    FAQ_ENTRY {
-        string id PK
-        string category "Категория (Дедлайны, Гранты)"
-        string question "Частый вопрос"
-        string answer "Официальный ответ"
-    }
-    
-    CHAT_QUERY {
-        string id PK
-        string text "Текст сообщения пользователя"
-        float confidence_score "Оценка совпадения токенов"
-        string timestamp "Время запроса"
-    }
-```
+## Приложение и интерфейс
 
-## 2. Блок-схема логики (Архитектура гибридного чат-бота)
-Эта схема описывает логику кода (`chatbot.py` и `main.py`). Она показывает, как работает алгоритм "Smart Fallback" — почему бот сначала пытается ответить сам, и только в крайнем случае обращается к платному API Gemini.
+`app/main.py` создаёт FastAPI, подключает `/auth/*` и `/admissions/*`, обслуживает `/chat`, `/programs`, `/faq`, `/health` и SQLAdmin `/admin`. `/` отдаёт `static/index.html`; `/static` указывает на `admissions-assistant/static/`. Vanilla JavaScript управляет вкладками и REST-запросами. Активная тема Steppe задаётся в `static/config.json`. Копия интерфейса в `theme-steppe/` не используется этим сервером.
 
-```mermaid
-flowchart TD
-    User([Абитуриент]) -->|Вводит вопрос| UI[Frontend: Vanilla JS / HTML]
-    UI -->|POST /chat| API[Backend: FastAPI]
-    
-    API --> Tokenizer[Модуль NLP: Токенизация и лемматизация]
-    
-    Tokenizer -->|Поиск ключевых слов| DB[(Локальная база:\nprograms.json\nfaq.json)]
-    DB -.->|Возвращает совпадения| Tokenizer
-    
-    Tokenizer --> Decision{Confidence Score >= 0.35?}
-    
-    Decision -->|Да (Уверенный ответ)| LocalAnswer[Локальный мгновенный ответ]
-    Decision -->|Нет (Сложный вопрос)| Fallback[Вызов Google Gemini 3.6 API]
-    
-    Fallback -->|Генерация ответа ИИ\nна основе контекста базы| AIAnswer[Ответ ИИ с пометкой\n'Admissions Staff Offer']
-    
-    LocalAnswer --> Output[Сборка JSON ответа]
-    AIAnswer --> Output
-    
-    Output -->|Возврат ответа| UI
-    UI -->|Отображение на экране| User
-    
-    classDef ai fill:#ffe4e1,stroke:#ff6b6b,stroke-width:2px;
-    class Fallback,AIAnswer ai;
-    
-    classDef local fill:#e1f7d5,stroke:#4caf50,stroke-width:2px;
-    class Tokenizer,Decision,LocalAnswer local;
-```
+## Хранение и инициализация
 
-## US-3: проверяемые требования
+SQLAlchemy в `app/db_session.py` использует `DATABASE_URL`, по умолчанию SQLite `data/app.db`. Модели: `Program`, `FAQ`, `Requirement`, `User`, `ApplicantProfile`, `SavedProgram`, `ChatSession`, `ChatMessage`, `PasswordResetToken`, `AccountVerificationToken`. `app/database.py` читает каталог и требования из SQLite.
 
-Перед существующим сопоставлением US-1/US-5 `app/requirements.py` распознаёт
-вопросы о требованиях. `requirements.json` хранит точную связь
-`program_id → category → study_level → topic` и метаданные публикации каждого
-условия. Числа из старых FAQ и `unt_subjects` не используются для US-3.
+Таблицы создаются явным `init_db()` через `Base.metadata.create_all`; Alembic и автоматических обновлений схемы нет. `scripts/migrate_to_sqlite.py --demo` заполняет отдельную явно выбранную SQLite-базу из legacy JSON/JSON.bak. Это начальное наполнение, а не миграция пользовательской базы. Для тестов `tests/conftest.py` до импорта приложения выбирает временную SQLite-базу.
 
-`ChatQuery.context` и `ChatResponse.context` передают только выбранные параметры
-и недостающее уточнение. Состояния на сервере нет; ответы читаются из JSON заново.
-Все три существующих chat endpoint проверяют US-3 до прежней маршрутизации.
+## Чат и внешние сервисы
 
-Опубликованные условия проходят проверку источника, перевода, срока перепроверки
-и внутреннего срока действия. Для отсутствующих, неподтверждённых, просроченных
-или рассматриваемых условий значения скрываются. Gemini для US-3 не вызывается;
-в остальных случаях он может только выбрать ID существующего ответа.
+В текущем `chatbot.answer_query` порядок такой: US7 → US9 → US18 → US19 → US3 → локальное сопоставление программ/FAQ → необязательный Gemini fallback. US3 проверяет источник, язык и сроки публикации требований. Авторизованному пользователю `/chat` подставляет категорию и уровень из профиля и сохраняет диалог. Состояние выбора возвращается через `ChatResponse.context`.
 
-Интерфейс сохраняет контекст до сброса/перезагрузки и позволяет явно выбрать язык
-US-3. Новые сервисы, база подписчиков и планировщик не добавлялись. Подробности,
-ограничения источников и процедура ручного обновления описаны в [US3.md](US3.md).
+US7 использует тот же сервис, что REST и отдельная вкладка. Gemini для него не нужен. Telegram polling запускается в lifespan только вне тестового режима; отсутствие токена обрабатывается существующим сервисом. Настоящие SMTP/SMS/Telegram-интеграции требуют настроек и отдельно не подтверждаются локальными тестами.
+
+## US7: проверенные версии процедуры
+
+`data/admission_procedures.json` содержит четыре маршрута категорий/уровней, переводы RU/KK/EN, стабильные ID шагов, официальные источники, известные сроки, версию и даты перепроверки. `app/services/admission_guide.py` читает и валидирует файл на каждом запросе. Непроверенные, просроченные и некорректные версии не выдаются. Изменение проверенной версии появляется при следующем запросе без перезапуска. Автоматического сбора/утверждения правил с сайта SDU нет.
+
+Выбор программы проверяется по каталогу и уровню; опубликованные и непросроченные специальные условия берутся из `Requirement`, с отдельной датой проверки и ссылкой. При отсутствии подтверждения показывается ограничение. Стартовый каталог содержит только бакалаврские программы; магистратура имеет общий справочный маршрут.
+
+Frontend сохраняет прогресс по ключу `version/category/level/program` в `localStorage`, независимо от языка. При блокировке storage работает память вкладки с предупреждением. Старый параллельный запрос не перезаписывает новую выбранную категорию; предусмотрены загрузка, таймаут и повтор запроса. Сервер не хранит этот прогресс и не отправляет заявление в университет.
+
+Точные команды, ограничения и результаты проверки: [README](README.md), [Sprint 3](docs/sprint_3_report.md).

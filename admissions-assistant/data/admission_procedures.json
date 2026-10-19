@@ -1,0 +1,528 @@
+{
+  "version": "2026-10-18.2",
+  "verified_on": "2026-10-18",
+  "review_due": "2026-11-01",
+  "status": "reviewed",
+  "sources": {
+    "admission": {
+      "title": "SDU Bachelor Admissions",
+      "url": "https://sdu.edu.kz/en/admission-3-2/"
+    },
+    "international": {
+      "title": "SDU International Admissions",
+      "url": "https://sdu.edu.kz/en/international-admissions/"
+    },
+    "master": {
+      "title": "SDU Master Admissions",
+      "url": "https://sdu.edu.kz/en/master/"
+    },
+    "portal": {
+      "title": "SDU Admissions Portal",
+      "url": "https://admissions.sdu.edu.kz"
+    }
+  },
+  "routes": [
+    {
+      "category": "domestic",
+      "level": "undergraduate",
+      "steps": [
+        {
+          "id": "entrance",
+          "source_id": "admission",
+          "text": {
+            "ru": {
+              "title": "ЕНТ и выбор профильных предметов",
+              "description": "Выберите программу и уточните действующие предметы и пороги ЕНТ. Маршрут после колледжа может отличаться."
+            },
+            "kk": {
+              "title": "ҰБТ және бейіндік пәндерді таңдау",
+              "description": "Бағдарламаны таңдап, ҰБТ пәндері мен шекті балдарын тексеріңіз. Колледжден кейінгі тәртіп өзгеше болуы мүмкін."
+            },
+            "en": {
+              "title": "UNT and profile subject selection",
+              "description": "Choose a program and check its current UNT subjects and thresholds. The college graduate route may differ."
+            }
+          }
+        },
+        {
+          "id": "funding",
+          "source_id": "admission",
+          "text": {
+            "ru": {
+              "title": "Подача на государственный грант",
+              "description": "Если планируете участвовать в конкурсе грантов, проверьте правила и отдельный срок подачи заявления."
+            },
+            "kk": {
+              "title": "Мемлекеттік грантқа өтініш беру",
+              "description": "Грант конкурсына қатыссаңыз, ережелер мен жеке өтініш мерзімін тексеріңіз."
+            },
+            "en": {
+              "title": "State grant application",
+              "description": "If applying for a state grant, check the competition rules and its separate application deadline."
+            }
+          },
+          "deadline": "2026-07-20"
+        },
+        {
+          "id": "documents",
+          "source_id": "admission",
+          "text": {
+            "ru": {
+              "title": "Онлайн-заявка и подача документов",
+              "description": "Заполните заявку на портале до визита в комиссию. Подготовьте аттестат с приложением и документы по списку выбранного маршрута. Указанный срок относится к платному поступлению."
+            },
+            "kk": {
+              "title": "Онлайн өтініш және құжат тапсыру",
+              "description": "Комиссияға бармас бұрын порталдағы өтінішті толтырыңыз. Аттестат пен қосымшаны және таңдалған жолға қажетті құжаттарды дайындаңыз. Көрсетілген мерзім ақылы оқуға түсуге қатысты."
+            },
+            "en": {
+              "title": "Online application and document submission",
+              "description": "Complete the portal application before visiting admissions. Prepare your school certificate, transcript and route-specific documents. The displayed deadline applies to tuition-based admission."
+            }
+          },
+          "deadline": "2026-08-25"
+        },
+        {
+          "id": "language",
+          "source_id": "admission",
+          "text": {
+            "ru": {
+              "title": "Подтверждение английского языка",
+              "description": "Уточните допустимый сертификат или формат языкового экзамена для выбранной программы. Не используйте общий порог вместо требований программы."
+            },
+            "kk": {
+              "title": "Ағылшын тілін растау",
+              "description": "Таңдалған бағдарлама үшін жарамды сертификатты немесе тіл емтиханының түрін нақтылаңыз. Жалпы шекті бағдарлама талабымен алмастырмаңыз."
+            },
+            "en": {
+              "title": "English proficiency verification",
+              "description": "Confirm the accepted certificate or language exam for your program. Check program-specific requirements before booking a test."
+            }
+          }
+        },
+        {
+          "id": "enrollment",
+          "source_id": "portal",
+          "text": {
+            "ru": {
+              "title": "Договор и подтверждение оплаты",
+              "description": "После проверки заявки уточните условия договора, финансирование и платежи у комиссии. Оплачивайте только по официальным реквизитам."
+            },
+            "kk": {
+              "title": "Шарт және төлемді растау",
+              "description": "Өтініш тексерілгеннен кейін комиссиядан шартты, қаржыландыруды және төлемдерді нақтылаңыз. Тек ресми деректемелер арқылы төлеңіз."
+            },
+            "en": {
+              "title": "Contract and payment confirmation",
+              "description": "After application review, confirm the contract, funding and payments with admissions. Use official payment details only."
+            }
+          }
+        },
+        {
+          "id": "arrival",
+          "source_id": "portal",
+          "text": {
+            "ru": {
+              "title": "Общежитие и регистрация на дисциплины",
+              "description": "После подтверждения зачисления уточните порядок заселения и регистрации на курсы. Место в общежитии не гарантируется этим гидом."
+            },
+            "kk": {
+              "title": "Жатақхана және пәндерге тіркелу",
+              "description": "Қабылдау расталғаннан кейін орналасу және пәндерге тіркелу тәртібін нақтылаңыз. Бұл нұсқаулық жатақхана орнын кепілдендірмейді."
+            },
+            "en": {
+              "title": "Dormitory and course registration",
+              "description": "After enrollment confirmation, ask about accommodation and course registration. This guide does not guarantee a dormitory place."
+            }
+          }
+        }
+      ],
+      "program_steps": {
+        "sdu-two-lang": [
+          {
+            "id": "pedagogical-exam",
+            "source_id": "admission",
+            "text": {
+              "ru": {
+                "title": "Специальный педагогический экзамен",
+                "description": "Для педагогической программы уточните и пройдите специальный экзамен. Проверьте, когда результат нужен для конкурса грантов и зачисления, до подачи заявления."
+              },
+              "kk": {
+                "title": "Арнайы педагогикалық емтихан",
+                "description": "Педагогикалық бағдарлама үшін арнайы емтиханды нақтылап, тапсырыңыз. Грант конкурсы мен қабылдау үшін нәтиже қашан қажет екенін өтініш бермес бұрын тексеріңіз."
+              },
+              "en": {
+                "title": "Special pedagogical examination",
+                "description": "For this teacher-education route, confirm and complete the special examination. Check when its result is required for the grant competition and enrollment before applying."
+              }
+            }
+          }
+        ],
+        "sdu-journalism": [
+          {
+            "id": "creative-exam",
+            "source_id": "admission",
+            "text": {
+              "ru": {
+                "title": "Творческий экзамен и актуальная программа журналистики",
+                "description": "На официальной странице журналистика выделена в творческий маршрут. Уточните актуальное название и код программы, формат экзамена, интервью/эссе и сроки до подачи на грант. Название в демонстрационном каталоге может быть устаревшим."
+              },
+              "kk": {
+                "title": "Шығармашылық емтихан және қазіргі журналистика бағдарламасы",
+                "description": "Ресми бетте журналистика шығармашылық бағытқа жатады. Грантқа өтініш бермес бұрын бағдарламаның қазіргі атауы мен кодын, емтихан, сұхбат/эссе түрін және мерзімдерін нақтылаңыз. Демо каталогтағы атау ескірген болуы мүмкін."
+              },
+              "en": {
+                "title": "Creative examination and current journalism program",
+                "description": "The official page identifies journalism as a creative-exam route. Confirm the current program name/code, exam, interview/essay format and dates before applying for a grant. The demo catalog label may be outdated."
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "category": "domestic",
+      "level": "graduate",
+      "steps": [
+        {
+          "id": "entrance",
+          "source_id": "master",
+          "text": {
+            "ru": {
+              "title": "Комплексное тестирование (КТ) и пререквизиты",
+              "description": "Выберите магистерскую программу. Уточните применимость КТ и пререквизиты по диплому бакалавра."
+            },
+            "kk": {
+              "title": "Кешенді тестілеу (КТ) және пререквизиттер",
+              "description": "Магистрлік бағдарламаны таңдаңыз. КТ қажеттілігін және бакалавр дипломы бойынша пререквизиттерді нақтылаңыз."
+            },
+            "en": {
+              "title": "Comprehensive testing (CT) and prerequisites",
+              "description": "Select a master’s program. Confirm whether CT applies and check prerequisites against your bachelor’s degree."
+            }
+          }
+        },
+        {
+          "id": "funding",
+          "source_id": "master",
+          "text": {
+            "ru": {
+              "title": "Подача на государственный грант",
+              "description": "Если планируете участвовать в конкурсе грантов, проверьте правила и отдельный срок подачи заявления."
+            },
+            "kk": {
+              "title": "Мемлекеттік грантқа өтініш беру",
+              "description": "Грант конкурсына қатыссаңыз, ережелер мен жеке өтініш мерзімін тексеріңіз."
+            },
+            "en": {
+              "title": "State grant application",
+              "description": "If applying for a state grant, check the competition rules and its separate application deadline."
+            }
+          }
+        },
+        {
+          "id": "documents",
+          "source_id": "master",
+          "text": {
+            "ru": {
+              "title": "Заявка в магистратуру и диплом",
+              "description": "Подайте заявку на выбранную магистерскую программу. Подготовьте диплом бакалавра с приложением; актуальный полный список уточните у комиссии."
+            },
+            "kk": {
+              "title": "Магистратураға өтініш және диплом",
+              "description": "Таңдалған магистрлік бағдарламаға өтініш беріңіз. Бакалавр дипломы мен қосымшасын дайындап, толық тізімді комиссиядан нақтылаңыз."
+            },
+            "en": {
+              "title": "Master’s application and diploma",
+              "description": "Apply for the selected master’s program. Prepare your bachelor’s diploma and transcript; confirm the full current checklist with admissions."
+            }
+          }
+        },
+        {
+          "id": "language",
+          "source_id": "master",
+          "text": {
+            "ru": {
+              "title": "Подтверждение английского языка",
+              "description": "Уточните допустимый сертификат или формат языкового экзамена для выбранной программы. Не используйте общий порог вместо требований программы."
+            },
+            "kk": {
+              "title": "Ағылшын тілін растау",
+              "description": "Таңдалған бағдарлама үшін жарамды сертификатты немесе тіл емтиханының түрін нақтылаңыз. Жалпы шекті бағдарлама талабымен алмастырмаңыз."
+            },
+            "en": {
+              "title": "English proficiency verification",
+              "description": "Confirm the accepted certificate or language exam for your program. Check program-specific requirements before booking a test."
+            }
+          }
+        },
+        {
+          "id": "enrollment",
+          "source_id": "portal",
+          "text": {
+            "ru": {
+              "title": "Договор и подтверждение оплаты",
+              "description": "После проверки заявки уточните условия договора, финансирование и платежи у комиссии. Оплачивайте только по официальным реквизитам."
+            },
+            "kk": {
+              "title": "Шарт және төлемді растау",
+              "description": "Өтініш тексерілгеннен кейін комиссиядан шартты, қаржыландыруды және төлемдерді нақтылаңыз. Тек ресми деректемелер арқылы төлеңіз."
+            },
+            "en": {
+              "title": "Contract and payment confirmation",
+              "description": "After application review, confirm the contract, funding and payments with admissions. Use official payment details only."
+            }
+          }
+        },
+        {
+          "id": "arrival",
+          "source_id": "portal",
+          "text": {
+            "ru": {
+              "title": "Общежитие и регистрация на дисциплины",
+              "description": "После подтверждения зачисления уточните порядок заселения и регистрации на курсы. Место в общежитии не гарантируется этим гидом."
+            },
+            "kk": {
+              "title": "Жатақхана және пәндерге тіркелу",
+              "description": "Қабылдау расталғаннан кейін орналасу және пәндерге тіркелу тәртібін нақтылаңыз. Бұл нұсқаулық жатақхана орнын кепілдендірмейді."
+            },
+            "en": {
+              "title": "Dormitory and course registration",
+              "description": "After enrollment confirmation, ask about accommodation and course registration. This guide does not guarantee a dormitory place."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "category": "international",
+      "level": "undergraduate",
+      "steps": [
+        {
+          "id": "application",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Выбор программы и онлайн-заявка",
+              "description": "Выберите программу и заполните заявку на официальном портале. Согласуйте маршрут иностранного абитуриента с международной комиссией. На странице опубликован срок заявки весеннего набора 30 ноября 2026; осенний срок 31 июля 2026 уже прошёл. Подтвердите доступность выбранной программы в этом наборе."
+            },
+            "kk": {
+              "title": "Бағдарламаны таңдау және онлайн өтініш",
+              "description": "Бағдарламаны таңдап, ресми порталда өтініш толтырыңыз. Шетелдік талапкердің жолын халықаралық комиссиямен келісіңіз. Бетте көктемгі қабылдауға өтініш мерзімі 2026 жылғы 30 қараша деп көрсетілген; күзгі 2026 жылғы 31 шілде мерзімі өтті. Осы қабылдауда бағдарламаның қолжетімділігін растаңыз."
+            },
+            "en": {
+              "title": "Program selection and online application",
+              "description": "Choose a program and apply through the official portal. Confirm the international applicant route with international admissions. The page lists November 30, 2026 for spring applications; the fall deadline of July 31, 2026 has passed. Confirm that the selected program is available in that intake."
+            }
+          },
+          "deadline": "2026-11-30"
+        },
+        {
+          "id": "language",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Языковой сертификат или Placement Test",
+              "description": "До собеседования уточните допустимый сертификат. При отсутствии принятого сертификата следуйте указаниям комиссии по языковому Placement Test."
+            },
+            "kk": {
+              "title": "Тіл сертификаты немесе Placement Test",
+              "description": "Сұхбатқа дейін жарамды сертификатты нақтылаңыз. Қабылданатын сертификат болмаса, комиссияның тілдік Placement Test нұсқауларын орындаңыз."
+            },
+            "en": {
+              "title": "Language certificate or Placement Test",
+              "description": "Before the interview, confirm the accepted certificate. Without an accepted certificate, follow admissions instructions for the language Placement Test."
+            }
+          }
+        },
+        {
+          "id": "selection",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Онлайн-собеседование с координатором",
+              "description": "После языкового теста или подтверждения освобождения от него следуйте приглашению координатора на собеседование и дождитесь решения комиссии."
+            },
+            "kk": {
+              "title": "Координатормен онлайн сұхбат",
+              "description": "Тіл сынағынан немесе одан босату расталғаннан кейін координатордың сұхбат шақыруын орындап, комиссия шешімін күтіңіз."
+            },
+            "en": {
+              "title": "Online interview with the coordinator",
+              "description": "After placement testing or confirmation of an accepted exemption, follow the coordinator’s interview invitation and await the admissions decision."
+            }
+          }
+        },
+        {
+          "id": "enrollment",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Договор и визовые действия при необходимости",
+              "description": "После решения комиссии подтвердите условия договора и оплаты. До поездки уточните, нужна ли виза и помощь с приглашением."
+            },
+            "kk": {
+              "title": "Шарт және қажет болса визалық рәсімдер",
+              "description": "Комиссия шешімінен кейін шарт пен төлемді растаңыз. Сапар алдында виза мен шақыру қажеттілігін нақтылаңыз."
+            },
+            "en": {
+              "title": "Contract and visa arrangements if required",
+              "description": "After the admissions decision, confirm the contract and payments. Before travel, ask whether a visa and invitation are required."
+            }
+          }
+        },
+        {
+          "id": "documents",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Оригиналы документов и признание образования",
+              "description": "Уточните порядок представления оригиналов, переводов и признания предыдущего образования для вашего маршрута. Указанный срок оригиналов относится к весеннему набору: 20 декабря 2026. Осенний срок 20 августа 2026 прошёл."
+            },
+            "kk": {
+              "title": "Құжат түпнұсқалары және білімді тану",
+              "description": "Таңдалған жол үшін түпнұсқалар, аудармалар және алдыңғы білімді тану тәртібін нақтылаңыз. Түпнұсқалардың көрсетілген мерзімі көктемгі қабылдауға қатысты: 2026 жылғы 20 желтоқсан. Күзгі 2026 жылғы 20 тамыз мерзімі өтті."
+            },
+            "en": {
+              "title": "Original documents and recognition",
+              "description": "Confirm original documents, translations and recognition requirements for your previous education and application route. The displayed originals deadline applies to spring intake: December 20, 2026. The fall originals deadline of August 20, 2026 has passed."
+            }
+          },
+          "deadline": "2026-12-20"
+        },
+        {
+          "id": "arrival",
+          "source_id": "portal",
+          "text": {
+            "ru": {
+              "title": "Общежитие и регистрация на дисциплины",
+              "description": "После подтверждения зачисления уточните порядок заселения и регистрации на курсы. Место в общежитии не гарантируется этим гидом."
+            },
+            "kk": {
+              "title": "Жатақхана және пәндерге тіркелу",
+              "description": "Қабылдау расталғаннан кейін орналасу және пәндерге тіркелу тәртібін нақтылаңыз. Бұл нұсқаулық жатақхана орнын кепілдендірмейді."
+            },
+            "en": {
+              "title": "Dormitory and course registration",
+              "description": "After enrollment confirmation, ask about accommodation and course registration. This guide does not guarantee a dormitory place."
+            }
+          }
+        }
+      ]
+    },
+    {
+      "category": "international",
+      "level": "graduate",
+      "steps": [
+        {
+          "id": "application",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Магистратура: диплом и онлайн-заявка",
+              "description": "Выберите магистерскую программу и подготовьте диплом бакалавра с приложением. Согласуйте иностранный маршрут с международной комиссией."
+            },
+            "kk": {
+              "title": "Магистратура: диплом және онлайн өтініш",
+              "description": "Магистрлік бағдарламаны таңдап, бакалавр дипломы мен қосымшасын дайындаңыз. Шетелдік жолды халықаралық комиссиямен келісіңіз."
+            },
+            "en": {
+              "title": "Master’s degree: diploma and online application",
+              "description": "Select a master’s program and prepare your bachelor’s diploma and transcript. Confirm the international route with admissions."
+            }
+          }
+        },
+        {
+          "id": "language",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Языковой сертификат или Placement Test",
+              "description": "До собеседования уточните допустимый сертификат. При отсутствии принятого сертификата следуйте указаниям комиссии по языковому Placement Test."
+            },
+            "kk": {
+              "title": "Тіл сертификаты немесе Placement Test",
+              "description": "Сұхбатқа дейін жарамды сертификатты нақтылаңыз. Қабылданатын сертификат болмаса, комиссияның тілдік Placement Test нұсқауларын орындаңыз."
+            },
+            "en": {
+              "title": "Language certificate or Placement Test",
+              "description": "Before the interview, confirm the accepted certificate. Without an accepted certificate, follow admissions instructions for the language Placement Test."
+            }
+          }
+        },
+        {
+          "id": "selection",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Онлайн-собеседование с координатором",
+              "description": "После языкового теста или подтверждения освобождения от него следуйте приглашению координатора на собеседование и дождитесь решения комиссии."
+            },
+            "kk": {
+              "title": "Координатормен онлайн сұхбат",
+              "description": "Тіл сынағынан немесе одан босату расталғаннан кейін координатордың сұхбат шақыруын орындап, комиссия шешімін күтіңіз."
+            },
+            "en": {
+              "title": "Online interview with the coordinator",
+              "description": "After placement testing or confirmation of an accepted exemption, follow the coordinator’s interview invitation and await the admissions decision."
+            }
+          }
+        },
+        {
+          "id": "enrollment",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Договор и визовые действия при необходимости",
+              "description": "После решения комиссии подтвердите условия договора и оплаты. До поездки уточните, нужна ли виза и помощь с приглашением."
+            },
+            "kk": {
+              "title": "Шарт және қажет болса визалық рәсімдер",
+              "description": "Комиссия шешімінен кейін шарт пен төлемді растаңыз. Сапар алдында виза мен шақыру қажеттілігін нақтылаңыз."
+            },
+            "en": {
+              "title": "Contract and visa arrangements if required",
+              "description": "After the admissions decision, confirm the contract and payments. Before travel, ask whether a visa and invitation are required."
+            }
+          }
+        },
+        {
+          "id": "documents",
+          "source_id": "international",
+          "text": {
+            "ru": {
+              "title": "Оригиналы документов и признание образования",
+              "description": "Уточните порядок представления оригиналов, переводов и признания предыдущего образования для вашего маршрута."
+            },
+            "kk": {
+              "title": "Құжат түпнұсқалары және білімді тану",
+              "description": "Таңдалған жол үшін түпнұсқалар, аудармалар және алдыңғы білімді тану тәртібін нақтылаңыз."
+            },
+            "en": {
+              "title": "Original documents and recognition",
+              "description": "Confirm original documents, translations and recognition requirements for your previous education and application route."
+            }
+          }
+        },
+        {
+          "id": "arrival",
+          "source_id": "portal",
+          "text": {
+            "ru": {
+              "title": "Общежитие и регистрация на дисциплины",
+              "description": "После подтверждения зачисления уточните порядок заселения и регистрации на курсы. Место в общежитии не гарантируется этим гидом."
+            },
+            "kk": {
+              "title": "Жатақхана және пәндерге тіркелу",
+              "description": "Қабылдау расталғаннан кейін орналасу және пәндерге тіркелу тәртібін нақтылаңыз. Бұл нұсқаулық жатақхана орнын кепілдендірмейді."
+            },
+            "en": {
+              "title": "Dormitory and course registration",
+              "description": "After enrollment confirmation, ask about accommodation and course registration. This guide does not guarantee a dormitory place."
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

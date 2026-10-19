@@ -10,3 +10,7 @@ __pycache__/
 app.log
 .venv/
 .demo/
+
+# Local Python virtual environments in any project copy
+venv/
+.venv/

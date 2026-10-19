@@ -39,6 +39,18 @@
   * **Pre-Requirements:** Database of links to official pages
   * **QA Test:** US9QATest
 
+* **[US-18] UNT Eligibility Matcher**
+  * **Description:** As an applicant, I want to match my 2 UNT profile subjects and total score against SDU bachelor programs, so that I immediately see which programs I qualify for.
+  * **Estimation:** 5 | **Assignee:** Shadiyar | **Deadline:** 25 Oct 2026
+  * **Pre-Requirements:** Program UNT thresholds catalog
+  * **QA Test:** US18QATest
+
+* **[US-19] Tuition & Grant Calculator**
+  * **Description:** As an applicant, I want to calculate program tuition fees, scholarship discounts (Altyn Belgi, high UNT, siblings, SPT), semester payment installments, and Republic of Kazakhstan state grant probability, so that I can plan my educational finances.
+  * **Estimation:** 5 | **Assignee:** Yertai | **Deadline:** 25 Oct 2026
+  * **Pre-Requirements:** Program tuition fee table and grant cutoff statistics
+  * **QA Test:** US19QATest
+
 ## Iteration 4
 * **[US-8] Deadline Notifications**
   * **Description:** As an applicant, I want to receive information about document submission deadlines, so that I don't miss important dates.

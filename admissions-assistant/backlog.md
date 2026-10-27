@@ -60,9 +60,15 @@
 
 * **[US-13] Manage FAQ Database**
   * **Description:** As a university staff member, I want to manage the FAQ knowledge base, so that the chatbot provides accurate answers to common applicant questions.
-  * **Estimation:** N/A | **Assignee:** Arman | **Deadline:** 8 Nov 2026
+  * **Estimation:** 5 | **Assignee:** Arman | **Deadline:** 1 Nov 2026
   * **Pre-Requirements:** Staff authentication/role system in place; FAQ storage structure defined
   * **QA Test:** US13QATest
+
+* **[US-20] Telegram Push Alerts**
+  * **Description:** As an applicant, I want to receive automated push alerts in Telegram 3 days and 1 day before application deadlines, so that I never miss submission cutoffs.
+  * **Estimation:** 4 | **Assignee:** Saken | **Deadline:** 8 Nov 2026
+  * **Pre-Requirements:** Telegram bot integration linked to applicant accounts; deadline calendar
+  * **QA Test:** US20QATest
 
 ## Iteration 5
 * **[US-6] Application Status Check**

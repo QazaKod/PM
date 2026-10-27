@@ -1,4 +1,6 @@
+import logging
 import os
+import secrets
 from datetime import datetime, timedelta
 from typing import Optional, List
 import bcrypt
@@ -7,11 +9,43 @@ from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    pass
+
 from app.db_session import get_db
 from app.models import User
 
+logger = logging.getLogger("admissions_api")
+
+
+def get_jwt_secret_key() -> str:
+    """
+    Resolve JWT signing secret securely without any static hardcoded fallback.
+    Raises RuntimeError in production if JWT_SECRET_KEY is not configured.
+    """
+    env_key = os.getenv("JWT_SECRET_KEY", "").strip()
+    if env_key:
+        return env_key
+
+    env_mode = os.getenv("ENV", "development").strip().lower()
+    if env_mode == "production":
+        raise RuntimeError(
+            "CRITICAL: JWT_SECRET_KEY environment variable must be explicitly set in production!"
+        )
+
+    ephemeral_key = secrets.token_hex(32)
+    if os.getenv("TESTING", "").lower() not in ("true", "1"):
+        logger.warning(
+            "JWT_SECRET_KEY is not set in environment; generated ephemeral secret key for this process."
+        )
+    return ephemeral_key
+
+
 # Configuration
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "sdu-admissions-super-secret-key-change-in-prod-2026")
+SECRET_KEY = get_jwt_secret_key()
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 60 * 24  # 24 hours
 

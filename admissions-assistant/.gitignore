@@ -7,3 +7,5 @@ venv/
 *.sqlite
 *.sqlite3
 app.log
+*.lock
+

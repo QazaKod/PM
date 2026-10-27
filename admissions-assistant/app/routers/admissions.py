@@ -17,12 +17,48 @@ from app.schemas import (
     TuitionCalculatorRequest,
     TuitionCalculatorResponse,
 )
+from app import database
 from app.services.admission_guide import get_admission_guide, GuideUnavailable
 from app.services.official_links import get_official_links
 from app.services.unt_calculator import match_unt_eligibility
 from app.services.tuition_calculator import calculate_tuition_and_grant
 
 router = APIRouter(prefix="/admissions", tags=["Admissions & Calculators"])
+
+CANONICAL_UNT_SUBJECTS = [
+    {"value": "Mathematics", "label": "Mathematics (Математика)"},
+    {"value": "Computer Science", "label": "Computer Science (Информатика)"},
+    {"value": "Physics", "label": "Physics (Физика)"},
+    {"value": "Geography", "label": "Geography (География)"},
+    {"value": "World History", "label": "World History (Всемирная история)"},
+    {"value": "Fundamentals of Law", "label": "Fundamentals of Law (Основы права)"},
+    {"value": "Foreign Language", "label": "Foreign Language (Иностранный язык)"},
+    {"value": "Creative Exams", "label": "Creative Exams (Творческие экзамены)"},
+    {"value": "Biology", "label": "Biology (Биология)"},
+    {"value": "Chemistry", "label": "Chemistry (Химия)"},
+]
+
+
+@router.get("/metadata")
+def admissions_metadata_endpoint():
+    """Return dynamic catalog of academic programs and UNT subjects from the database for UI dropdowns."""
+    programs = database.load_programs()
+    bachelor_programs = [
+        {
+            "id": p["id"],
+            "code": p.get("code"),
+            "name": p["name"],
+            "faculty": p.get("faculty"),
+            "degree": p.get("degree"),
+            "approx_cost_per_year_kzt": p.get("approx_cost_per_year_kzt", 0),
+            "unt_subjects": p.get("unt_subjects", []),
+        }
+        for p in programs
+    ]
+    return {
+        "programs": bachelor_programs,
+        "unt_subjects": CANONICAL_UNT_SUBJECTS,
+    }
 
 
 @router.get("/guide", response_model=AdmissionGuideResponse)

@@ -211,67 +211,118 @@ def process_telegram_update(update: dict, db: Session) -> dict:
     return {"status": "ok", "action": "unhandled_command"}
 
 
+async def register_telegram_webhook(webhook_url: str) -> dict:
+    """Register an HTTPS webhook URL with Telegram Bot API for multi-worker production."""
+    token = get_bot_token()
+    if not token:
+        return {"ok": False, "error": "Telegram bot token not configured"}
+    base_url = f"https://api.telegram.org/bot{token}"
+    async with httpx.AsyncClient(timeout=10.0) as client:
+        resp = await client.post(f"{base_url}/setWebhook", json={"url": webhook_url})
+        return resp.json()
+
+
+def _try_acquire_poller_lock():
+    """
+    Acquire an OS-level non-blocking file lock so that under multi-worker Uvicorn (--workers N),
+    only a single worker process runs Telegram long-polling.
+    Returns the open file handle if acquired, or None if another worker holds the lock.
+    """
+    from pathlib import Path
+    lock_dir = Path(__file__).resolve().parent.parent / "data"
+    lock_dir.mkdir(exist_ok=True)
+    lock_path = lock_dir / "telegram_poller.lock"
+    fh = open(lock_path, "a+b")
+    try:
+        if os.name == "nt":
+            import msvcrt
+            fh.seek(0)
+            msvcrt.locking(fh.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(fh.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return fh
+    except (OSError, IOError):
+        fh.close()
+        return None
+
+
 async def start_telegram_polling():
     """
     Background asynchronous polling worker for Telegram Bot updates.
-    Listens for /start reset_<CODE> commands and delivers codes to users in Telegram.
-    Runs continuously during server lifetime without blocking the event loop.
+    Protected by an OS-level lock so multi-worker deployments never collide on getUpdates.
     """
     import asyncio
+
+    mode = os.getenv("TELEGRAM_MODE", "polling").strip().lower()
+    if mode in ("webhook", "worker_disabled", "disabled", "off"):
+        logger.info(f"ℹ️ Telegram polling skipped in web process (TELEGRAM_MODE={mode}).")
+        return
 
     token = get_bot_token()
     if not token:
         logger.info("ℹ️ Telegram bot token not configured. Background polling will not start.")
         return
 
-    logger.info(f"🚀 Telegram Bot Poller starting for @{get_bot_username()}...")
+    lock_handle = _try_acquire_poller_lock()
+    if lock_handle is None:
+        logger.info("ℹ️ Telegram poller lock held by primary worker; skipping duplicate poller in this worker.")
+        return
+
+    logger.info(f"🚀 Telegram Bot Poller starting for @{get_bot_username()} (PID {os.getpid()})...")
     offset = 0
     base_url = f"https://api.telegram.org/bot{token}"
 
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
-            resp = await client.get(f"{base_url}/getMe")
-            if resp.status_code == 200 and resp.json().get("ok"):
-                bot_user = resp.json().get("result", {})
-                logger.info(f"✅ Telegram bot connected: @{bot_user.get('username')} ({bot_user.get('first_name')})")
-            else:
-                logger.error(f"❌ Telegram bot verification failed: {resp.text}")
-                return
-            # Delete any dangling webhook so getUpdates is allowed
-            await client.post(f"{base_url}/deleteWebhook")
-    except Exception as e:
-        logger.warning(f"⚠️ Telegram bot initialization error: {e}")
-
-    while True:
         try:
-            async with httpx.AsyncClient(timeout=35.0) as client:
-                res = await client.get(f"{base_url}/getUpdates?offset={offset}&timeout=20")
-                if res.status_code == 200:
-                    data = res.json()
-                    for update in data.get("result", []):
-                        update_id = update.get("update_id")
-                        offset = update_id + 1
-
-                        from app.db_session import SessionLocal
-                        db = SessionLocal()
-                        try:
-                            result = process_telegram_update(update, db)
-                            logger.info(f"📩 Telegram update #{update_id} processed: {result}")
-                        except Exception as err:
-                            logger.error(f"⚠️ Error processing Telegram update #{update_id}: {err}")
-                        finally:
-                            db.close()
-                elif res.status_code == 409:
-                    # 409 Conflict: Another poller or process is listening
-                    await asyncio.sleep(5)
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                resp = await client.get(f"{base_url}/getMe")
+                if resp.status_code == 200 and resp.json().get("ok"):
+                    bot_user = resp.json().get("result", {})
+                    logger.info(f"✅ Telegram bot connected: @{bot_user.get('username')} ({bot_user.get('first_name')})")
                 else:
-                    await asyncio.sleep(2)
-        except asyncio.CancelledError:
-            logger.info("🛑 Telegram polling background task stopped.")
-            break
-        except (httpx.ReadTimeout, httpx.ConnectTimeout):
-            continue
+                    logger.error(f"❌ Telegram bot verification failed: {resp.text}")
+                    return
+                # Delete any dangling webhook so getUpdates is allowed
+                await client.post(f"{base_url}/deleteWebhook")
         except Exception as e:
-            logger.warning(f"⚠️ Telegram polling connection error: {e}")
-            await asyncio.sleep(3)
+            logger.warning(f"⚠️ Telegram bot initialization error: {e}")
+
+        while True:
+            try:
+                async with httpx.AsyncClient(timeout=35.0) as client:
+                    res = await client.get(f"{base_url}/getUpdates?offset={offset}&timeout=20")
+                    if res.status_code == 200:
+                        data = res.json()
+                        for update in data.get("result", []):
+                            update_id = update.get("update_id")
+                            offset = update_id + 1
+
+                            from app.db_session import SessionLocal
+                            db = SessionLocal()
+                            try:
+                                result = process_telegram_update(update, db)
+                                logger.info(f"📩 Telegram update #{update_id} processed: {result}")
+                            except Exception as err:
+                                logger.error(f"⚠️ Error processing Telegram update #{update_id}: {err}")
+                            finally:
+                                db.close()
+                    elif res.status_code == 409:
+                        # 409 Conflict: Another poller or process is listening
+                        await asyncio.sleep(5)
+                    else:
+                        await asyncio.sleep(2)
+            except asyncio.CancelledError:
+                logger.info("🛑 Telegram polling background task stopped.")
+                break
+            except (httpx.ReadTimeout, httpx.ConnectTimeout):
+                continue
+            except Exception as e:
+                logger.warning(f"⚠️ Telegram polling connection error: {e}")
+                await asyncio.sleep(3)
+    finally:
+        try:
+            lock_handle.close()
+        except Exception:
+            pass
 

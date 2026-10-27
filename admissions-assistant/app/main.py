@@ -27,6 +27,7 @@ from app.admin import (
     AdminAuth,
 )
 from app.security import SECRET_KEY, get_optional_current_user
+from app.rate_limit import rate_limit
 from app.routers import auth, admissions, deadlines, faq_admin
 
 # Set up logging to file
@@ -132,7 +133,11 @@ def chat_faq(query: ChatQuery):
     return chatbot.answer_query(query.message, query.context.model_dump() if query.context else None, query.language)
 
 
-@app.post("/chat", response_model=ChatResponse)
+@app.post(
+    "/chat",
+    response_model=ChatResponse,
+    dependencies=[Depends(rate_limit("chat", max_requests=30, window_seconds=60))],
+)
 def chat(
     query: ChatQuery,
     optional_user: Optional[User] = Depends(get_optional_current_user),
@@ -152,16 +157,30 @@ def chat(
         if not ctx_dict.get("study_level") and prof.target_degree:
             ctx_dict["study_level"] = prof.target_degree
 
+    # Load recent conversation history for multi-turn context if session_id is present
+    history_turns = []
+    session_id = query.session_id
+    if session_id:
+        past_messages = (
+            db.query(ChatMessage)
+            .filter(ChatMessage.session_id == session_id)
+            .order_by(ChatMessage.id.desc())
+            .limit(6)
+            .all()
+        )
+        for msg in reversed(past_messages):
+            history_turns.append({"sender": msg.sender, "message": msg.message})
+
     response = chatbot.answer_query(
         query.message,
         ctx_dict if ctx_dict else None,
         query.language,
+        history=history_turns if history_turns else None,
     )
     logger.info(f"[Unified /chat] Response Source: {response.get('source', 'None')} | Confident: {response.get('confident')}")
     logger.info(f"[Unified /chat] Outgoing Context: {response.get('context')}")
 
     # Persistence: If user is logged in, save chat history
-    session_id = query.session_id
     if optional_user:
         session = None
         if session_id:

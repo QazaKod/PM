@@ -3,11 +3,12 @@ import random
 import re
 from datetime import datetime, timedelta
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import or_
 from sqlalchemy.orm import Session
 
 from app.db_session import get_db
+from app.rate_limit import rate_limit
 from app.models import (
     User,
     ApplicantProfile,
@@ -30,8 +31,8 @@ from app.schemas import (
     ApplicantProfileOut,
     ApplicantProfileUpdate,
     SavedProgramOut,
-    SessionOut,
-    NotificationPreferenceRequest,
+    SessionOut,
+    NotificationPreferenceRequest,
     NotificationPreferenceResponse,
 )
 from app.security import (
@@ -58,9 +59,27 @@ from app.telegram_service import (
 
 router = APIRouter(prefix="/auth", tags=["Authentication & Profile"])
 
+MAX_VERIFICATION_ATTEMPTS = 5
 
-@router.post("/register", response_model=RegistrationResponse)
-def register(payload: UserRegister, db: Session = Depends(get_db)):
+
+def _should_expose_debug_code() -> bool:
+    """
+    Security guard: never expose verification codes in API responses in production or by default.
+    Only enabled in automated test runs (TESTING=1).
+    """
+    return os.getenv("TESTING", "").lower() in ("true", "1")
+
+
+@router.post(
+    "/register",
+    response_model=RegistrationResponse,
+    dependencies=[Depends(rate_limit("auth_register", max_requests=5, window_seconds=60))],
+)
+def register(
+    payload: UserRegister,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     """
     Registers a new user account with pending verification.
     Generates and sends a 6-digit verification code via Email, SMS, or Telegram Bot.
@@ -143,7 +162,8 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
         channel=channel,
         destination=destination,
         expires_at=expires_at,
-        is_used=False
+        is_used=False,
+        attempts=0,
     )
     db.add(token_entry)
     db.commit()
@@ -152,15 +172,15 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
     bot_username = get_bot_username()
 
     if channel == "email":
-        send_account_verification_email(email_clean, code, user.full_name)
+        background_tasks.add_task(send_account_verification_email, email_clean, code, user.full_name)
         msg = f"A 6-digit verification code has been sent to {email_clean}."
     elif channel == "phone_sms":
-        send_sms_verification_code(phone_clean, code)
+        background_tasks.add_task(send_sms_verification_code, phone_clean, code)
         msg = f"A 6-digit SMS verification code has been sent to {phone_clean}."
     elif channel == "phone_telegram":
         bot_url = get_telegram_verification_link(code)
         if user.telegram_chat_id:
-            send_telegram_verification_code(user.telegram_chat_id, code, user.full_name)
+            background_tasks.add_task(send_telegram_verification_code, user.telegram_chat_id, code, user.full_name)
             msg = "Verification code sent directly to your linked Telegram account."
         else:
             msg = f"Please open our Telegram bot to receive your verification code for {phone_clean}."
@@ -173,15 +193,20 @@ def register(payload: UserRegister, db: Session = Depends(get_db)):
         message=msg,
         bot_url=bot_url,
         bot_username=bot_username,
-        debug_code=code if (os.getenv("DEBUG", "true").lower() in ("true", "1") or os.getenv("TESTING", "").lower() in ("true", "1")) else None
+        debug_code=code if _should_expose_debug_code() else None,
     )
     return resp
 
 
-@router.post("/verify-registration", response_model=TokenResponse)
+@router.post(
+    "/verify-registration",
+    response_model=TokenResponse,
+    dependencies=[Depends(rate_limit("auth_verify_registration", max_requests=10, window_seconds=60))],
+)
 def verify_registration(payload: VerifyRegistrationRequest, db: Session = Depends(get_db)):
     """
     Verifies the 6-digit code for account registration, activates the account, and returns JWT.
+    Enforces brute-force lockout after MAX_VERIFICATION_ATTEMPTS failed attempts.
     """
     ident = payload.identifier.strip().lower()
     code = payload.code.strip()
@@ -201,31 +226,53 @@ def verify_registration(payload: VerifyRegistrationRequest, db: Session = Depend
             detail="Account with this email or phone number was not found."
         )
 
-    token_entry = (
+    active_token = (
         db.query(AccountVerificationToken)
         .filter(
             AccountVerificationToken.user_id == user.id,
-            AccountVerificationToken.code == code,
             AccountVerificationToken.is_used == False
         )
-        .order_by(AccountVerificationToken.created_at.desc())
+        .order_by(AccountVerificationToken.created_at.desc(), AccountVerificationToken.id.desc())
         .first()
     )
 
-    if not token_entry:
+    if not active_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid verification code. Please check your messages or request a new code."
         )
 
-    if token_entry.expires_at < datetime.utcnow():
+    if (active_token.attempts or 0) >= MAX_VERIFICATION_ATTEMPTS:
+        active_token.is_used = True
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+        )
+
+    if active_token.code != code:
+        active_token.attempts = (active_token.attempts or 0) + 1
+        if active_token.attempts >= MAX_VERIFICATION_ATTEMPTS:
+            active_token.is_used = True
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+            )
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code. Please check your messages or request a new code."
+        )
+
+    if active_token.expires_at < datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Verification code has expired. Please request a new code."
         )
 
     # Mark token used & verify user
-    token_entry.is_used = True
+    active_token.is_used = True
     user.is_verified = True
     user.is_active = True
 
@@ -248,8 +295,15 @@ def verify_registration(payload: VerifyRegistrationRequest, db: Session = Depend
     return TokenResponse(access_token=token, token_type="bearer", user=UserOut.model_validate(user))
 
 
-@router.post("/resend-verification")
-def resend_verification(payload: ResendVerificationRequest, db: Session = Depends(get_db)):
+@router.post(
+    "/resend-verification",
+    dependencies=[Depends(rate_limit("auth_resend_verification", max_requests=5, window_seconds=60))],
+)
+def resend_verification(
+    payload: ResendVerificationRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     """
     Resends a 6-digit verification code for an unverified account.
     """
@@ -288,31 +342,36 @@ def resend_verification(payload: ResendVerificationRequest, db: Session = Depend
         channel=channel,
         destination=destination,
         expires_at=expires_at,
-        is_used=False
+        is_used=False,
+        attempts=0,
     )
     db.add(token_entry)
     db.commit()
 
     bot_url = None
     if channel == "email":
-        send_account_verification_email(user.email, code, user.full_name)
+        background_tasks.add_task(send_account_verification_email, user.email, code, user.full_name)
     elif channel == "phone_sms":
-        send_sms_verification_code(user.phone, code)
+        background_tasks.add_task(send_sms_verification_code, user.phone, code)
     elif channel == "phone_telegram":
         bot_url = get_telegram_verification_link(code)
         if user.telegram_chat_id:
-            send_telegram_verification_code(user.telegram_chat_id, code, user.full_name)
+            background_tasks.add_task(send_telegram_verification_code, user.telegram_chat_id, code, user.full_name)
 
     return {
         "status": "ok",
         "message": f"Verification code resent to {destination}.",
         "channel": channel,
         "bot_url": bot_url,
-        "debug_code": code if (os.getenv("DEBUG", "true").lower() in ("true", "1") or os.getenv("TESTING", "").lower() in ("true", "1")) else None
+        "debug_code": code if _should_expose_debug_code() else None,
     }
 
 
-@router.post("/login", response_model=TokenResponse)
+@router.post(
+    "/login",
+    response_model=TokenResponse,
+    dependencies=[Depends(rate_limit("auth_login", max_requests=10, window_seconds=60))],
+)
 def login(payload: UserLogin, db: Session = Depends(get_db)):
     """Authenticates an existing user via email or phone and returns a JWT access token."""
     ident = payload.email.strip().lower()
@@ -351,8 +410,15 @@ def login(payload: UserLogin, db: Session = Depends(get_db)):
 # PASSWORD RESET (EMAIL & TELEGRAM)
 # ==========================================
 
-@router.post("/forgot-password")
-def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db)):
+@router.post(
+    "/forgot-password",
+    dependencies=[Depends(rate_limit("auth_forgot_password", max_requests=5, window_seconds=60))],
+)
+def forgot_password(
+    payload: ForgotPasswordRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
     """
     Sends a 6-digit password reset verification code via Email or Telegram.
     """
@@ -367,6 +433,12 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
             "message": "If this account exists in our system, a verification code has been sent."
         }
 
+    # Invalidate previous unused reset tokens for this user
+    db.query(PasswordResetToken).filter(
+        PasswordResetToken.user_id == user.id,
+        PasswordResetToken.is_used == False
+    ).update({"is_used": True})
+
     # Generate 6-digit verification code
     code = f"{random.randint(100000, 999999):06d}"
     expires_at = datetime.utcnow() + timedelta(minutes=15)
@@ -375,7 +447,8 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
         user_id=user.id,
         code=code,
         expires_at=expires_at,
-        is_used=False
+        is_used=False,
+        attempts=0,
     )
     db.add(reset_token)
     db.commit()
@@ -386,12 +459,12 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
     if payload.channel == "telegram":
         # Check if user has an existing linked Telegram chat_id
         if user.telegram_chat_id:
-            send_telegram_reset_code(user.telegram_chat_id, code, user.full_name)
+            background_tasks.add_task(send_telegram_reset_code, user.telegram_chat_id, code, user.full_name)
             response_data = {
                 "status": "ok",
                 "channel": "telegram",
                 "delivery": "direct",
-                "message": f"Verification code sent directly to your linked Telegram account.",
+                "message": "Verification code sent directly to your linked Telegram account.",
                 "bot_url": bot_url,
                 "bot_username": bot_username,
             }
@@ -401,18 +474,18 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
                 "status": "ok",
                 "channel": "telegram",
                 "delivery": "deep_link",
-                "message": f"Please open our Telegram bot to receive your verification code.",
+                "message": "Please open our Telegram bot to receive your verification code.",
                 "bot_url": bot_url,
                 "bot_username": bot_username,
             }
-        if not is_telegram_configured() or os.getenv("DEBUG", "true").lower() in ("true", "1") or os.getenv("TESTING", "").lower() in ("true", "1"):
+        if _should_expose_debug_code():
             response_data["debug_code"] = code
-            if not is_telegram_configured():
-                response_data["note"] = "Telegram bot token not configured in .env. Code was logged to app.log."
+        if not is_telegram_configured():
+            response_data["note"] = "Telegram bot token not configured in .env. Code was logged to app.log."
         return response_data
 
     # Default channel: Email
-    send_password_reset_email(to_email=user.email, code=code, user_name=user.full_name)
+    background_tasks.add_task(send_password_reset_email, user.email, code, user.full_name)
     response_data = {
         "status": "ok",
         "channel": "email",
@@ -420,17 +493,22 @@ def forgot_password(payload: ForgotPasswordRequest, db: Session = Depends(get_db
         "email": user.email,
         "bot_url": bot_url,
     }
-    if not is_smtp_configured():
+    if _should_expose_debug_code():
         response_data["debug_code"] = code
+    if not is_smtp_configured():
         response_data["note"] = "SMTP is not configured in .env. Code was logged to app.log."
 
     return response_data
 
 
-@router.post("/reset-password")
+@router.post(
+    "/reset-password",
+    dependencies=[Depends(rate_limit("auth_reset_password", max_requests=10, window_seconds=60))],
+)
 def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
     """
     Verifies the 6-digit code and resets the user's password.
+    Enforces brute-force lockout after MAX_VERIFICATION_ATTEMPTS failed attempts.
     """
     email_clean = payload.email.strip().lower()
     user = db.query(User).filter(User.email == email_clean).first()
@@ -440,25 +518,47 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
             detail="Invalid request or email."
         )
 
-    # Find the latest matching unused reset token
-    token_entry = (
+    # Find the latest unused reset token for this user
+    active_token = (
         db.query(PasswordResetToken)
         .filter(
             PasswordResetToken.user_id == user.id,
-            PasswordResetToken.code == payload.code.strip(),
             PasswordResetToken.is_used == False
         )
         .order_by(PasswordResetToken.id.desc())
         .first()
     )
 
-    if not token_entry:
+    if not active_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid verification code. Please check your messages or request a new code."
         )
 
-    if token_entry.expires_at < datetime.utcnow():
+    if (active_token.attempts or 0) >= MAX_VERIFICATION_ATTEMPTS:
+        active_token.is_used = True
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+        )
+
+    if active_token.code != payload.code.strip():
+        active_token.attempts = (active_token.attempts or 0) + 1
+        if active_token.attempts >= MAX_VERIFICATION_ATTEMPTS:
+            active_token.is_used = True
+            db.commit()
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+            )
+        db.commit()
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid verification code. Please check your messages or request a new code."
+        )
+
+    if active_token.expires_at < datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Verification code has expired. Please request a new code."
@@ -466,7 +566,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 
     # Update user password
     user.hashed_password = hash_password(payload.new_password)
-    token_entry.is_used = True
+    active_token.is_used = True
     db.commit()
 
     return {

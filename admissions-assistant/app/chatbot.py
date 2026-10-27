@@ -73,9 +73,56 @@ _STOPWORDS = {
 }
 
 
+_SYNONYM_MAP = {
+    "общага": ["dorm", "accommodation", "общежитие", "жатақхана"],
+    "общаге": ["dorm", "accommodation", "общежитие", "жатақхана"],
+    "общежитии": ["dorm", "accommodation", "общежитие", "жатақхана"],
+    "общежития": ["dorm", "accommodation", "общежитие", "жатақхана"],
+    "dormitory": ["dorm", "accommodation"],
+    "доки": ["documents", "документы", "admission"],
+    "документов": ["documents", "документы"],
+    "документам": ["documents", "документы"],
+    "айти": ["computer", "science", "software", "engineering"],
+    "айтишка": ["computer", "science", "software", "engineering"],
+    "кодинг": ["computer", "science", "software", "engineering"],
+    "оплатить": ["payment", "tuition", "paid", "оплата"],
+    "рассрочка": ["payment", "tuition", "paid", "оплата"],
+    "спт": ["spt", "olympiad"],
+    "олимпиада": ["spt", "olympiad"],
+    "гранты": ["grant", "ministry", "грант"],
+    "гранта": ["grant", "ministry", "грант"],
+}
+
+
 def _tokenize(text: str) -> list:
     words = re.findall(r"[a-zA-Zа-яёА-ЯЁәғқңөұүһіӘҒҚҢӨҰҮҺІ0-9]+", text.lower())
     return [w for w in words if w not in _STOPWORDS]
+
+
+def _stem_match(q_word: str, target_tokens: list) -> int:
+    """Morphological stem & synonym matching for Russian, Kazakh, and English tokens."""
+    exact = target_tokens.count(q_word)
+    if exact > 0:
+        return exact
+
+    # Check domain synonyms
+    synonyms = _SYNONYM_MAP.get(q_word)
+    if synonyms:
+        syn_hits = sum(target_tokens.count(s) for s in synonyms)
+        if syn_hits > 0:
+            return syn_hits
+
+    # Prefix stem matching for longer inflected words (>= 5 chars)
+    if len(q_word) >= 5:
+        prefix = q_word[: max(5, len(q_word) - 2)]
+        stem_hits = sum(
+            1
+            for t in target_tokens
+            if len(t) >= 5 and (t.startswith(prefix) or q_word.startswith(t[: max(5, len(t) - 2)]))
+        )
+        return stem_hits
+
+    return 0
 
 
 def _score(query_tokens: list, target_tokens: list) -> float:
@@ -84,8 +131,8 @@ def _score(query_tokens: list, target_tokens: list) -> float:
     q_set = set(query_tokens)
     score = 0.0
     for q_word in q_set:
-        matches = target_tokens.count(q_word)
-        score += min(matches, 3) 
+        matches = _stem_match(q_word, target_tokens)
+        score += min(matches, 3)
     return score / len(q_set)
 
 
@@ -549,8 +596,51 @@ def _handle_deadlines(message: str, language: Optional[str] = None) -> Optional[
     }
 
 
-def get_ai_fallback_response(message: str, top_programs: list, top_faqs: list) -> Dict:
-    """Uses Gemini API as a smart fallback with ONLY top matches to save tokens."""
+def _resolve_followup_program_from_history(
+    message: str,
+    context: Optional[dict] = None,
+    history: Optional[List[Dict]] = None,
+) -> Optional[Dict]:
+    """
+    Multi-turn memory: if the user asks a follow-up question about cost, duration, format,
+    or description (e.g., 'А какая стоимость?', 'How much does it cost there?') without
+    repeating the program name, resolve the program from recent conversation history or context.
+    """
+    followup_pattern = re.compile(
+        r"\b(?:стоимост\w*|сколько\s+стоит|цен\w*|длительност\w*|сколько\s+лет|формат|описани\w*|туда|на\s+не[её]|по\s+ней|it\s+cost|that\s+program|its\s+tuition|its\s+duration|бағасы|қанша\s+тұрады)\b",
+        re.IGNORECASE,
+    )
+    if not followup_pattern.search(message):
+        return None
+
+    programs = load_programs()
+    # 1. Check explicit context program_id
+    ctx = context or {}
+    ctx_prog_id = ctx.get("program_id") or ctx.get("last_program_id")
+    if ctx_prog_id:
+        found = next((p for p in programs if p["id"] == ctx_prog_id), None)
+        if found:
+            return found
+
+    # 2. Scan recent conversation history (most recent first)
+    if history:
+        for turn in reversed(history[-6:]):
+            text = turn.get("message", "")
+            if not text:
+                continue
+            scored = get_scored_programs(text)
+            if scored and scored[0][1] >= CONFIDENCE_THRESHOLD:
+                return scored[0][0]
+    return None
+
+
+def get_ai_fallback_response(
+    message: str,
+    top_programs: list,
+    top_faqs: list,
+    history: Optional[List[Dict]] = None,
+) -> Dict:
+    """Uses Gemini API as a smart fallback with top matches and multi-turn conversation history."""
     api_key = os.environ.get("GEMINI_API_KEY")
     if not AI_AVAILABLE or not api_key:
         print("AI Fallback skipped: Missing google-genai library or GEMINI_API_KEY")
@@ -561,15 +651,18 @@ def get_ai_fallback_response(message: str, top_programs: list, top_faqs: list) -
         
         programs_ctx = [{k: v for k, v in p.items() if k != "unt_subjects"} for p in top_programs]
         faq_ctx = [f for f in top_faqs if f["id"] != "faq_language"]
+        history_ctx = (history or [])[-6:]
         
         context = (
             "You are a university admissions assistant.\n"
             "If the user is just greeting you (e.g. 'Hello', 'Привет', 'Сәлем') or making small talk, respond warmly and concisely in the same language. "
             "Return a JSON object: {\"source\": \"greeting\", \"answer\": \"Your text\"}.\n\n"
-            "Otherwise, select an entry that answers the user's question. Return ONLY a JSON object "
-            'with source ("program" or "faq") and matched_id, or {} if no entry answers it.\n'
+            "Otherwise, select an entry that answers the user's question (taking RECENT_HISTORY into account for follow-up questions). "
+            "Return ONLY a JSON object with source (\"program\" or \"faq\") and matched_id, or {} if no entry answers it.\n"
             "Do not author admission conditions yourself.\n"
-            f"PROGRAMS: {json.dumps(programs_ctx)}\nFAQ: {json.dumps(faq_ctx)}"
+            f"RECENT_HISTORY: {json.dumps(history_ctx, ensure_ascii=False)}\n"
+            f"PROGRAMS: {json.dumps(programs_ctx, ensure_ascii=False)}\n"
+            f"FAQ: {json.dumps(faq_ctx, ensure_ascii=False)}"
         )
 
         config = types.GenerateContentConfig(
@@ -598,7 +691,12 @@ def get_ai_fallback_response(message: str, top_programs: list, top_faqs: list) -
         return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
 
 
-def answer_query(message: str, context=None, language=None) -> Dict:
+def answer_query(
+    message: str,
+    context=None,
+    language=None,
+    history: Optional[List[Dict]] = None,
+) -> Dict:
     """Unified entry point (Router). Only ONE decision path."""
     
     # 1. Sprint 3 Specialized Intent Matchers
@@ -632,7 +730,7 @@ def answer_query(message: str, context=None, language=None) -> Dict:
     if requirements is not None:
         return requirements
         
-    # 3. Token Matching (US-1 & US-5)
+    # 3. Hybrid Token + Stem + Synonym Matching (US-1 & US-5)
     scored_programs = get_scored_programs(message)
     scored_faqs = get_scored_faqs(message)
     
@@ -644,9 +742,14 @@ def answer_query(message: str, context=None, language=None) -> Dict:
         return _program_answer(best_p)
     if f_score >= CONFIDENCE_THRESHOLD:
         return {"answer": best_f["answer"], "confident": True, "source": "faq", "matched_id": best_f["id"]}
+
+    # 4.5 Multi-turn follow-up resolution from conversation history
+    followup_prog = _resolve_followup_program_from_history(message, context, history)
+    if followup_prog is not None:
+        return _program_answer(followup_prog)
         
-    # 5. AI Fallback (Smart prompt with top 3 only)
-    top_3_programs = [p[0] for p in scored_programs[:3]]
-    top_3_faqs = [f[0] for f in scored_faqs[:3]]
+    # 5. AI Fallback (Expanded top-6 RAG candidates + conversation history)
+    top_6_programs = [p[0] for p in scored_programs[:6]]
+    top_6_faqs = [f[0] for f in scored_faqs[:6]]
     
-    return get_ai_fallback_response(message, top_3_programs, top_3_faqs)
+    return get_ai_fallback_response(message, top_6_programs, top_6_faqs, history=history)

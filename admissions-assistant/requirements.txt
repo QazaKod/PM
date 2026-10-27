@@ -12,3 +12,5 @@ python-dotenv==1.0.1
 pyjwt>=2.8.0
 bcrypt>=4.0.0
 itsdangerous==2.2.0
+alembic>=1.13.0
+psycopg2-binary>=2.9.9

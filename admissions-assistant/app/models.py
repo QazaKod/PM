@@ -163,6 +163,7 @@ class PasswordResetToken(Base):
     code = Column(String, index=True, nullable=False)
     expires_at = Column(DateTime, nullable=False)
     is_used = Column(Boolean, default=False)
+    attempts = Column(Integer, default=0, nullable=False)
     user = relationship("User")
 
 
@@ -176,6 +177,7 @@ class AccountVerificationToken(Base):
     destination = Column(String, nullable=True)  # email address or phone number
     expires_at = Column(DateTime, nullable=False)
     is_used = Column(Boolean, default=False)
+    attempts = Column(Integer, default=0, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="verification_tokens")

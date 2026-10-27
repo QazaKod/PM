@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: sdu_admissions_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-sdu_admin}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-sdu_secure_db_pass_2026}
+      POSTGRES_DB: ${POSTGRES_DB:-admissions_db}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-sdu_admin} -d ${POSTGRES_DB:-admissions_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    container_name: sdu_admissions_web
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sdu_admin}:${POSTGRES_PASSWORD:-sdu_secure_db_pass_2026}@postgres:5432/${POSTGRES_DB:-admissions_db}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-sdu_admissions_registration_bot}
+      TELEGRAM_MODE: worker_disabled
+    ports:
+      - "8000:8000"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+
+  telegram_worker:
+    build: .
+    container_name: sdu_admissions_telegram_worker
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-sdu_admin}:${POSTGRES_PASSWORD:-sdu_secure_db_pass_2026}@postgres:5432/${POSTGRES_DB:-admissions_db}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
+      TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-sdu_admissions_registration_bot}
+      TELEGRAM_MODE: polling
+    command: python -m scripts.run_telegram_bot
+
+volumes:
+  postgres_data:

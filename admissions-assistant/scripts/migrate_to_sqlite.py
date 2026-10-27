@@ -61,7 +61,8 @@ def migrate_faqs(db):
             id=faq["id"],
             question=faq.get("question"),
             answer=faq.get("answer"),
-            keywords=faq.get("keywords", [])
+            keywords=faq.get("keywords", []),
+            category=faq.get("category", "general")
         )
         db.merge(f)
     db.commit()

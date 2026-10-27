@@ -36,7 +36,8 @@ def load_faq() -> List[Dict]:
                 "id": f.id,
                 "question": f.question,
                 "answer": f.answer,
-                "keywords": f.keywords
+                "keywords": f.keywords or [],
+                "category": f.category or "general"
             }
             for f in faqs
         ]

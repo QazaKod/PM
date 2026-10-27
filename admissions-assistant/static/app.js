@@ -89,6 +89,10 @@ document.addEventListener("DOMContentLoaded", () => {
       loadAdmissionGuide();
     } else if (tabId === "links") {
       loadOfficialLinks();
+    } else if (tabId === "deadlines") {
+      loadDeadlines();
+    } else if (tabId === "faq-admin") {
+      loadAdminFAQs();
     }
 
     // Focus input if switched to chat
@@ -572,6 +576,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.getElementById("auth-widget-container");
     if (!container) return;
 
+    const faqAdminNav = document.getElementById("nav-item-faq-admin");
+    if (faqAdminNav) {
+      if (user && ["admin", "manager"].includes(user.role)) {
+        faqAdminNav.style.display = "flex";
+      } else {
+        faqAdminNav.style.display = "none";
+      }
+    }
+
     if (!user) {
       container.innerHTML = `
         <div class="auth-widget">
@@ -964,6 +977,10 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("prof-unt").value = p.unt_score || "";
     document.getElementById("prof-ielts").value = p.ielts_score || "";
     document.getElementById("prof-phone").value = p.phone || "";
+    const alertCb = document.getElementById("prof-telegram-alerts");
+    if (alertCb) {
+      alertCb.checked = currentUser.telegram_notifications_enabled !== false;
+    }
     document.getElementById("profile-status").textContent = "";
     document.getElementById("profile-modal").classList.add("active");
   };
@@ -1006,6 +1023,22 @@ document.addEventListener("DOMContentLoaded", () => {
       if (res.ok) {
         const updatedProf = await res.json();
         currentUser.profile = updatedProf;
+        const alertCb = document.getElementById("prof-telegram-alerts");
+        if (alertCb) {
+          try {
+            await fetch("/deadlines/preferences", {
+              method: "PATCH",
+              headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`
+              },
+              body: JSON.stringify({ telegram_notifications_enabled: alertCb.checked })
+            });
+            currentUser.telegram_notifications_enabled = alertCb.checked;
+          } catch (prefErr) {
+            console.warn("Could not save telegram alert preference:", prefErr);
+          }
+        }
         statusEl.textContent = "Profile updated successfully!";
         setTimeout(() => closeProfileModal(), 900);
       } else {
@@ -1024,6 +1057,12 @@ document.addEventListener("DOMContentLoaded", () => {
     currentUser = null;
     userFavorites = new Set();
     renderAuthWidget(null);
+    const faqAdminNav = document.getElementById("nav-item-faq-admin");
+    if (faqAdminNav) faqAdminNav.style.display = "none";
+    const currentActiveSection = document.querySelector(".tab-section.active");
+    if (currentActiveSection && currentActiveSection.id === "section-faq-admin") {
+      switchTab("chat");
+    }
     if (programsData.length > 0) renderPrograms();
   };
 
@@ -1571,6 +1610,588 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
   }
+
+  // ============================================================
+  // SPRINT 4: US20 TELEGRAM PUSH NOTIFICATION SETTINGS LISTENER
+  // ============================================================
+  const profTelegramAlerts = document.getElementById("prof-telegram-alerts");
+  if (profTelegramAlerts) {
+    profTelegramAlerts.addEventListener("change", async (e) => {
+      const enabled = e.target.checked;
+      const token = safeStorage.getItem("auth_token");
+      if (!token) return;
+      try {
+        const res = await fetch("/deadlines/preferences", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({ telegram_notifications_enabled: enabled })
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (currentUser) {
+            currentUser.telegram_notifications_enabled = enabled;
+          }
+          const statusEl = document.getElementById("profile-status");
+          if (statusEl) {
+            statusEl.style.color = "var(--ok, #1B7F5C)";
+            statusEl.textContent = data.message || "Telegram notification preference saved!";
+          }
+        }
+      } catch (err) {
+        console.error("Failed to update notification preferences", err);
+      }
+    });
+  }
+
+  // ============================================================
+  // SPRINT 4: US8 INTERACTIVE DEADLINES & ACADEMIC CALENDAR
+  // ============================================================
+  let deadlinesData = [];
+  let calendarData = null;
+  let deadlinesView = "list"; // "list" | "calendar"
+  let selectedCalendarMonth = null; // null = all months
+
+  window.setDeadlinesView = function(view) {
+    deadlinesView = view;
+    const btnList = document.getElementById("deadlines-view-list-btn");
+    const btnCal = document.getElementById("deadlines-view-calendar-btn");
+    const containerList = document.getElementById("deadlines-list-container");
+    const containerCal = document.getElementById("deadlines-calendar-container");
+
+    if (view === "list") {
+      if (btnList) btnList.classList.add("active");
+      if (btnCal) btnCal.classList.remove("active");
+      if (containerList) containerList.style.display = "flex";
+      if (containerCal) containerCal.style.display = "none";
+    } else {
+      if (btnList) btnList.classList.remove("active");
+      if (btnCal) btnCal.classList.add("active");
+      if (containerList) containerList.style.display = "none";
+      if (containerCal) containerCal.style.display = "flex";
+      if (!calendarData) {
+        loadDeadlinesCalendar();
+      }
+    }
+  };
+
+  window.onDeadlinesFilterChange = function() {
+    loadDeadlines();
+    if (deadlinesView === "calendar") {
+      loadDeadlinesCalendar();
+    }
+  };
+
+  async function loadDeadlines() {
+    const degreeEl = document.getElementById("deadlines-filter-degree");
+    const catEl = document.getElementById("deadlines-filter-category");
+    const langEl = document.getElementById("deadlines-filter-lang");
+
+    const degree = degreeEl ? degreeEl.value : "all";
+    const category = catEl ? catEl.value : "all";
+    const lang = langEl ? langEl.value : "ru";
+
+    let url = `/deadlines?lang=${encodeURIComponent(lang)}`;
+    if (category && category !== "all") {
+      url += `&category=${encodeURIComponent(category)}`;
+    }
+    if (degree && degree !== "all") {
+      url += `&degree_level=${encodeURIComponent(degree)}`;
+    }
+
+    const container = document.getElementById("deadlines-list-container");
+    if (container && deadlinesData.length === 0) {
+      container.innerHTML = `<div style="text-align: center; padding: 40px; color: var(--muted);"><i class="ph ph-spinner ph-spin" style="font-size: 1.8rem;"></i><p>Loading deadlines...</p></div>`;
+    }
+
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to load deadlines");
+      const data = await res.json();
+      deadlinesData = data.deadlines || [];
+      renderDeadlinesTimeline(deadlinesData);
+    } catch (err) {
+      console.error("loadDeadlines error:", err);
+      if (container) {
+        container.innerHTML = `<div class="auth-form-error" style="text-align: center; padding: 20px;">Failed to load deadlines. Please try again later.</div>`;
+      }
+    }
+  }
+  window.loadDeadlines = loadDeadlines;
+
+  function renderDeadlinesTimeline(items) {
+    const container = document.getElementById("deadlines-list-container");
+    if (!container) return;
+
+    if (!items || items.length === 0) {
+      container.innerHTML = `
+        <div style="text-align: center; padding: 48px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); color: var(--muted);">
+          <i class="ph ph-calendar-blank" style="font-size: 2.5rem; color: var(--muted); margin-bottom: 8px;"></i>
+          <p>No deadlines found matching the selected filters.</p>
+        </div>
+      `;
+      return;
+    }
+
+    const catLabels = {
+      grant: "Grant",
+      unt: "UNT Testing",
+      contract: "Contract",
+      dormitory: "Dormitory",
+      olympiad: "SDU SPT",
+      exam: "Creative Exam"
+    };
+
+    container.innerHTML = items.map((item) => {
+      const statusClass = item.status === "active" ? "active" : item.status === "passed" ? "passed" : "upcoming";
+      const statusText = item.status === "active" ? "Active Now" : item.status === "passed" ? "Concluded" : "Upcoming";
+
+      let countdownHtml = "";
+      if (item.status === "active") {
+        countdownHtml = `<span class="countdown-pill urgent"><i class="ph ph-hourglass-high"></i> Active Phase</span>`;
+      } else if (item.status === "upcoming") {
+        countdownHtml = `<span class="countdown-pill"><i class="ph ph-clock"></i> ${item.days_left} days left</span>`;
+      } else {
+        countdownHtml = `<span class="countdown-pill"><i class="ph ph-check-circle"></i> Completed</span>`;
+      }
+
+      const adviceHtml = (item.status === "passed" && item.passed_advice)
+        ? `<div class="deadline-advice"><i class="ph ph-lightbulb" style="font-size: 1.15rem; color: var(--warn, #B4690E); flex-shrink: 0;"></i><div><strong>Next steps:</strong> ${escapeHtml(item.passed_advice)}</div></div>`
+        : "";
+
+      const degreeLabel = item.degree_level === "undergraduate" ? "Bachelor" : item.degree_level === "graduate" ? "Master / PhD" : "All Programs";
+      const catLabel = catLabels[item.category] || item.category;
+
+      return `
+        <div class="deadline-card status-${statusClass}" data-id="${escapeHtml(item.id)}">
+          <div class="deadline-card-header">
+            <div class="deadline-title-group">
+              <div class="deadline-card-title">${escapeHtml(item.title)}</div>
+              <div class="deadline-stage-name"><i class="ph ph-caret-right"></i> ${escapeHtml(item.stage_name)}</div>
+            </div>
+            <div class="deadline-badge-group">
+              <span class="deadline-status-pill ${statusClass}">${statusText}</span>
+              ${countdownHtml}
+            </div>
+          </div>
+          <div class="deadline-dates-row">
+            <div><i class="ph ph-calendar"></i> <strong>Period:</strong> <span class="deadline-date-badge">${escapeHtml(item.date_start)} – ${escapeHtml(item.date_end)}</span></div>
+            <div><span class="deadline-cat-tag"><i class="ph ph-tag"></i> ${escapeHtml(catLabel)}</span></div>
+            <div><span class="deadline-cat-tag"><i class="ph ph-graduation-cap"></i> ${escapeHtml(degreeLabel)}</span></div>
+          </div>
+          <div class="deadline-desc">${escapeHtml(item.description)}</div>
+          ${adviceHtml}
+          <div class="deadline-footer">
+            <a href="${escapeHtml(item.action_url)}" target="_blank" rel="noopener noreferrer" class="deadline-action-btn">
+              <span>Official Portal / Apply</span>
+              <i class="ph ph-arrow-square-out"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+  window.renderDeadlinesTimeline = renderDeadlinesTimeline;
+
+  async function loadDeadlinesCalendar() {
+    const langEl = document.getElementById("deadlines-filter-lang");
+    const lang = langEl ? langEl.value : "ru";
+    const gridWrap = document.getElementById("deadlines-calendar-grid-wrap");
+
+    if (gridWrap && !calendarData) {
+      gridWrap.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--muted);"><i class="ph ph-spinner ph-spin" style="font-size: 1.8rem;"></i><p>Loading academic calendar...</p></div>`;
+    }
+
+    try {
+      const res = await fetch(`/deadlines/calendar?year=2026&lang=${encodeURIComponent(lang)}`);
+      if (!res.ok) throw new Error("Failed to load calendar");
+      calendarData = await res.json();
+      renderDeadlinesCalendar();
+    } catch (err) {
+      console.error("loadDeadlinesCalendar error:", err);
+      if (gridWrap) {
+        gridWrap.innerHTML = `<div class="auth-form-error" style="grid-column: 1 / -1; text-align: center; padding: 20px;">Failed to load calendar events.</div>`;
+      }
+    }
+  }
+  window.loadDeadlinesCalendar = loadDeadlinesCalendar;
+
+  function renderDeadlinesCalendar() {
+    if (!calendarData || !calendarData.months) return;
+
+    const navContainer = document.getElementById("deadlines-month-selector");
+    const gridWrap = document.getElementById("deadlines-calendar-grid-wrap");
+    const langEl = document.getElementById("deadlines-filter-lang");
+    const lang = langEl ? langEl.value : "ru";
+
+    const activeMonths = calendarData.months.filter(m => (m.events && m.events.length > 0) || (m.month >= 1 && m.month <= 8));
+
+    if (navContainer) {
+      const allBtnActive = selectedCalendarMonth === null ? "active" : "";
+      let navHtml = `
+        <button type="button" class="month-nav-btn ${allBtnActive}" onclick="selectCalendarMonth(null)">
+          All Intake Months
+        </button>
+      `;
+      activeMonths.forEach((m) => {
+        const isActive = selectedCalendarMonth === m.month ? "active" : "";
+        navHtml += `
+          <button type="button" class="month-nav-btn ${isActive}" onclick="selectCalendarMonth(${m.month})">
+            ${escapeHtml(m.month_name)} 2026
+          </button>
+        `;
+      });
+      navContainer.innerHTML = navHtml;
+    }
+
+    if (!gridWrap) return;
+
+    const monthsToDisplay = selectedCalendarMonth === null
+      ? activeMonths
+      : activeMonths.filter(m => m.month === selectedCalendarMonth);
+
+    const weekdaysByLang = {
+      ru: ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Вс"],
+      kk: ["Дүй", "Сей", "Сәр", "Бей", "Жұм", "Сен", "Жек"],
+      en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+    };
+    const weekdays = weekdaysByLang[lang] || weekdaysByLang.en;
+
+    gridWrap.innerHTML = monthsToDisplay.map((m) => {
+      const firstDayOffset = (new Date(m.year, m.month - 1, 1).getDay() + 6) % 7;
+      const numDays = new Date(m.year, m.month, 0).getDate();
+
+      let daysHtml = "";
+      for (let s = 0; s < firstDayOffset; s++) {
+        daysHtml += `<div class="calendar-day-cell empty"></div>`;
+      }
+
+      for (let d = 1; d <= numDays; d++) {
+        const dayEvents = (m.days && (m.days[d] || m.days[String(d)])) || [];
+        const hasEvents = dayEvents.length > 0;
+        const hasEventsClass = hasEvents ? "has-events" : "";
+
+        let dotsHtml = "";
+        if (hasEvents) {
+          dotsHtml = `
+            <div class="day-event-dots">
+              ${dayEvents.slice(0, 4).map(e => `<span class="event-dot event-tag-${e.color || 'blue'}" title="${escapeHtml(e.title)}"></span>`).join("")}
+            </div>
+          `;
+        }
+
+        const clickAttr = hasEvents ? `onclick="showCalendarDayEvents(${m.year}, ${m.month}, ${d})"` : "";
+        daysHtml += `
+          <div class="calendar-day-cell ${hasEventsClass}" ${clickAttr} title="${hasEvents ? `${dayEvents.length} event(s)` : ''}">
+            <span class="day-num">${d}</span>
+            ${dotsHtml}
+          </div>
+        `;
+      }
+
+      return `
+        <div class="calendar-month-card">
+          <div class="calendar-month-title">
+            <span>${escapeHtml(m.month_name)} ${m.year}</span>
+            <span class="event-count">${m.events ? m.events.length : 0} events</span>
+          </div>
+          <div class="calendar-weekdays">
+            ${weekdays.map(w => `<span>${w}</span>`).join("")}
+          </div>
+          <div class="calendar-grid">
+            ${daysHtml}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+  window.renderDeadlinesCalendar = renderDeadlinesCalendar;
+
+  window.selectCalendarMonth = function(monthNum) {
+    selectedCalendarMonth = monthNum;
+    renderDeadlinesCalendar();
+  };
+
+  window.showCalendarDayEvents = function(year, month, day) {
+    const cardWrap = document.getElementById("deadlines-event-card-wrap");
+    if (!cardWrap || !calendarData) return;
+
+    const m = calendarData.months.find(x => x.year === year && x.month === month);
+    if (!m) return;
+
+    const dayEvents = (m.days && (m.days[day] || m.days[String(day)])) || [];
+    if (dayEvents.length === 0) return;
+
+    const eventsHtml = dayEvents.map((ev) => {
+      const full = deadlinesData.find(d => d.id === ev.id) || {};
+      const stageName = full.stage_name || ev.title;
+      const desc = full.description || "";
+      const dates = full.date_start ? `${full.date_start} – ${full.date_end}` : "";
+
+      return `
+        <div style="border-top: 1px solid var(--line); padding-top: 10px; margin-top: 8px;">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+            <div style="font-weight: 700; color: var(--text); font-size: 1rem;">
+              <span class="event-dot event-tag-${ev.color || 'blue'}" style="margin-right: 6px;"></span>
+              ${escapeHtml(ev.title)}
+            </div>
+            <span class="deadline-status-pill ${ev.status || 'upcoming'}">${escapeHtml(ev.status || 'upcoming')}</span>
+          </div>
+          <div style="font-size: 0.88rem; font-weight: 600; color: var(--steppe); margin: 4px 0;">
+            ${escapeHtml(stageName)}
+          </div>
+          ${dates ? `<div style="font-size: 0.84rem; color: var(--muted); margin-bottom: 4px;"><i class="ph ph-calendar"></i> ${escapeHtml(dates)}</div>` : ''}
+          ${desc ? `<div style="font-size: 0.9rem; line-height: 1.5; color: var(--text); margin-bottom: 8px;">${escapeHtml(desc)}</div>` : ''}
+          <div style="display: flex; justify-content: flex-end;">
+            <a href="${escapeHtml(ev.action_url || '#')}" target="_blank" rel="noopener noreferrer" class="deadline-action-btn">
+              <span>View Portal / Guidelines</span>
+              <i class="ph ph-arrow-square-out"></i>
+            </a>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    cardWrap.style.display = "block";
+    cardWrap.innerHTML = `
+      <div class="calendar-event-detail-card">
+        <button class="calendar-event-detail-close" onclick="closeCalendarEventDetails()">&times;</button>
+        <div style="font-size: 1.05rem; font-weight: 700; color: var(--text);">
+          <i class="ph ph-calendar-check" style="color: var(--steppe);"></i> Events on ${day} ${escapeHtml(m.month_name)} ${year}
+        </div>
+        ${eventsHtml}
+      </div>
+    `;
+
+    cardWrap.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  };
+
+  window.closeCalendarEventDetails = function() {
+    const cardWrap = document.getElementById("deadlines-event-card-wrap");
+    if (cardWrap) cardWrap.style.display = "none";
+  };
+
+  // ============================================================
+  // SPRINT 4: US13 MANAGE FAQ DATABASE (STAFF ADMIN)
+  // ============================================================
+  let adminFaqsData = [];
+  let faqSearchTimer = null;
+
+  window.debounceAdminFaqSearch = function() {
+    clearTimeout(faqSearchTimer);
+    faqSearchTimer = setTimeout(() => {
+      loadAdminFAQs();
+    }, 250);
+  };
+
+  async function loadAdminFAQs() {
+    const token = safeStorage.getItem("auth_token");
+    if (!token) return;
+
+    const searchInput = document.getElementById("faq-admin-search");
+    const catSelect = document.getElementById("faq-admin-cat-filter");
+    const search = searchInput ? searchInput.value.trim() : "";
+    const category = catSelect ? catSelect.value : "all";
+
+    const params = [];
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+    if (category && category !== "all") params.push(`category=${encodeURIComponent(category)}`);
+    const queryStr = params.length > 0 ? `?${params.join("&")}` : "";
+
+    try {
+      const res = await fetch(`/admin/faqs${queryStr}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) {
+        console.warn("Unauthorized to access admin FAQ endpoints.");
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to load FAQs");
+      adminFaqsData = await res.json();
+      renderAdminFAQs(adminFaqsData);
+    } catch (err) {
+      console.error("loadAdminFAQs error:", err);
+    }
+  }
+  window.loadAdminFAQs = loadAdminFAQs;
+
+  function renderAdminFAQs(faqs) {
+    const tbody = document.getElementById("faq-admin-tbody");
+    const countEl = document.getElementById("faq-admin-count");
+    const emptyEl = document.getElementById("faq-admin-empty");
+    const tableEl = document.getElementById("faq-admin-table");
+
+    if (countEl) countEl.textContent = `${faqs.length} ${faqs.length === 1 ? 'entry' : 'entries'}`;
+
+    if (!tbody) return;
+
+    if (!faqs || faqs.length === 0) {
+      tbody.innerHTML = "";
+      if (emptyEl) emptyEl.style.display = "block";
+      if (tableEl) tableEl.style.display = "none";
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    if (tableEl) tableEl.style.display = "table";
+
+    tbody.innerHTML = faqs.map((faq) => {
+      const keywords = (faq.keywords || []).map(k => `<span class="keyword-tag">${escapeHtml(k)}</span>`).join("");
+      const answerSnippet = faq.answer.length > 130 ? escapeHtml(faq.answer.slice(0, 130)) + "…" : escapeHtml(faq.answer);
+      const catClass = `cat-${faq.category || 'general'}`;
+
+      return `
+        <tr data-faq-id="${escapeHtml(faq.id)}">
+          <td>
+            <span class="faq-cat-badge ${catClass}">${escapeHtml(faq.category || 'general')}</span>
+          </td>
+          <td>
+            <strong>${escapeHtml(faq.question)}</strong>
+          </td>
+          <td>
+            <div style="color: var(--muted); line-height: 1.45;">${answerSnippet}</div>
+          </td>
+          <td>
+            <div class="faq-keywords-wrap">${keywords || '<span style="color: var(--muted); font-size: 0.75rem;">—</span>'}</div>
+          </td>
+          <td>
+            <div class="faq-actions">
+              <button type="button" class="btn-edit" onclick="openFaqModal('${escapeHtml(faq.id)}')">
+                <i class="ph ph-pencil-simple"></i> Edit
+              </button>
+              <button type="button" class="btn-delete" onclick="deleteFaq('${escapeHtml(faq.id)}')">
+                <i class="ph ph-trash"></i> Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+  window.renderAdminFAQs = renderAdminFAQs;
+
+  window.openFaqModal = function(faqId) {
+    const modal = document.getElementById("faq-edit-modal");
+    const titleEl = document.getElementById("faq-modal-title");
+    const idInput = document.getElementById("faq-edit-id");
+    const qInput = document.getElementById("faq-edit-question");
+    const aInput = document.getElementById("faq-edit-answer");
+    const catSelect = document.getElementById("faq-edit-category");
+    const kwInput = document.getElementById("faq-edit-keywords");
+    const statusEl = document.getElementById("faq-edit-status");
+
+    if (statusEl) statusEl.textContent = "";
+
+    if (faqId) {
+      const faq = adminFaqsData.find(f => f.id === faqId);
+      if (faq) {
+        if (titleEl) titleEl.textContent = "Edit FAQ Entry";
+        if (idInput) idInput.value = faq.id;
+        if (qInput) qInput.value = faq.question;
+        if (aInput) aInput.value = faq.answer;
+        if (catSelect) catSelect.value = faq.category || "general";
+        if (kwInput) kwInput.value = (faq.keywords || []).join(", ");
+      }
+    } else {
+      if (titleEl) titleEl.textContent = "Add New FAQ Entry";
+      if (idInput) idInput.value = "";
+      if (qInput) qInput.value = "";
+      if (aInput) aInput.value = "";
+      if (catSelect) catSelect.value = "general";
+      if (kwInput) kwInput.value = "";
+    }
+
+    if (modal) modal.classList.add("active");
+  };
+
+  window.closeFaqModal = function() {
+    const modal = document.getElementById("faq-edit-modal");
+    if (modal) modal.classList.remove("active");
+  };
+
+  window.handleFaqSubmit = async function(e) {
+    e.preventDefault();
+    const token = safeStorage.getItem("auth_token");
+    if (!token) return;
+
+    const idInput = document.getElementById("faq-edit-id");
+    const qInput = document.getElementById("faq-edit-question");
+    const aInput = document.getElementById("faq-edit-answer");
+    const catSelect = document.getElementById("faq-edit-category");
+    const kwInput = document.getElementById("faq-edit-keywords");
+    const statusEl = document.getElementById("faq-edit-status");
+
+    const faqId = idInput ? idInput.value.trim() : "";
+    const question = qInput ? qInput.value.trim() : "";
+    const answer = aInput ? aInput.value.trim() : "";
+    const category = catSelect ? catSelect.value : "general";
+    const keywordsStr = kwInput ? kwInput.value.trim() : "";
+    const keywords = keywordsStr ? keywordsStr.split(",").map(k => k.trim()).filter(Boolean) : [];
+
+    if (!question || question.length < 3) {
+      if (statusEl) statusEl.textContent = "Question must be at least 3 characters.";
+      return;
+    }
+    if (!answer || answer.length < 3) {
+      if (statusEl) statusEl.textContent = "Answer must be at least 3 characters.";
+      return;
+    }
+
+    const payload = { question, answer, category, keywords };
+    const isEdit = Boolean(faqId);
+    const url = isEdit ? `/admin/faqs/${encodeURIComponent(faqId)}` : "/admin/faqs";
+    const method = isEdit ? "PUT" : "POST";
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        closeFaqModal();
+        await loadAdminFAQs();
+      } else {
+        const data = await res.json();
+        if (statusEl) {
+          statusEl.textContent = data.detail || "Failed to save FAQ entry";
+        }
+      }
+    } catch (err) {
+      console.error("handleFaqSubmit error:", err);
+      if (statusEl) statusEl.textContent = "Network error. Please try again.";
+    }
+  };
+
+  window.deleteFaq = async function(faqId) {
+    if (!confirm("Are you sure you want to delete this FAQ entry? It will be immediately removed from the AI assistant knowledge base.")) {
+      return;
+    }
+    const token = safeStorage.getItem("auth_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`/admin/faqs/${encodeURIComponent(faqId)}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        await loadAdminFAQs();
+      } else {
+        const data = await res.json();
+        alert(data.detail || "Failed to delete FAQ entry");
+      }
+    } catch (err) {
+      console.error("deleteFaq error:", err);
+      alert("Network error while deleting FAQ entry.");
+    }
+  };
 
   // Initialize Auth on page load
   initAuth();

@@ -187,6 +187,7 @@ class ApplicantProfileUpdate(BaseModel):
     ielts_score: Optional[float] = Field(default=None, ge=0.0, le=9.0)
     phone: Optional[str] = None
     telegram_username: Optional[str] = None
+    telegram_notifications_enabled: bool = True
 
     @field_validator("phone")
     @classmethod
@@ -213,6 +214,7 @@ class UserOut(BaseModel):
     created_at: Optional[datetime] = None
     telegram_chat_id: Optional[str] = None
     telegram_username: Optional[str] = None
+    telegram_notifications_enabled: bool = True
     profile: Optional[ApplicantProfileOut] = None
 
 
@@ -389,3 +391,124 @@ class TuitionCalculatorResponse(BaseModel):
     payment_schedule: PaymentScheduleDetail
     grant_probability: GrantProbabilityDetail
 
+
+
+# ==========================================
+# SPRINT 4: DEADLINES & CALENDAR SCHEMAS (US8)
+# ==========================================
+
+class DeadlineItemOut(BaseModel):
+    id: str
+    title: str
+    stage_name: str
+    date_start: str
+    date_end: str
+    category: str
+    degree_level: str
+    status: str
+    days_left: int
+    description: str
+    action_url: str
+    passed_advice: Optional[str] = None
+
+
+class DeadlinesListResponse(BaseModel):
+    total: int
+    reference_date: str
+    deadlines: List[DeadlineItemOut]
+
+
+class CalendarEventOut(BaseModel):
+    id: str
+    title: str
+    stage_name: str
+    category: str
+    color: str
+    date_start: str
+    date_end: str
+    status: str
+    action_url: str
+
+
+class CalendarDayEventOut(BaseModel):
+    id: str
+    title: str
+    category: str
+    color: str
+    status: str
+    action_url: str
+
+
+class CalendarMonthOut(BaseModel):
+    year: int
+    month: int
+    month_name: str
+    events: List[CalendarEventOut]
+    days: dict[int, List[CalendarDayEventOut]]
+
+
+class CalendarResponse(BaseModel):
+    year: int
+    total_events: int
+    months: List[CalendarMonthOut]
+
+
+# ==========================================
+# SPRINT 4: FAQ MANAGEMENT SCHEMAS (US13)
+# ==========================================
+
+class FAQCreateRequest(BaseModel):
+    id: Optional[str] = None
+    question: str = Field(min_length=3, max_length=1000)
+    answer: str = Field(min_length=3, max_length=4000)
+    category: Optional[str] = "general"
+    keywords: List[str] = Field(default_factory=list)
+
+    @field_validator("question", "answer")
+    @classmethod
+    def validate_non_empty(cls, v: str) -> str:
+        v = v.strip()
+        if not v:
+            raise ValueError("Field cannot be empty or whitespace only.")
+        return v
+
+
+class FAQUpdateRequest(BaseModel):
+    question: Optional[str] = Field(default=None, min_length=3, max_length=1000)
+    answer: Optional[str] = Field(default=None, min_length=3, max_length=4000)
+    category: Optional[str] = None
+    keywords: Optional[List[str]] = None
+
+    @field_validator("question", "answer")
+    @classmethod
+    def validate_non_empty_if_set(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip()
+            if not v:
+                raise ValueError("Field cannot be empty or whitespace only.")
+        return v
+
+
+class FAQItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    question: str
+    answer: str
+    category: Optional[str] = "general"
+    keywords: List[str] = Field(default_factory=list)
+
+
+# ==========================================
+# SPRINT 4: TELEGRAM NOTIFICATIONS (US20)
+# ==========================================
+
+class NotificationPreferenceRequest(BaseModel):
+    telegram_notifications_enabled: bool
+
+
+class NotificationPreferenceResponse(BaseModel):
+    status: str
+    telegram_notifications_enabled: bool
+    telegram_chat_id: Optional[str] = None
+    message: str

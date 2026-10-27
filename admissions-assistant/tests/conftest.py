@@ -25,6 +25,8 @@ def isolated_database():
         migrate_faqs(db)
         migrate_requirements(db)
     yield
+    from app.db_session import engine
+    engine.dispose()
 
 
 @pytest.fixture(autouse=True)

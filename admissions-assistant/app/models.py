@@ -34,6 +34,7 @@ class FAQ(Base):
     question = Column(String)
     answer = Column(String)
     keywords = Column(JSON)  # Stores list of strings
+    category = Column(String, default="general", nullable=True)
 
 
 class Requirement(Base):
@@ -88,6 +89,7 @@ class User(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
     telegram_chat_id = Column(String, nullable=True, index=True)
     telegram_username = Column(String, nullable=True)
+    telegram_notifications_enabled = Column(Boolean, default=True)
 
     # Relationships
     profile = relationship("ApplicantProfile", back_populates="user", uselist=False, cascade="all, delete-orphan")

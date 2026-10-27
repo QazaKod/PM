@@ -103,8 +103,18 @@ def get_scored_programs(message: str) -> List[Tuple[Dict, float]]:
     return scored
 
 
+FAQS: Optional[List[Dict]] = None
+
+
+def reload_faqs() -> List[Dict]:
+    global FAQS
+    FAQS = load_faq()
+    return FAQS
+
+
 def get_scored_faqs(message: str) -> List[Tuple[Dict, float]]:
-    faq_entries = load_faq()
+    global FAQS
+    faq_entries = FAQS if FAQS is not None else load_faq()
     q_tokens = _tokenize(message)
     scored = []
     for entry in faq_entries:
@@ -435,6 +445,110 @@ def _handle_tuition_calculator(message: str, language: Optional[str] = None) -> 
     }
 
 
+
+DEADLINES_PATTERN = re.compile(
+    r"\b(?:дедлайн\w*|мерзім\w*|deadlines?)\b"
+    r"|(?:до\s+какого\s+числа|какие\s+сроки|какой\s+срок)\s+(?:прием\w*|подач\w*|документ\w*|регистраци\w*|грант\w*|ент|сдач\w*|зачислен\w*)"
+    r"|(?:срок\w*|дата\w*|даты)\s+(?:прием\w*|подач\w*|сдач\w*|зачислен\w*|регистраци\w*|грант\w*|ент)"
+    r"|(?:когда\s+(?:заканчивается|завершается|дедлайн|прием|конкурс|подавать|начинается|стартует))\s+(?:прием\w*|подач\w*|документ\w*|грант\w*|ент|жатақхана|общежит\w*|регистраци\w*|зачислен\w*)"
+    r"|(?:application|submission|admission|registration)\s+deadline\w*"
+    r"|deadline\s+(?:for|to)\s+(?:apply|application|admission|grant|scholarship|dormitory|unt)"
+    r"|when\s+is\s+the\s+deadline"
+    r"|when\s+does\s+(?:application|admission)\s+(?:close|end|start)"
+    r"|(?:құжат\s+тапсыру|өтініш\s+беру|грант|қабылдау|ұбт|жатақхана)\s+(?:мерзімі|мерзімдері|қашан)"
+    r"|мерзім\w*\s+қашан",
+    re.IGNORECASE
+)
+
+
+def _detect_deadline_language(message: str, language: Optional[str] = None) -> str:
+    if language in ("ru", "kk", "en"):
+        return language
+    msg_lower = message.lower()
+    if any(c in msg_lower for c in "әғқңөұүһі") or re.search(r"\b(қашан|мерзімі|құжат|тапсыру|грантқа|түсу)\b", msg_lower):
+        return "kk"
+    if re.search(r"[а-яё]", msg_lower):
+        return "ru"
+    return "en"
+
+
+def _handle_deadlines(message: str, language: Optional[str] = None) -> Optional[Dict]:
+    """Recognize inquiries about admissions campaign deadlines and academic dates."""
+    if not DEADLINES_PATTERN.search(message):
+        return None
+
+    lang = _detect_deadline_language(message, language)
+    msg_clean = message.lower()
+
+    category = None
+    if re.search(r"грант|grant", msg_clean):
+        category = "grant"
+    elif re.search(r"ент|unt|тестирован|тестілеу", msg_clean):
+        category = "unt"
+    elif re.search(r"общежит|dorm|жатақхана|хостел", msg_clean):
+        category = "dormitory"
+    elif re.search(r"творческ|экзамен|exam|емтихан|психометр", msg_clean):
+        category = "exam"
+    elif re.search(r"\bspt\b|спт|олимпиад", msg_clean):
+        category = "olympiad"
+    elif re.search(r"договор|платн|contract|ақылы|оплат|зачислен", msg_clean):
+        category = "contract"
+
+    degree_level = None
+    if re.search(r"магистр|master|graduate", msg_clean):
+        degree_level = "graduate"
+    elif re.search(r"бакалавр|bachelor|undergraduate", msg_clean):
+        degree_level = "undergraduate"
+
+    from app.services.deadlines import get_all_deadlines
+    deadlines = get_all_deadlines(category=category, degree_level=degree_level, lang=lang)
+
+    headers = {
+        "ru": "📅 **Официальные ключевые дедлайны приемной кампании SDU 2026-2027:**\n",
+        "kk": "📅 **SDU 2026-2027 қабылдау науқанының ресми негізгі мерзімдері:**\n",
+        "en": "📅 **Official SDU Admissions Campaign Deadlines (2026-2027 intake):**\n",
+    }
+    status_badges = {
+        "ru": {"active": "🟢 Прием открыт (Активен)", "upcoming": "⏳ Предстоит", "passed": "🔴 Срок завершен"},
+        "kk": {"active": "🟢 Қабылдау ашық (Белсенді)", "upcoming": "⏳ Алдағы кезең", "passed": "🔴 Мерзімі аяқталды"},
+        "en": {"active": "🟢 Active (Open)", "upcoming": "⏳ Upcoming", "passed": "🔴 Closed / Passed"},
+    }
+    days_left_labels = {
+        "ru": "Осталось дней:",
+        "kk": "Қалған күндер:",
+        "en": "Days remaining:",
+    }
+
+    lines = [headers.get(lang, headers["ru"])]
+    for dl in deadlines:
+        badge = status_badges.get(lang, status_badges["ru"]).get(dl["status"], dl["status"])
+        days_label = days_left_labels.get(lang, days_left_labels["ru"])
+
+        lines.append(f"📌 **{dl['title']}** — {badge}")
+        lines.append(f"• **Сроки / Dates:** {dl['date_start']} — {dl['date_end']}")
+        if dl["status"] != "passed":
+            lines.append(f"• **{days_label}** {dl['days_left']} дн.")
+        lines.append(f"• {dl['description']}")
+        if dl.get("passed_advice") and dl["status"] == "passed":
+            lines.append(f"• 💡 *{dl['passed_advice']}*")
+        lines.append(f"• 🔗 [Подробнее / Details]({dl['action_url']})\n")
+
+    portals = {
+        "ru": "🌐 Официальный портал подачи заявок: https://app.sdu.edu.kz | Call-центр: +7 (727) 307 95 65",
+        "kk": "🌐 Ресми құжат тапсыру порталы: https://app.sdu.edu.kz | Call-орталық: +7 (727) 307 95 65",
+        "en": "🌐 Official application portal: https://app.sdu.edu.kz | Admissions Office: +7 (727) 307 95 65",
+    }
+    lines.append(portals.get(lang, portals["ru"]))
+
+    matched_id = f"deadlines_{category or 'all'}"
+    return {
+        "answer": "\n".join(lines).strip(),
+        "confident": True,
+        "source": "deadlines",
+        "matched_id": matched_id
+    }
+
+
 def get_ai_fallback_response(message: str, top_programs: list, top_faqs: list) -> Dict:
     """Uses Gemini API as a smart fallback with ONLY top matches to save tokens."""
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -507,6 +621,11 @@ def answer_query(message: str, context=None, language=None) -> Dict:
     tuition_res = _handle_tuition_calculator(message, language)
     if tuition_res is not None:
         return tuition_res
+
+    # 1.5 US8: Official Admissions Deadlines & Dates
+    deadlines_res = _handle_deadlines(message, language)
+    if deadlines_res is not None:
+        return deadlines_res
 
     # 2. US-3 (Saken's logic) - check strictly for requirements
     requirements = answer_requirements(message, context, language)

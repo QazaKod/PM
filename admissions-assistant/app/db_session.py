@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
 from .models import Base
 
@@ -20,8 +20,22 @@ engine = create_engine(
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 def init_db():
-    """Create all tables in the database."""
+    """Create all tables in the database and ensure new columns exist."""
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        try:
+            conn.execute(text("ALTER TABLE users ADD COLUMN telegram_notifications_enabled BOOLEAN DEFAULT 1"))
+            conn.commit()
+        except Exception:
+            pass
+        try:
+            conn.execute(text("ALTER TABLE faqs ADD COLUMN category VARCHAR DEFAULT 'general'"))
+            conn.commit()
+        except Exception:
+            pass
+
+# Ensure schema tables and columns are created on initial load
+init_db()
 
 def get_db():
     """Dependency to get the DB session."""

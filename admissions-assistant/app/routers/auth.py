@@ -30,7 +30,9 @@ from app.schemas import (
     ApplicantProfileOut,
     ApplicantProfileUpdate,
     SavedProgramOut,
-    SessionOut,
+    SessionOut,
+    NotificationPreferenceRequest,
+    NotificationPreferenceResponse,
 )
 from app.security import (
     hash_password,
@@ -577,3 +579,23 @@ def get_chat_history(user: User = Depends(get_current_user), db: Session = Depen
         .all()
     )
     return [SessionOut.model_validate(s) for s in sessions]
+
+
+@router.patch("/notifications/preferences", response_model=NotificationPreferenceResponse)
+def update_auth_notification_preferences(
+    payload: NotificationPreferenceRequest,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Toggle current user's Telegram deadline notification preferences."""
+    user.telegram_notifications_enabled = payload.telegram_notifications_enabled
+    db.commit()
+    db.refresh(user)
+
+    state_str = "включены" if user.telegram_notifications_enabled else "отключены"
+    return {
+        "status": "success",
+        "telegram_notifications_enabled": user.telegram_notifications_enabled,
+        "telegram_chat_id": user.telegram_chat_id,
+        "message": f"Уведомления о дедлайнах успешно {state_str}.",
+    }

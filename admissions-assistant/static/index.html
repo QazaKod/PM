@@ -76,6 +76,11 @@
           <i class="ph ph-question nav-icon"></i>
           <span class="nav-label">FAQ</span>
         </button>
+        <button class="nav-item" data-tab="deadlines">
+          <i class="ph ph-calendar nav-icon"></i>
+          <span class="nav-label">Deadlines</span>
+          <span class="nav-tag demo-tag">US8</span>
+        </button>
         <button class="nav-item" data-tab="guide">
           <i class="ph ph-compass nav-icon"></i>
           <span class="nav-label">Admission Guide</span>
@@ -95,6 +100,11 @@
           <i class="ph ph-link nav-icon"></i>
           <span class="nav-label">Official Links</span>
           <span class="nav-tag demo-tag">US9</span>
+        </button>
+        <button class="nav-item" data-tab="faq-admin" id="nav-item-faq-admin" style="display: none;">
+          <i class="ph ph-sliders nav-icon"></i>
+          <span class="nav-label">Manage FAQ</span>
+          <span class="nav-tag demo-tag">US13</span>
         </button>
       </nav>
 
@@ -404,59 +414,71 @@
         </div>
       </section>
 
-      <!-- ================= SECTION: DEADLINES ================= -->
+      <!-- ================= SECTION: DEADLINES (US8) ================= -->
       <section id="section-deadlines" class="tab-section">
         <div class="section-container">
           <div class="section-header">
             <div>
               <div class="title-with-badge">
-                <h2>Key Admission Deadlines 2026</h2>
-                <span class="preview-badge">US8 Preview</span>
+                <h2>Admission Campaign Deadlines 2026–2027</h2>
+                <span class="preview-badge">US8</span>
               </div>
-              <p>Important milestones for the upcoming 2026-2027 academic intake.</p>
+              <p>Key academic dates, testing periods, grant submission windows, and enrollment milestones.</p>
+            </div>
+            <!-- View Switcher -->
+            <div class="view-toggle-wrap">
+              <button type="button" class="view-toggle-btn active" id="deadlines-view-list-btn" onclick="setDeadlinesView('list')">
+                <i class="ph ph-list-dashes"></i> Timeline / List View
+              </button>
+              <button type="button" class="view-toggle-btn" id="deadlines-view-calendar-btn" onclick="setDeadlinesView('calendar')">
+                <i class="ph ph-calendar"></i> Month Calendar Grid
+              </button>
             </div>
           </div>
 
-          <div class="timeline">
-            <div class="timeline-item past">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content card">
-                <span class="timeline-date">June 20, 2026</span>
-                <h3>Admissions Office Opens</h3>
-                <p>Start of online application submission and document intake for Bachelor programs.</p>
-                <span class="timeline-status completed">Completed</span>
-              </div>
+          <!-- Filter controls -->
+          <div class="deadlines-toolbar">
+            <div class="filter-group">
+              <label for="deadlines-filter-degree"><i class="ph ph-graduation-cap"></i> Degree:</label>
+              <select id="deadlines-filter-degree" onchange="onDeadlinesFilterChange()">
+                <option value="all">All Degrees</option>
+                <option value="undergraduate">Bachelor (Undergraduate)</option>
+                <option value="graduate">Master / PhD (Graduate)</option>
+              </select>
             </div>
+            <div class="filter-group">
+              <label for="deadlines-filter-category"><i class="ph ph-tag"></i> Category:</label>
+              <select id="deadlines-filter-category" onchange="onDeadlinesFilterChange()">
+                <option value="all">All Categories</option>
+                <option value="grant">Grants</option>
+                <option value="unt">UNT Testing</option>
+                <option value="contract">Contract Enrollment</option>
+                <option value="dormitory">Dormitory</option>
+                <option value="olympiad">SDU Olympiad (SPT)</option>
+                <option value="exam">Creative / Special Exam</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="deadlines-filter-lang"><i class="ph ph-translate"></i> Language:</label>
+              <select id="deadlines-filter-lang" onchange="onDeadlinesFilterChange()">
+                <option value="ru" selected>Русский (RU)</option>
+                <option value="kk">Қазақша (KK)</option>
+                <option value="en">English (EN)</option>
+              </select>
+            </div>
+          </div>
 
-            <div class="timeline-item active">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content card">
-                <span class="timeline-date">July 13 – July 20, 2026</span>
-                <h3>State Grant Competition Submission</h3>
-                <p>Acceptance of applications for the awarding of state educational grants.</p>
-                <span class="timeline-status in-progress">Active Phase</span>
-              </div>
-            </div>
+          <!-- Timeline Container (US8) -->
+          <div id="deadlines-list-container" class="deadlines-timeline"></div>
 
-            <div class="timeline-item">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content card">
-                <span class="timeline-date">August 10, 2026</span>
-                <h3>Grant Results Announcement</h3>
-                <p>Official publication of state grant recipient lists by the Ministry of Science and Higher Education.</p>
-                <span class="timeline-status upcoming">Upcoming</span>
-              </div>
+          <!-- Calendar View Container (US8) -->
+          <div id="deadlines-calendar-container" class="deadlines-calendar-view" style="display: none;">
+            <div class="calendar-header-bar">
+              <div class="deadlines-month-nav" id="deadlines-month-selector"></div>
             </div>
-
-            <div class="timeline-item">
-              <div class="timeline-marker"></div>
-              <div class="timeline-content card">
-                <span class="timeline-date">August 20, 2026</span>
-                <h3>General Application Deadline</h3>
-                <p>Final deadline for paid tuition enrollment and contract signing for 2026 intake.</p>
-                <span class="timeline-status deadline">Final Deadline</span>
-              </div>
-            </div>
+            <div id="deadlines-calendar-grid-wrap" class="calendar-grid-wrap"></div>
+            <!-- Event Detail Popup Card -->
+            <div id="deadlines-event-card-wrap" class="calendar-event-card-wrap" style="display: none;"></div>
           </div>
         </div>
       </section>
@@ -752,6 +774,69 @@
         </div>
       </section>
 
+      <!-- ================= SECTION: FAQ ADMIN (US13) ================= -->
+      <section id="section-faq-admin" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>FAQ Knowledge Base Management</h2>
+                <span class="preview-badge">US13 Staff</span>
+              </div>
+              <p>Create, update, and manage official FAQ entries. Changes instantly sync with the AI chatbot knowledge base.</p>
+            </div>
+            <div>
+              <button type="button" class="btn-primary" onclick="openFaqModal()">
+                <i class="ph ph-plus-circle"></i> Add New FAQ Entry
+              </button>
+            </div>
+          </div>
+
+          <!-- Toolbar: Search and Category filter -->
+          <div class="faq-admin-toolbar">
+            <div class="search-input-wrap">
+              <i class="ph ph-magnifying-glass search-icon"></i>
+              <input type="text" id="faq-admin-search" placeholder="Search question, answer or keywords..." oninput="debounceAdminFaqSearch()">
+            </div>
+            <div class="filter-group">
+              <label for="faq-admin-cat-filter"><i class="ph ph-funnel"></i> Category:</label>
+              <select id="faq-admin-cat-filter" onchange="loadAdminFAQs()">
+                <option value="all">All Categories</option>
+                <option value="general">General</option>
+                <option value="documents">Documents</option>
+                <option value="tuition">Tuition & Pricing</option>
+                <option value="grants">Grants & Discounts</option>
+                <option value="dormitory">Dormitory</option>
+                <option value="exams">Exams & UNT</option>
+              </select>
+            </div>
+            <div class="faq-admin-stats" id="faq-admin-count">0 entries</div>
+          </div>
+
+          <!-- Table/List of FAQs -->
+          <div class="faq-admin-table-container">
+            <table class="faq-admin-table" id="faq-admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 130px;">Category</th>
+                  <th style="width: 28%;">Question</th>
+                  <th>Answer Preview</th>
+                  <th style="width: 170px;">Keywords</th>
+                  <th style="width: 130px; text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="faq-admin-tbody">
+                <!-- Populated dynamically via renderAdminFAQs() -->
+              </tbody>
+            </table>
+            <div id="faq-admin-empty" class="faq-admin-empty" style="display: none;">
+              <i class="ph ph-folder-open" style="font-size: 2.5rem; color: var(--muted);"></i>
+              <p>No FAQ entries found matching the filter criteria.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
     </main>
 
     <!-- Floating "Ask AI" Button (visible when not on Chat tab) -->
@@ -969,8 +1054,59 @@
           <input type="tel" id="prof-phone" placeholder="+7 777 123 4567">
           <div class="form-hint">Format: +7 777 123 4567 or 10-15 digits</div>
         </div>
+        <div class="auth-form-group" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);">
+          <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+            <span>🔔 Telegram Push Alerts (72h & 24h reminders)</span>
+            <input type="checkbox" id="prof-telegram-alerts" checked style="width: 20px; height: 20px; accent-color: var(--steppe);">
+          </label>
+          <div class="form-hint">Receive automated reminders for critical admission deadlines via @sdu_admissions_registration_bot.</div>
+        </div>
         <div id="profile-status" class="auth-form-error" style="color: var(--ok, #1B7F5C);"></div>
         <button type="submit" class="auth-form-submit">Save Profile</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ================= MODAL: FAQ EDIT / CREATE (US13) ================= -->
+  <div id="faq-edit-modal" class="auth-modal-overlay">
+    <div class="auth-modal" style="max-width: 620px; width: 95%;">
+      <div class="auth-modal-header">
+        <h3 id="faq-modal-title">Add New FAQ Entry</h3>
+        <button class="auth-modal-close" onclick="closeFaqModal()">&times;</button>
+      </div>
+      <form id="form-faq-edit" onsubmit="handleFaqSubmit(event)">
+        <input type="hidden" id="faq-edit-id">
+        <div class="auth-form-group">
+          <label for="faq-edit-question">Question <span style="color: var(--alert, #e74c3c);">*</span></label>
+          <input type="text" id="faq-edit-question" placeholder="e.g. Какие документы нужны для поступления в бакалавриат?" required minlength="3">
+        </div>
+        <div class="auth-form-group">
+          <label for="faq-edit-answer">Answer (Official Information) <span style="color: var(--alert, #e74c3c);">*</span></label>
+          <textarea id="faq-edit-answer" rows="5" placeholder="Detailed official response..." required minlength="3" style="width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm, 8px); padding: 10px; font-family: inherit; font-size: 0.95rem; resize: vertical;"></textarea>
+        </div>
+        <div class="auth-form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="auth-form-group">
+            <label for="faq-edit-category">Category</label>
+            <select id="faq-edit-category">
+              <option value="general">General</option>
+              <option value="documents">Documents</option>
+              <option value="tuition">Tuition & Pricing</option>
+              <option value="grants">Grants & Discounts</option>
+              <option value="dormitory">Dormitory</option>
+              <option value="exams">Exams & UNT</option>
+            </select>
+          </div>
+          <div class="auth-form-group">
+            <label for="faq-edit-keywords">Keywords (comma-separated)</label>
+            <input type="text" id="faq-edit-keywords" placeholder="ент, грант, документы, прием">
+            <div class="form-hint">Used for semantic search indexing.</div>
+          </div>
+        </div>
+        <div id="faq-edit-status" class="auth-form-error"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+          <button type="button" class="btn-secondary" onclick="closeFaqModal()">Cancel</button>
+          <button type="submit" class="auth-form-submit" style="margin: 0; width: auto; padding: 10px 24px;">Save FAQ Entry</button>
+        </div>
       </form>
     </div>
   </div>

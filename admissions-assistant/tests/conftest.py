@@ -8,6 +8,7 @@ from datetime import date
 _sandbox = tempfile.TemporaryDirectory(prefix="pm-tests-")
 os.environ["DATABASE_URL"] = f"sqlite:///{Path(_sandbox.name) / 'tests.db'}"
 os.environ["TESTING"] = "1"
+os.environ["TELEGRAM_WEBHOOK_SECRET"] = "test-webhook-secret"
 os.environ["GEMINI_API_KEY"] = ""
 os.environ["LOG_FILE"] = str(Path(_sandbox.name) / 'tests.log')
 

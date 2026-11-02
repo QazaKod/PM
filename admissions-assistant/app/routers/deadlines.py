@@ -96,3 +96,20 @@ def update_notification_preferences(
         "telegram_chat_id": current_user.telegram_chat_id,
         "message": f"Уведомления о дедлайнах успешно {state_str}.",
     }
+
+
+@router.post("/telegram-link")
+def create_telegram_link(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    """Issue a short-lived link after authenticating the verified account."""
+    if not user.is_verified:
+        raise HTTPException(status_code=403, detail="Verify your account first")
+    from app.services.telegram_binding import issue_link
+    return {"bot_url": issue_link(db, user), "expires_in_seconds": 900}
+
+
+@router.get("/telegram-link")
+def telegram_link_status(db: Session = Depends(get_db), user: User = Depends(get_current_user)):
+    from app.models import TelegramBinding
+    binding = db.get(TelegramBinding, user.id)
+    return {"linked": bool(binding and binding.verified_at and binding.chat_id == user.telegram_chat_id),
+            "enabled": bool(user.telegram_notifications_enabled)}

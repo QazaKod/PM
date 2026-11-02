@@ -295,7 +295,7 @@ def test_telegram_password_reset_and_webhook():
             "text": f"/start reset_{code}"
         }
     }
-    webhook_resp = client.post("/auth/telegram-webhook", json=webhook_payload)
+    webhook_resp = client.post("/auth/telegram-webhook", json=webhook_payload, headers={"X-Telegram-Bot-Api-Secret-Token": "test-webhook-secret"})
     assert webhook_resp.status_code == 200
     res_data = webhook_resp.json()
     assert res_data["ok"] is True
@@ -387,7 +387,7 @@ def test_register_via_phone_and_telegram():
             "text": f"/start verify_{code}"
         }
     }
-    webhook_resp = client.post("/auth/telegram-webhook", json=webhook_payload)
+    webhook_resp = client.post("/auth/telegram-webhook", json=webhook_payload, headers={"X-Telegram-Bot-Api-Secret-Token": "test-webhook-secret"})
     assert webhook_resp.status_code == 200
     assert webhook_resp.json()["ok"] is True
     assert webhook_resp.json()["result"]["action"] == "registration_code_delivered"

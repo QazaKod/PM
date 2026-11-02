@@ -46,11 +46,11 @@ def get_telegram_verification_link(code: str) -> str:
     return f"https://t.me/{username}?start=verify_{code}"
 
 
-def send_telegram_message(chat_id: str, text: str) -> bool:
+def send_telegram_message(chat_id: str, text: str, reply_markup=None) -> bool:
     """Sends a message to a specific Telegram chat_id."""
     token = get_bot_token()
     if not token:
-        logger.info(f"ℹ️ Telegram bot token not configured. Message for {chat_id}: {text}")
+        logger.info("Telegram bot token not configured; message not sent")
         return False
 
     url = f"https://api.telegram.org/bot{token}/sendMessage"
@@ -59,16 +59,18 @@ def send_telegram_message(chat_id: str, text: str) -> bool:
         "text": text,
         "parse_mode": "HTML"
     }
+    if reply_markup is not None:
+        payload["reply_markup"] = reply_markup
     try:
         response = httpx.post(url, json=payload, timeout=8.0)
-        if response.status_code == 200:
+        if response.status_code == 200 and response.json().get("ok") is True:
             logger.info(f"✅ Telegram message successfully sent to chat {chat_id}")
             return True
         else:
-            logger.error(f"❌ Telegram API returned error: {response.text}")
+            logger.error("Telegram API rejected sendMessage (HTTP %s)", response.status_code)
             return False
     except Exception as e:
-        logger.error(f"❌ Failed to send Telegram message: {e}")
+        logger.error("Telegram sendMessage failed (%s)", type(e).__name__)
         return False
 
 
@@ -117,6 +119,16 @@ def process_telegram_update(update: dict, db: Session) -> dict:
     username = chat.get("username") or from_user.get("username")
     first_name = from_user.get("first_name") or chat.get("first_name", "User")
     text = (msg.get("text") or "").strip()
+
+    if text.startswith("/start alerts_"):
+        # A forwarded link may be consumed only in a private chat by its owner.
+        if chat.get("type") != "private" or str(from_user.get("id")) != chat_id:
+            return {"status": "error", "message": "private chat required"}
+        from app.services.telegram_binding import consume_link
+        linked = consume_link(db, text.removeprefix("/start alerts_").strip(), chat_id)
+        send_telegram_message(chat_id, "Telegram linked. Enable deadline alerts in your website profile." if linked
+                              else "Link invalid or expired. Request a new link in your website profile.")
+        return {"status": "ok" if linked else "error", "action": "alerts_linked" if linked else "invalid_link"}
 
     if text.startswith("/start reset_"):
         code = text.replace("/start reset_", "").strip()
@@ -218,7 +230,7 @@ async def register_telegram_webhook(webhook_url: str) -> dict:
         return {"ok": False, "error": "Telegram bot token not configured"}
     base_url = f"https://api.telegram.org/bot{token}"
     async with httpx.AsyncClient(timeout=10.0) as client:
-        resp = await client.post(f"{base_url}/setWebhook", json={"url": webhook_url})
+        resp = await client.post(f"{base_url}/setWebhook", json={"url": webhook_url, "secret_token": os.environ["TELEGRAM_WEBHOOK_SECRET"]})
         return resp.json()
 
 

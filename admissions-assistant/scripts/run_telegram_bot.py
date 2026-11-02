@@ -19,6 +19,17 @@ if str(PROJECT_ROOT) not in sys.path:
 from app.telegram_service import start_telegram_polling
 
 
+async def run_workers():
+    from app.services.telegram_notifications import start_deadline_reminders
+    tasks = [asyncio.create_task(start_telegram_polling()), asyncio.create_task(start_deadline_reminders())]
+    try:
+        await asyncio.gather(*tasks)
+    finally:
+        for task in tasks:
+            task.cancel()
+        await asyncio.gather(*tasks, return_exceptions=True)
+
+
 def main() -> None:
     logging.basicConfig(
         level=logging.INFO,
@@ -26,7 +37,7 @@ def main() -> None:
     )
     os.environ["TELEGRAM_MODE"] = "polling"
     try:
-        asyncio.run(start_telegram_polling())
+        asyncio.run(run_workers())
     except KeyboardInterrupt:
         logging.info("Telegram worker stopped by user.")
 

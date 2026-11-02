@@ -1056,10 +1056,13 @@
         </div>
         <div class="auth-form-group" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);">
           <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-            <span>🔔 Telegram Push Alerts (72h & 24h reminders)</span>
+            <span>🔔 Telegram Push Alerts (3 days & 1 day before deadlines)</span>
             <input type="checkbox" id="prof-telegram-alerts" checked style="width: 20px; height: 20px; accent-color: var(--steppe);">
           </label>
-          <div class="form-hint">Receive automated reminders for critical admission deadlines via @sdu_admissions_registration_bot.</div>
+          <div class="form-hint">Reminders are sent during 08:00–22:00 Almaty time. Your account must be verified and linked to a private Telegram chat.</div>
+          <button id="telegram-link-button" type="button" class="auth-btn-small">Link Telegram</button>
+          <a id="telegram-link-url" hidden target="_blank" rel="noopener noreferrer">Open Telegram to confirm</a>
+          <div id="telegram-link-status" class="form-hint">Check your Telegram connection when opening the profile.</div>
         </div>
         <div id="profile-status" class="auth-form-error" style="color: var(--ok, #1B7F5C);"></div>
         <button type="submit" class="auth-form-submit">Save Profile</button>

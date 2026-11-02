@@ -70,6 +70,12 @@
   * **Pre-Requirements:** Telegram bot integration linked to applicant accounts; deadline calendar
   * **QA Test:** US20QATest
 
+* **[US-20] Telegram Push Alerts**
+  * **Description:** Scheduled Telegram reminders 3 and 1 calendar days before admission milestones, with verified private-chat linking, opt-out and durable deduplication.
+  * **Estimation:** 4 | **Assignee:** Saken | **Deadline:** 8 Nov 2026
+  * **QA Test:** US20QATest
+  * **Delivery:** [Implementation, startup, validation and limits](docs/sprint_4_us20.md). Automatic upstream sync and exact timestamp-based 72-hour timing remain unresolved.
+
 ## Iteration 5
 * **[US-6] Application Status Check**
   * **Description:** As an applicant, I want to check my application status through the assistant, so that I know what stage my application is at.

@@ -183,3 +183,25 @@ class AccountVerificationToken(Base):
     user = relationship("User", back_populates="verification_tokens")
 
 
+
+
+class TelegramBinding(Base):
+    """Private-chat ownership proof, separate from legacy registration chat IDs."""
+    __tablename__ = "telegram_bindings"
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    chat_id = Column(String, unique=True, nullable=True)
+    token_hash = Column(String, unique=True, nullable=True)
+    expires_at = Column(DateTime, nullable=True)
+    verified_at = Column(DateTime, nullable=True)
+
+
+class DeadlineDelivery(Base):
+    """Durable claim before sending: concurrent workers cannot send the same reminder."""
+    __tablename__ = "deadline_deliveries"
+    key = Column(String(64), primary_key=True)
+    chat_id = Column(String, nullable=False)
+    deadline_id = Column(String, nullable=False)
+    event_date = Column(String, nullable=False)
+    days_ahead = Column(Integer, nullable=False)
+    state = Column(String, nullable=False, default="claimed")
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)

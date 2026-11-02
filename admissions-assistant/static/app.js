@@ -982,6 +982,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alertCb.checked = currentUser.telegram_notifications_enabled !== false;
     }
     document.getElementById("profile-status").textContent = "";
+    refreshTelegramLinkStatus();
     document.getElementById("profile-modal").classList.add("active");
   };
 
@@ -1023,22 +1024,6 @@ document.addEventListener("DOMContentLoaded", () => {
       if (res.ok) {
         const updatedProf = await res.json();
         currentUser.profile = updatedProf;
-        const alertCb = document.getElementById("prof-telegram-alerts");
-        if (alertCb) {
-          try {
-            await fetch("/deadlines/preferences", {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-              },
-              body: JSON.stringify({ telegram_notifications_enabled: alertCb.checked })
-            });
-            currentUser.telegram_notifications_enabled = alertCb.checked;
-          } catch (prefErr) {
-            console.warn("Could not save telegram alert preference:", prefErr);
-          }
-        }
         statusEl.textContent = "Profile updated successfully!";
         setTimeout(() => closeProfileModal(), 900);
       } else {
@@ -1090,6 +1075,11 @@ document.addEventListener("DOMContentLoaded", () => {
       console.error("Error toggling favorite", err);
     }
   };
+
+  window.addEventListener("hashchange", () => {
+    if (window.location.hash === "#guide") switchTab("guide");
+  });
+  if (window.location.hash === "#guide") setTimeout(() => switchTab("guide"), 0);
 
   // ================= 7. STEP-BY-STEP ADMISSION GUIDE (US7) =================
   let guideCategory = "domestic";
@@ -1614,12 +1604,36 @@ document.addEventListener("DOMContentLoaded", () => {
   // ============================================================
   // SPRINT 4: US20 TELEGRAM PUSH NOTIFICATION SETTINGS LISTENER
   // ============================================================
+  async function refreshTelegramLinkStatus() {
+    const label = document.getElementById("telegram-link-status");
+    document.getElementById("telegram-link-url").hidden = true;
+    try {
+      const res = await fetch("/deadlines/telegram-link", {headers: {Authorization: `Bearer ${safeStorage.getItem("auth_token")}`}});
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      label.textContent = data.linked ? "Telegram linked. Reminders follow your preference below." : "Telegram is not linked. Open a linking URL below and press Start in the bot.";
+    } catch (_) { label.textContent = "Could not check Telegram link. Reopen your profile to retry."; }
+  }
+  document.getElementById("telegram-link-button")?.addEventListener("click", async () => {
+    const label = document.getElementById("telegram-link-status");
+    const link = document.getElementById("telegram-link-url");
+    link.hidden = true;
+    try {
+      const res = await fetch("/deadlines/telegram-link", {method: "POST", headers: {Authorization: `Bearer ${safeStorage.getItem("auth_token")}`}});
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      link.href = data.bot_url;
+      link.hidden = false;
+      label.textContent = "Open Telegram and press Start within 15 minutes. Then reopen your profile to check the link.";
+    } catch (_) { label.textContent = "Could not create link. Verify your account and retry."; }
+  });
   const profTelegramAlerts = document.getElementById("prof-telegram-alerts");
   if (profTelegramAlerts) {
     profTelegramAlerts.addEventListener("change", async (e) => {
       const enabled = e.target.checked;
       const token = safeStorage.getItem("auth_token");
       if (!token) return;
+      e.target.disabled = true;
       try {
         const res = await fetch("/deadlines/preferences", {
           method: "PATCH",
@@ -1639,9 +1653,16 @@ document.addEventListener("DOMContentLoaded", () => {
             statusEl.style.color = "var(--ok, #1B7F5C)";
             statusEl.textContent = data.message || "Telegram notification preference saved!";
           }
+        } else {
+          throw new Error("Preference was not saved");
         }
       } catch (err) {
+        e.target.checked = currentUser?.telegram_notifications_enabled !== false;
+        const statusEl = document.getElementById("profile-status");
+        if (statusEl) statusEl.textContent = "Could not save notification preference. Please retry.";
         console.error("Failed to update notification preferences", err);
+      } finally {
+        e.target.disabled = false;
       }
     });
   }

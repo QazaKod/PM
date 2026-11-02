@@ -581,6 +581,12 @@ async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
     Webhook endpoint for Telegram Bot updates.
     Handles /start reset_<CODE> and automatic chat_id linking.
     """
+    import secrets
+    webhook_secret = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
+    if not webhook_secret or not secrets.compare_digest(
+        request.headers.get("X-Telegram-Bot-Api-Secret-Token", ""), webhook_secret
+    ):
+        raise HTTPException(status_code=403, detail="Invalid Telegram webhook secret")
     try:
         update_data = await request.json()
         result = process_telegram_update(update_data, db)

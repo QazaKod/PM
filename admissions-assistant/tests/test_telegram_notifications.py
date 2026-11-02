@@ -1,12 +1,13 @@
 """US20: Telegram Push Alerts Service Test Suite."""
 
 import uuid
+import pytest
 from datetime import datetime
 from fastapi.testclient import TestClient
 
 from app.main import app
 from app.db_session import SessionLocal
-from app.models import User
+from app.models import User, TelegramBinding
 from app.security import hash_password, create_access_token
 from app.services.telegram_notifications import (
     ALMATY_TZ,
@@ -20,12 +21,21 @@ from app.services import telegram_notifications
 client = TestClient(app)
 
 
+@pytest.fixture(autouse=True)
+def configured_sender(monkeypatch):
+    monkeypatch.setenv("PUBLIC_APP_URL", "https://admissions.example.test")
+    monkeypatch.setattr(telegram_notifications.telegram_service, "is_telegram_configured", lambda: True)
+
+
+
 def _create_test_user(
     role: str = "applicant",
     is_verified: bool = True,
     chat_id: str = "12345678",
     notif_enabled: bool = True,
 ) -> tuple[User, str]:
+    if chat_id == "12345678":
+        chat_id = uuid.uuid4().hex
     db = SessionLocal()
     try:
         user = User(
@@ -41,6 +51,9 @@ def _create_test_user(
         db.add(user)
         db.commit()
         db.refresh(user)
+        if chat_id:
+            db.add(TelegramBinding(user_id=user.id, chat_id=chat_id, verified_at=datetime.utcnow()))
+            db.commit()
         token = create_access_token({"sub": str(user.id)})
         return user, token
     finally:

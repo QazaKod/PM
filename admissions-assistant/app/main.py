@@ -54,7 +54,16 @@ async def lifespan(app: FastAPI):
     polling_task = None
     if "pytest" not in sys.modules and not os.getenv("TESTING"):
         polling_task = asyncio.create_task(start_telegram_polling())
-    yield
+    reminder_task = None
+    if "pytest" not in sys.modules and not os.getenv("TESTING") and os.getenv("TELEGRAM_REMINDERS_ENABLED", "").lower() == "true":
+        from app.services.telegram_notifications import start_deadline_reminders
+        reminder_task = asyncio.create_task(start_deadline_reminders())
+    try:
+        yield
+    finally:
+        if reminder_task:
+            reminder_task.cancel()
+            await asyncio.gather(reminder_task, return_exceptions=True)
     if polling_task:
         polling_task.cancel()
 

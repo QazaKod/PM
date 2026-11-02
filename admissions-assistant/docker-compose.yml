@@ -52,6 +52,7 @@ services:
       TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
       TELEGRAM_BOT_USERNAME: ${TELEGRAM_BOT_USERNAME:-sdu_admissions_registration_bot}
       TELEGRAM_MODE: polling
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-}
     command: python -m scripts.run_telegram_bot
 
 volumes:

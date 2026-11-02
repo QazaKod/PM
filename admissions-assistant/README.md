@@ -91,3 +91,16 @@ This is the reviewed-data update workflow specified in the Trello US7 card. It d
 The independently tested previously published baseline is `6f7cf57ef73f22fa7ab1300c6ea0e378a1cd955a`. Its 157 tests passed in a clean environment, but additional acceptance checks found a complete-storage-denial startup failure and acceptance of whitespace-only procedure text. The final audited corrections add coverage; the finalization rerun passes 168 tests with 49 warnings, with no failures or skips. The broader Excel automatic-synchronization requirement remains unimplemented, and Master remains a general route. See [the Russian acceptance audit](docs/sprint_3_acceptance_audit.md) and the updated English Sprint 3 report for the exact scope, evidence and remaining requirements conflicts.
 
 The clean install also emitted a yanked-release warning for the existing `google-genai==0.5.0` pin, citing Pillow vulnerability issues. `pip check` checks dependency compatibility, not security. The optional SDK was not upgraded during this US7 audit; review it separately before a production deployment.
+
+
+## Sprint 4 — US20 Telegram reminders
+
+See [US20 setup, acceptance evidence and limitations](docs/sprint_4_us20.md).
+Profile now offers secure Telegram linking and saved notification preferences.
+The worker sends reminders 3 and 1 calendar days ahead during Almaty daytime,
+with durable deduplication. Configure `TELEGRAM_BOT_TOKEN` and an HTTPS
+`PUBLIC_APP_URL`, then run `.venv/bin/python -m scripts.run_telegram_bot`
+with the same database as the web app. Webhook users must additionally configure
+`TELEGRAM_WEBHOOK_SECRET`. Real delivery requires a running configured worker.
+Automatic university-data synchronization and exact 72-hour cutoff timing remain
+unimplemented; historical calendar dates are not silently advanced.

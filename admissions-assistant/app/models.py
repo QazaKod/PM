@@ -161,6 +161,7 @@ class PasswordResetToken(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     code = Column(String, index=True, nullable=False)
+    session_token = Column(String, index=True, nullable=True)
     expires_at = Column(DateTime, nullable=False)
     is_used = Column(Boolean, default=False)
     attempts = Column(Integer, default=0, nullable=False)
@@ -173,8 +174,11 @@ class AccountVerificationToken(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     code = Column(String, index=True, nullable=False)
+    session_token = Column(String, index=True, nullable=True)
     channel = Column(String, default="email")  # email | phone_sms | phone_telegram
     destination = Column(String, nullable=True)  # email address or phone number
+    telegram_verified = Column(Boolean, default=False, nullable=False)
+    pending_chat_id = Column(String, nullable=True)
     expires_at = Column(DateTime, nullable=False)
     is_used = Column(Boolean, default=False)
     attempts = Column(Integer, default=0, nullable=False)

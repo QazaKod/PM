@@ -624,6 +624,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.closeAuthModal = function() {
+    stopVerificationPolling();
     document.getElementById("auth-modal").classList.remove("active");
   };
 
@@ -633,6 +634,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const isForgot = tab === 'forgot';
     const isReset = tab === 'reset';
     const isVerifyReg = tab === 'verify_reg';
+
+    if (!isVerifyReg) {
+      stopVerificationPolling();
+    }
 
     const tabsContainer = document.querySelector(".auth-tabs");
     if (tabsContainer) {
@@ -663,7 +668,7 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   let pendingResetEmail = "";
-  let forgotChannel = "email";
+  let forgotChannel = "telegram";
 
   window.setForgotChannel = function(channel) {
     forgotChannel = channel;
@@ -810,9 +815,76 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  let registerChannel = "email";
-  let phoneDeliveryMethod = "phone_sms";
+  let registerChannel = "phone";
+  let phoneDeliveryMethod = "phone_telegram";
   let pendingVerifyIdentifier = "";
+  let verificationPollTimer = null;
+
+  function isValidRealPhone(phone) {
+    if (!phone) return false;
+    const digits = String(phone).replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 15) return false;
+    if (/(\d)\1{6,}/.test(digits)) return false;
+    if (
+      digits.includes("1234567") ||
+      digits.includes("0123456") ||
+      digits.includes("7654321") ||
+      digits.includes("9876543")
+    ) {
+      return false;
+    }
+    return true;
+  }
+  window.isValidRealPhone = isValidRealPhone;
+
+  function stopVerificationPolling() {
+    if (verificationPollTimer) {
+      clearInterval(verificationPollTimer);
+      verificationPollTimer = null;
+    }
+  }
+  window.stopVerificationPolling = stopVerificationPolling;
+
+  function pollVerificationStatus(identifier) {
+    stopVerificationPolling();
+    const statusBanner = document.getElementById("verify-reg-tg-status");
+    if (statusBanner) {
+      statusBanner.style.display = "none";
+      statusBanner.innerHTML = "";
+    }
+    if (!identifier) return;
+
+    const checkStatus = async () => {
+      const formVerifyReg = document.getElementById("form-verify-reg");
+      const authModal = document.getElementById("auth-modal");
+      if (
+        !formVerifyReg ||
+        formVerifyReg.style.display === "none" ||
+        (authModal && !authModal.classList.contains("active"))
+      ) {
+        stopVerificationPolling();
+        return;
+      }
+      try {
+        const res = await fetch(`/auth/verification-status?identifier=${encodeURIComponent(identifier)}`);
+        if (!res.ok) return;
+        const statusData = await res.json();
+        if (statusData && statusData.telegram_verified === true) {
+          if (statusBanner) {
+            statusBanner.innerHTML = `✅ Telegram account ${statusData.telegram_username ? '@' + escapeHtml(statusData.telegram_username) : ''} & phone number confirmed! Enter your 6-digit code below.`;
+            statusBanner.style.display = "block";
+          }
+          stopVerificationPolling();
+        }
+      } catch (_) {
+        // Ignore transient errors while polling
+      }
+    };
+
+    checkStatus();
+    verificationPollTimer = setInterval(checkStatus, 2500);
+  }
+  window.pollVerificationStatus = pollVerificationStatus;
 
   window.setRegisterChannel = function(ch) {
     registerChannel = ch;
@@ -869,6 +941,10 @@ document.addEventListener("DOMContentLoaded", () => {
         errorEl.textContent = "Please enter your phone number.";
         return;
       }
+      if (!isValidRealPhone(phone)) {
+        errorEl.textContent = "Please enter a valid real phone number (repeated fake numbers like 77777777777 are not allowed).";
+        return;
+      }
       payload.phone = phone;
     }
 
@@ -890,16 +966,23 @@ document.addEventListener("DOMContentLoaded", () => {
       const notice = document.getElementById("verify-reg-notice");
       const tgContainer = document.getElementById("verify-reg-tg-container");
       const tgLink = document.getElementById("verify-reg-tg-link");
+      const statusBanner = document.getElementById("verify-reg-tg-status");
+      if (statusBanner) {
+        statusBanner.style.display = "none";
+        statusBanner.innerHTML = "";
+      }
 
       if (data.channel === "phone_telegram") {
         if (tgContainer) tgContainer.style.display = "block";
         if (tgLink && data.bot_url) tgLink.href = data.bot_url;
-        let msg = `Click the button below to open our Telegram bot and receive your 6-digit verification code for <strong>${escapeHtml(data.identifier)}</strong>.`;
+        let msg = `1. Click the button below to open <strong>@sdu_admissions_registration_bot</strong>.<br>2. Tap <strong>«📱 Подтвердить мой номер телефона»</strong> in the bot to verify ownership of <strong>${escapeHtml(data.identifier)}</strong>.<br>3. Enter the 6-digit code sent by the bot below.`;
         if (data.debug_code) {
           msg += `<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Code is <strong>${data.debug_code}</strong> (logged to app.log)</small>`;
         }
         notice.innerHTML = msg;
+        pollVerificationStatus(data.identifier);
       } else {
+        stopVerificationPolling();
         if (tgContainer) tgContainer.style.display = "none";
         let destType = data.channel === "email" ? "email inbox" : "phone via SMS";
         let msg = `A 6-digit verification code has been sent to your <strong>${destType}</strong> (<strong>${escapeHtml(data.identifier)}</strong>). Please enter it below.`;
@@ -934,6 +1017,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
+      stopVerificationPolling();
       safeStorage.setItem("auth_token", data.access_token);
       currentUser = data.user;
       renderAuthWidget(currentUser);
@@ -956,7 +1040,15 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
       if (res.ok) {
         const notice = document.getElementById("verify-reg-notice");
+        const tgLink = document.getElementById("verify-reg-tg-link");
+        if (tgLink && data.bot_url) {
+          tgLink.href = data.bot_url;
+        }
         let msg = `A fresh verification code has been sent to <strong>${escapeHtml(pendingVerifyIdentifier)}</strong>.`;
+        if (data.bot_url) {
+          msg = `1. Click the button below to open <strong>@sdu_admissions_registration_bot</strong>.<br>2. Tap <strong>«📱 Подтвердить мой номер телефона»</strong> in the bot to verify ownership of <strong>${escapeHtml(pendingVerifyIdentifier)}</strong>.<br>3. Enter the 6-digit code sent by the bot below.`;
+          pollVerificationStatus(pendingVerifyIdentifier);
+        }
         if (data.debug_code) {
           msg += `<br><small style="color: #b4690e;"><strong>Dev Mode:</strong> Code is <strong>${data.debug_code}</strong></small>`;
         }
@@ -976,7 +1068,35 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("prof-degree").value = p.target_degree || "undergraduate";
     document.getElementById("prof-unt").value = p.unt_score || "";
     document.getElementById("prof-ielts").value = p.ielts_score || "";
-    document.getElementById("prof-phone").value = p.phone || "";
+
+    const badgeEl = document.getElementById("prof-telegram-badge");
+    if (badgeEl) {
+      if (currentUser.telegram_chat_id) {
+        badgeEl.innerHTML = `✅ Bound to Telegram: <strong>${currentUser.telegram_username ? '@' + escapeHtml(currentUser.telegram_username) : 'ID ' + escapeHtml(currentUser.telegram_chat_id)}</strong> <button type="button" class="btn btn-sm btn-outline-danger" style="margin-left: 8px; padding: 2px 8px; font-size: 11px; border-radius: 4px;" onclick="unlinkTelegramFromProfile()">🔓 Unlink Telegram</button>`;
+      } else {
+        badgeEl.innerHTML = `ℹ️ Telegram not linked yet`;
+      }
+    }
+
+    const profPhoneInput = document.getElementById("prof-phone");
+    const profPhoneHint = document.getElementById("prof-phone-hint");
+    const verifiedPhone = currentUser.phone || p.phone || "";
+    if (profPhoneInput) {
+      if (currentUser.telegram_chat_id && currentUser.phone) {
+        profPhoneInput.value = currentUser.phone;
+        profPhoneInput.readOnly = true;
+        if (profPhoneHint) {
+          profPhoneHint.textContent = "🔒 Verified via Telegram Bot (@sdu_admissions_registration_bot)";
+        }
+      } else {
+        profPhoneInput.value = verifiedPhone;
+        profPhoneInput.readOnly = false;
+        if (profPhoneHint) {
+          profPhoneHint.textContent = "Format: +7 701 123 4567 or 10-15 digits";
+        }
+      }
+    }
+
     const alertCb = document.getElementById("prof-telegram-alerts");
     if (alertCb) {
       alertCb.checked = currentUser.telegram_notifications_enabled !== false;
@@ -990,6 +1110,36 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("profile-modal").classList.remove("active");
   };
 
+  window.unlinkTelegramFromProfile = async function() {
+    if (!confirm("Are you sure you want to unlink Telegram from your profile? Your phone number will become editable.")) {
+      return;
+    }
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+    try {
+      const res = await fetch("/auth/unlink-telegram", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        if (currentUser) {
+          currentUser.telegram_chat_id = null;
+          currentUser.telegram_username = null;
+        }
+        openProfileModal();
+        const statusEl = document.getElementById("profile-status");
+        if (statusEl) {
+          statusEl.style.color = "var(--ok, #1B7F5C)";
+          statusEl.textContent = "Telegram successfully unlinked!";
+        }
+      } else {
+        alert("Failed to unlink Telegram.");
+      }
+    } catch (err) {
+      alert("Network error.");
+    }
+  };
+
   window.handleProfileSubmit = async function(e) {
     e.preventDefault();
     const citizenship = document.getElementById("prof-citizenship").value;
@@ -1000,13 +1150,10 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusEl = document.getElementById("profile-status");
     statusEl.textContent = "";
 
-    if (phone) {
-      const digits = phone.replace(/\D/g, "");
-      if (digits.length < 10 || digits.length > 15) {
-        statusEl.style.color = "var(--alert, #b32d3a)";
-        statusEl.textContent = "Phone number must contain between 10 and 15 digits (e.g. +7 777 123 4567).";
-        return;
-      }
+    if (phone && !isValidRealPhone(phone)) {
+      statusEl.style.color = "var(--alert, #b32d3a)";
+      statusEl.textContent = "Please enter a valid real phone number (repeated fake numbers like 77777777777 are not allowed).";
+      return;
     }
 
     const token = safeStorage.getItem("auth_token");

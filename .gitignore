@@ -14,3 +14,6 @@ app.log
 # Local Python virtual environments in any project copy
 venv/
 .venv/
+
+*.db-shm
+*.db-wal

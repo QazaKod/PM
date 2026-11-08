@@ -62,6 +62,10 @@ def init_db():
         "ALTER TABLE faqs ADD COLUMN category VARCHAR DEFAULT 'general'",
         "ALTER TABLE account_verification_tokens ADD COLUMN attempts INTEGER DEFAULT 0 NOT NULL",
         "ALTER TABLE password_reset_tokens ADD COLUMN attempts INTEGER DEFAULT 0 NOT NULL",
+        "ALTER TABLE password_reset_tokens ADD COLUMN session_token VARCHAR",
+        "ALTER TABLE account_verification_tokens ADD COLUMN session_token VARCHAR",
+        "ALTER TABLE account_verification_tokens ADD COLUMN telegram_verified BOOLEAN DEFAULT 0 NOT NULL",
+        "ALTER TABLE account_verification_tokens ADD COLUMN pending_chat_id VARCHAR",
     ]
     with engine.connect() as conn:
         for stmt in migrations:

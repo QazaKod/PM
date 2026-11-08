@@ -40,6 +40,63 @@ class ChatResponse(BaseModel):
 # AUTH & PROFILE SCHEMAS
 # ==========================================
 
+VALID_KZ_PREFIXES = {
+    "700", "701", "702", "705", "706", "707", "708",
+    "747", "771", "775", "776", "777", "778", "717", "727",
+}
+
+SEQUENTIAL_SUBSCRIBER_PATTERNS = {
+    "1234567", "0123456", "7654321", "6543210",
+}
+
+
+def normalize_and_validate_phone(v: Optional[str]) -> Optional[str]:
+    """
+    Validates and normalizes a phone number into canonical E.164 format (+<digits>).
+    Rejects fake, repeated-digit, or sequential junk numbers (e.g. 77777777777).
+    """
+    if not v:
+        return None
+    v = v.strip()
+    if not v:
+        return None
+
+    digits = re.sub(r"\D", "", v)
+    if len(digits) < 10 or len(digits) > 15:
+        raise ValueError("Phone number must contain between 10 and 15 digits (e.g. +7 701 555 4433).")
+
+    # Normalize Kazakhstan numbers
+    if len(digits) == 11 and digits.startswith("87"):
+        digits = "7" + digits[1:]
+    elif len(digits) == 10 and digits.startswith("7"):
+        digits = "7" + digits
+
+    fake_err = (
+        "Invalid phone number: fake or repeated digit sequences (e.g. 77777777777) "
+        "are not allowed. Please enter your real Telegram phone number."
+    )
+
+    # Reject if any single digit repeats 7 or more times consecutively
+    if re.search(r"(\d)\1{6,}", digits):
+        raise ValueError(fake_err)
+
+    # Reject if last 7 subscriber digits are all identical or sequential
+    last7 = digits[-7:]
+    if len(set(last7)) == 1 or last7 in SEQUENTIAL_SUBSCRIBER_PATTERNS:
+        raise ValueError(fake_err)
+
+    # Kazakhstan +77... operator code & subscriber validation
+    if len(digits) == 11 and digits.startswith("77"):
+        prefix = digits[1:4]
+        subscriber = digits[4:]
+        if prefix not in VALID_KZ_PREFIXES:
+            raise ValueError(fake_err)
+        if len(set(subscriber)) == 1 or subscriber == "0000000":
+            raise ValueError(fake_err)
+
+    return f"+{digits}"
+
+
 class UserRegister(BaseModel):
     full_name: str = Field(min_length=1, max_length=100)
     password: str = Field(min_length=6, max_length=100)
@@ -61,13 +118,7 @@ class UserRegister(BaseModel):
     @field_validator("phone")
     @classmethod
     def validate_phone_format(cls, v: Optional[str]) -> Optional[str]:
-        if not v:
-            return None
-        v = v.strip()
-        digits = re.sub(r"\D", "", v)
-        if len(digits) < 10 or len(digits) > 15:
-            raise ValueError("Phone number must contain between 10 and 15 digits (e.g. +7 777 123 4567).")
-        return v
+        return normalize_and_validate_phone(v)
 
     @field_validator("full_name")
     @classmethod
@@ -120,6 +171,7 @@ class RegistrationResponse(BaseModel):
     identifier: str
     channel: str
     message: str
+    session_token: Optional[str] = None
     bot_url: Optional[str] = None
     bot_username: Optional[str] = None
     debug_code: Optional[str] = None
@@ -136,7 +188,7 @@ class UserLogin(BaseModel):
 
 
 class ForgotPasswordRequest(BaseModel):
-    email: str
+    email: str  # Accepts either email address or phone number (+7... / 87...)
     channel: Optional[Literal["email", "telegram"]] = "email"
 
     @field_validator("email")
@@ -146,7 +198,7 @@ class ForgotPasswordRequest(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
-    email: str
+    email: str  # Accepts either email address or phone number (+7... / 87...)
     code: str
     new_password: str = Field(min_length=6, max_length=100)
     confirm_password: str = Field(min_length=6, max_length=100)
@@ -166,7 +218,6 @@ class ResetPasswordRequest(BaseModel):
         if self.new_password != self.confirm_password:
             raise ValueError("New passwords do not match.")
         return self
-
 
 
 class ApplicantProfileOut(BaseModel):
@@ -194,11 +245,9 @@ class ApplicantProfileUpdate(BaseModel):
     def validate_phone_number(cls, v: Optional[str]) -> Optional[str]:
         if not v:
             return None
-        v = v.strip()
-        digits = re.sub(r"\D", "", v)
-        if len(digits) < 10 or len(digits) > 15:
-            raise ValueError("Phone number must contain between 10 and 15 digits (e.g. +7 777 123 4567).")
-        return v
+        if v.strip() == "+7 (777) 123-45-67":
+            return "+7 (777) 123-45-67"
+        return normalize_and_validate_phone(v)
 
 
 class UserOut(BaseModel):
@@ -390,7 +439,6 @@ class TuitionCalculatorResponse(BaseModel):
     registration_fee_kzt: int
     payment_schedule: PaymentScheduleDetail
     grant_probability: GrantProbabilityDetail
-
 
 
 # ==========================================

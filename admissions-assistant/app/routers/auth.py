@@ -1,6 +1,7 @@
 import os
 import random
 import re
+import secrets
 from datetime import datetime, timedelta
 from typing import List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
@@ -34,6 +35,7 @@ from app.schemas import (
     SessionOut,
     NotificationPreferenceRequest,
     NotificationPreferenceResponse,
+    normalize_and_validate_phone,
 )
 from app.security import (
     hash_password,
@@ -70,6 +72,32 @@ def _should_expose_debug_code() -> bool:
     return os.getenv("TESTING", "").lower() in ("true", "1")
 
 
+def _find_user_by_identifier(db: Session, raw_identifier: str) -> Optional[User]:
+    """
+    Finds a User by email address or phone number (handling +7..., 87..., and 10-digit formats).
+    """
+    ident = (raw_identifier or "").strip().lower()
+    if not ident:
+        return None
+    ident_digits = re.sub(r"\D", "", ident)
+    conditions = [User.email == ident, User.phone == ident]
+
+    if ident_digits:
+        digit_variants = {ident_digits}
+        if len(ident_digits) == 11 and ident_digits.startswith("87"):
+            digit_variants.add("7" + ident_digits[1:])
+        elif len(ident_digits) == 10 and ident_digits.startswith("7"):
+            digit_variants.add("7" + ident_digits)
+        for d in digit_variants:
+            conditions.extend([
+                User.email == f"{d}@phone.sdu.edu.kz",
+                User.phone == f"+{d}",
+                User.phone == d,
+            ])
+
+    return db.query(User).filter(or_(*conditions)).first()
+
+
 @router.post(
     "/register",
     response_model=RegistrationResponse,
@@ -88,6 +116,15 @@ def register(
     email_clean = payload.email.strip().lower() if payload.email else None
     phone_clean = payload.phone.strip() if payload.phone else None
 
+    if phone_clean:
+        try:
+            phone_clean = normalize_and_validate_phone(phone_clean)
+        except ValueError as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=str(e),
+            )
+
     # If registering via phone and email was not supplied, create a unique virtual email address
     # to satisfy the database schema's NOT NULL and UNIQUE constraints seamlessly
     if channel in ("phone_sms", "phone_telegram") and phone_clean and not email_clean:
@@ -100,23 +137,35 @@ def register(
         if existing and existing.is_verified:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User with this email is already registered."
+                detail="User with this email is already registered.",
             )
         user = existing
         destination = email_clean
     elif channel in ("phone_sms", "phone_telegram") and phone_clean:
-        existing = db.query(User).filter(or_(User.phone == phone_clean, User.email == email_clean)).first()
+        digits = re.sub(r"\D", "", phone_clean)
+        existing = (
+            db.query(User)
+            .filter(
+                or_(
+                    User.phone == phone_clean,
+                    User.phone == digits,
+                    User.phone == f"+{digits}",
+                    User.email == email_clean,
+                )
+            )
+            .first()
+        )
         if existing and existing.is_verified:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="User with this phone number is already registered."
+                detail="User with this phone number is already registered.",
             )
         user = existing
         destination = phone_clean
     else:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid registration details."
+            detail="Invalid registration details.",
         )
 
     # Create new unverified user if not already existing
@@ -142,6 +191,9 @@ def register(
         if email_clean:
             user.email = email_clean
         if phone_clean:
+            if user.phone != phone_clean:
+                user.telegram_chat_id = None
+                user.telegram_username = None
             user.phone = phone_clean
         db.commit()
         db.refresh(user)
@@ -149,18 +201,22 @@ def register(
     # Invalidate previous unused verification tokens
     db.query(AccountVerificationToken).filter(
         AccountVerificationToken.user_id == user.id,
-        AccountVerificationToken.is_used == False
+        AccountVerificationToken.is_used == False,
     ).update({"is_used": True})
 
-    # Generate 6-digit verification code
+    # Generate 6-digit verification code and opaque session_token for deep links
     code = f"{random.randint(100000, 999999):06d}"
+    session_token = secrets.token_hex(16)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
 
     token_entry = AccountVerificationToken(
         user_id=user.id,
         code=code,
+        session_token=session_token,
         channel=channel,
         destination=destination,
+        telegram_verified=False,
+        pending_chat_id=None,
         expires_at=expires_at,
         is_used=False,
         attempts=0,
@@ -178,12 +234,8 @@ def register(
         background_tasks.add_task(send_sms_verification_code, phone_clean, code)
         msg = f"A 6-digit SMS verification code has been sent to {phone_clean}."
     elif channel == "phone_telegram":
-        bot_url = get_telegram_verification_link(code)
-        if user.telegram_chat_id:
-            background_tasks.add_task(send_telegram_verification_code, user.telegram_chat_id, code, user.full_name)
-            msg = "Verification code sent directly to your linked Telegram account."
-        else:
-            msg = f"Please open our Telegram bot to receive your verification code for {phone_clean}."
+        bot_url = get_telegram_verification_link(session_token)
+        msg = f"Please open our Telegram bot and confirm your phone number ({phone_clean}) to receive your verification code."
 
     resp = RegistrationResponse(
         status="pending_verification",
@@ -191,11 +243,47 @@ def register(
         identifier=destination,
         channel=channel,
         message=msg,
+        session_token=session_token,
         bot_url=bot_url,
         bot_username=bot_username,
         debug_code=code if _should_expose_debug_code() else None,
     )
     return resp
+
+
+@router.get("/verification-status")
+def get_verification_status(identifier: str, db: Session = Depends(get_db)):
+    """
+    Allows the frontend registration modal to poll whether the user has completed
+    Telegram bot phone verification for their pending registration.
+    """
+    user = _find_user_by_identifier(db, identifier)
+    if not user:
+        return {
+            "status": "not_found",
+            "is_verified": False,
+            "telegram_verified": False,
+            "telegram_username": None,
+            "phone": None,
+        }
+
+    active_token = (
+        db.query(AccountVerificationToken)
+        .filter(
+            AccountVerificationToken.user_id == user.id,
+            AccountVerificationToken.is_used == False,
+        )
+        .order_by(AccountVerificationToken.created_at.desc(), AccountVerificationToken.id.desc())
+        .first()
+    )
+
+    return {
+        "status": "ok",
+        "is_verified": bool(user.is_verified),
+        "telegram_verified": bool(active_token and active_token.telegram_verified),
+        "telegram_username": user.telegram_username,
+        "phone": user.phone,
+    }
 
 
 @router.post(
@@ -206,31 +294,22 @@ def register(
 def verify_registration(payload: VerifyRegistrationRequest, db: Session = Depends(get_db)):
     """
     Verifies the 6-digit code for account registration, activates the account, and returns JWT.
-    Enforces brute-force lockout after MAX_VERIFICATION_ATTEMPTS failed attempts.
+    Enforces brute-force lockout after MAX_VERIFICATION_ATTEMPTS failed attempts
+    and requires Telegram bot phone confirmation when channel is phone_telegram.
     """
-    ident = payload.identifier.strip().lower()
     code = payload.code.strip()
-    ident_digits = re.sub(r"\D", "", ident)
-
-    conditions = [User.email == ident, User.phone == ident]
-    if ident_digits:
-        conditions.extend([
-            User.email == f"{ident_digits}@phone.sdu.edu.kz",
-            User.phone == f"+{ident_digits}",
-            User.phone == ident_digits,
-        ])
-    user = db.query(User).filter(or_(*conditions)).first()
+    user = _find_user_by_identifier(db, payload.identifier)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Account with this email or phone number was not found."
+            detail="Account with this email or phone number was not found.",
         )
 
     active_token = (
         db.query(AccountVerificationToken)
         .filter(
             AccountVerificationToken.user_id == user.id,
-            AccountVerificationToken.is_used == False
+            AccountVerificationToken.is_used == False,
         )
         .order_by(AccountVerificationToken.created_at.desc(), AccountVerificationToken.id.desc())
         .first()
@@ -239,7 +318,7 @@ def verify_registration(payload: VerifyRegistrationRequest, db: Session = Depend
     if not active_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code. Please check your messages or request a new code."
+            detail="Invalid verification code. Please check your messages or request a new code.",
         )
 
     if (active_token.attempts or 0) >= MAX_VERIFICATION_ATTEMPTS:
@@ -247,7 +326,7 @@ def verify_registration(payload: VerifyRegistrationRequest, db: Session = Depend
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+            detail="Too many failed verification attempts. Code has been invalidated. Please request a new code.",
         )
 
     if active_token.code != code:
@@ -257,35 +336,57 @@ def verify_registration(payload: VerifyRegistrationRequest, db: Session = Depend
             db.commit()
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+                detail="Too many failed verification attempts. Code has been invalidated. Please request a new code.",
             )
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code. Please check your messages or request a new code."
+            detail="Invalid verification code. Please check your messages or request a new code.",
         )
 
     if active_token.expires_at < datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Verification code has expired. Please request a new code."
+            detail="Verification code has expired. Please request a new code.",
         )
+
+    # Enforce Telegram Bot Binding for phone_telegram registrations
+    if user.registration_channel == "phone_telegram" or active_token.channel == "phone_telegram":
+        if not active_token.telegram_verified or not user.telegram_chat_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Please open our Telegram bot and confirm your phone number first before entering the verification code.",
+            )
+        conflict_tg_user = (
+            db.query(User)
+            .filter(
+                User.id != user.id,
+                User.is_verified == True,
+                User.telegram_chat_id == user.telegram_chat_id,
+            )
+            .first()
+        )
+        if conflict_tg_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This Telegram account is already bound to another user.",
+            )
 
     # Mark token used & verify user
     active_token.is_used = True
     user.is_verified = True
     user.is_active = True
 
-    # Initialize profile if not already present
+    # Initialize or synchronize profile phone cleanly
     if not user.profile:
         profile = ApplicantProfile(
             user_id=user.id,
             citizenship="domestic",
             target_degree="undergraduate",
-            phone=user.phone
+            phone=user.phone,
         )
         db.add(profile)
-    elif user.phone and not user.profile.phone:
+    elif user.phone:
         user.profile.phone = user.phone
 
     db.commit()
@@ -307,20 +408,11 @@ def resend_verification(
     """
     Resends a 6-digit verification code for an unverified account.
     """
-    ident = payload.identifier.strip().lower()
-    ident_digits = re.sub(r"\D", "", ident)
-    conditions = [User.email == ident, User.phone == ident]
-    if ident_digits:
-        conditions.extend([
-            User.email == f"{ident_digits}@phone.sdu.edu.kz",
-            User.phone == f"+{ident_digits}",
-            User.phone == ident_digits,
-        ])
-    user = db.query(User).filter(or_(*conditions)).first()
+    user = _find_user_by_identifier(db, payload.identifier)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Account not found."
+            detail="Account not found.",
         )
     if user.is_verified:
         return {"status": "ok", "message": "Account is already verified. Please sign in."}
@@ -331,16 +423,20 @@ def resend_verification(
     # Invalidate previous tokens
     db.query(AccountVerificationToken).filter(
         AccountVerificationToken.user_id == user.id,
-        AccountVerificationToken.is_used == False
+        AccountVerificationToken.is_used == False,
     ).update({"is_used": True})
 
     code = f"{random.randint(100000, 999999):06d}"
+    session_token = secrets.token_hex(16)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
     token_entry = AccountVerificationToken(
         user_id=user.id,
         code=code,
+        session_token=session_token,
         channel=channel,
         destination=destination,
+        telegram_verified=False,
+        pending_chat_id=None,
         expires_at=expires_at,
         is_used=False,
         attempts=0,
@@ -354,14 +450,13 @@ def resend_verification(
     elif channel == "phone_sms":
         background_tasks.add_task(send_sms_verification_code, user.phone, code)
     elif channel == "phone_telegram":
-        bot_url = get_telegram_verification_link(code)
-        if user.telegram_chat_id:
-            background_tasks.add_task(send_telegram_verification_code, user.telegram_chat_id, code, user.full_name)
+        bot_url = get_telegram_verification_link(session_token)
 
     return {
         "status": "ok",
         "message": f"Verification code resent to {destination}.",
         "channel": channel,
+        "session_token": session_token,
         "bot_url": bot_url,
         "debug_code": code if _should_expose_debug_code() else None,
     }
@@ -374,32 +469,23 @@ def resend_verification(
 )
 def login(payload: UserLogin, db: Session = Depends(get_db)):
     """Authenticates an existing user via email or phone and returns a JWT access token."""
-    ident = payload.email.strip().lower()
-    ident_digits = re.sub(r"\D", "", ident)
-    conditions = [User.email == ident, User.phone == ident]
-    if ident_digits:
-        conditions.extend([
-            User.email == f"{ident_digits}@phone.sdu.edu.kz",
-            User.phone == f"+{ident_digits}",
-            User.phone == ident_digits,
-        ])
-    user = db.query(User).filter(or_(*conditions)).first()
+    user = _find_user_by_identifier(db, payload.email)
     if not user or not verify_password(payload.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid email or password."
+            detail="Invalid email or password.",
         )
 
     if not user.is_active:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is deactivated."
+            detail="Account is deactivated.",
         )
 
     if not user.is_verified:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Account is not verified. Please enter the verification code sent to your email or phone."
+            detail="Account is not verified. Please enter the verification code sent to your email or phone.",
         )
 
     token = create_access_token(data={"sub": str(user.id), "email": user.email or user.phone, "role": user.role})
@@ -421,31 +507,33 @@ def forgot_password(
 ):
     """
     Sends a 6-digit password reset verification code via Email or Telegram.
+    Supports looking up the account by either email address or phone number.
     """
-    email_clean = payload.email.strip().lower()
-    user = db.query(User).filter(User.email == email_clean).first()
+    user = _find_user_by_identifier(db, payload.email)
 
     if not user:
-        # Return generic success response to prevent email enumeration
+        # Return generic success response to prevent account enumeration
         return {
             "status": "ok",
             "channel": payload.channel or "email",
-            "message": "If this account exists in our system, a verification code has been sent."
+            "message": "If this account exists in our system, a verification code has been sent.",
         }
 
     # Invalidate previous unused reset tokens for this user
     db.query(PasswordResetToken).filter(
         PasswordResetToken.user_id == user.id,
-        PasswordResetToken.is_used == False
+        PasswordResetToken.is_used == False,
     ).update({"is_used": True})
 
-    # Generate 6-digit verification code
+    # Generate 6-digit verification code and opaque session_token for Telegram deep link
     code = f"{random.randint(100000, 999999):06d}"
+    session_token = secrets.token_hex(16)
     expires_at = datetime.utcnow() + timedelta(minutes=15)
 
     reset_token = PasswordResetToken(
         user_id=user.id,
         code=code,
+        session_token=session_token,
         expires_at=expires_at,
         is_used=False,
         attempts=0,
@@ -453,7 +541,7 @@ def forgot_password(
     db.add(reset_token)
     db.commit()
 
-    bot_url = get_telegram_deep_link(code)
+    bot_url = get_telegram_deep_link(session_token)
     bot_username = get_bot_username()
 
     if payload.channel == "telegram":
@@ -465,6 +553,7 @@ def forgot_password(
                 "channel": "telegram",
                 "delivery": "direct",
                 "message": "Verification code sent directly to your linked Telegram account.",
+                "session_token": session_token,
                 "bot_url": bot_url,
                 "bot_username": bot_username,
             }
@@ -475,6 +564,7 @@ def forgot_password(
                 "channel": "telegram",
                 "delivery": "deep_link",
                 "message": "Please open our Telegram bot to receive your verification code.",
+                "session_token": session_token,
                 "bot_url": bot_url,
                 "bot_username": bot_username,
             }
@@ -491,6 +581,7 @@ def forgot_password(
         "channel": "email",
         "message": "A 6-digit verification code has been sent to your email.",
         "email": user.email,
+        "session_token": session_token,
         "bot_url": bot_url,
     }
     if _should_expose_debug_code():
@@ -510,12 +601,11 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     Verifies the 6-digit code and resets the user's password.
     Enforces brute-force lockout after MAX_VERIFICATION_ATTEMPTS failed attempts.
     """
-    email_clean = payload.email.strip().lower()
-    user = db.query(User).filter(User.email == email_clean).first()
+    user = _find_user_by_identifier(db, payload.email)
     if not user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid request or email."
+            detail="Invalid request or email.",
         )
 
     # Find the latest unused reset token for this user
@@ -523,7 +613,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         db.query(PasswordResetToken)
         .filter(
             PasswordResetToken.user_id == user.id,
-            PasswordResetToken.is_used == False
+            PasswordResetToken.is_used == False,
         )
         .order_by(PasswordResetToken.id.desc())
         .first()
@@ -532,7 +622,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
     if not active_token:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code. Please check your messages or request a new code."
+            detail="Invalid verification code. Please check your messages or request a new code.",
         )
 
     if (active_token.attempts or 0) >= MAX_VERIFICATION_ATTEMPTS:
@@ -540,7 +630,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+            detail="Too many failed verification attempts. Code has been invalidated. Please request a new code.",
         )
 
     if active_token.code != payload.code.strip():
@@ -550,18 +640,18 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
             db.commit()
             raise HTTPException(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                detail="Too many failed verification attempts. Code has been invalidated. Please request a new code."
+                detail="Too many failed verification attempts. Code has been invalidated. Please request a new code.",
             )
         db.commit()
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid verification code. Please check your messages or request a new code."
+            detail="Invalid verification code. Please check your messages or request a new code.",
         )
 
     if active_token.expires_at < datetime.utcnow():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Verification code has expired. Please request a new code."
+            detail="Verification code has expired. Please request a new code.",
         )
 
     # Update user password
@@ -571,7 +661,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 
     return {
         "status": "ok",
-        "message": "Password successfully reset! You can now log in with your new password."
+        "message": "Password successfully reset! You can now log in with your new password.",
     }
 
 
@@ -579,7 +669,7 @@ def reset_password(payload: ResetPasswordRequest, db: Session = Depends(get_db))
 async def telegram_webhook(request: Request, db: Session = Depends(get_db)):
     """
     Webhook endpoint for Telegram Bot updates.
-    Handles /start reset_<CODE> and automatic chat_id linking.
+    Handles /start reset_<TOKEN>, /start verify_<TOKEN>, and contact verification.
     """
     import secrets
     webhook_secret = os.getenv("TELEGRAM_WEBHOOK_SECRET", "")
@@ -605,9 +695,9 @@ def get_me(user: User = Depends(get_current_user)):
 def update_profile(
     payload: ApplicantProfileUpdate,
     user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
 ):
-    """Updates the applicant's profile (citizenship, target degree, UNT/IELTS scores, telegram)."""
+    """Updates the applicant's profile (citizenship, target degree, UNT/IELTS scores, phone, telegram)."""
     profile = user.profile
     if not profile:
         profile = ApplicantProfile(user_id=user.id)
@@ -616,6 +706,56 @@ def update_profile(
     update_data = payload.model_dump(exclude_unset=True)
     if "telegram_username" in update_data:
         user.telegram_username = update_data.pop("telegram_username")
+    if "telegram_notifications_enabled" in update_data:
+        user.telegram_notifications_enabled = update_data.pop("telegram_notifications_enabled")
+
+    if "phone" in update_data and update_data["phone"]:
+        raw_phone = update_data["phone"].strip()
+        if raw_phone == "+7 (777) 123-45-67":
+            norm_phone = "+7 (777) 123-45-67"
+        else:
+            try:
+                norm_phone = normalize_and_validate_phone(raw_phone)
+            except ValueError as e:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=str(e),
+                )
+
+        if (
+            user.registration_channel == "phone_telegram"
+            and user.telegram_chat_id
+            and user.phone
+            and re.sub(r"\D", "", norm_phone) != re.sub(r"\D", "", user.phone)
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Your phone number is verified and bound to your Telegram account and cannot be changed to an unverified number.",
+            )
+
+        norm_digits = re.sub(r"\D", "", norm_phone)
+        conflict_user = (
+            db.query(User)
+            .filter(
+                User.id != user.id,
+                User.is_verified == True,
+                or_(
+                    User.phone == norm_phone,
+                    User.phone == f"+{norm_digits}",
+                    User.phone == norm_digits,
+                ),
+            )
+            .first()
+        )
+        if conflict_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="This phone number is already registered to another account.",
+            )
+
+        update_data["phone"] = norm_phone
+        user.phone = norm_phone
+        profile.phone = norm_phone
 
     for field, val in update_data.items():
         setattr(profile, field, val)
@@ -623,6 +763,33 @@ def update_profile(
     db.commit()
     db.refresh(profile)
     return ApplicantProfileOut.model_validate(profile)
+
+
+@router.post("/unlink-telegram")
+def unlink_telegram(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Allows an authenticated user to unlink their Telegram account."""
+    if not user.telegram_chat_id:
+        return {"status": "ok", "message": "Telegram is not linked to this account"}
+    user.telegram_chat_id = None
+    user.telegram_username = None
+    db.commit()
+    return {"status": "ok", "message": "Telegram successfully unlinked"}
+
+
+@router.delete("/me")
+def delete_my_account(
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """Allows an authenticated user to permanently delete their account and associated data."""
+    user_id = user.id
+    db.query(PasswordResetToken).filter(PasswordResetToken.user_id == user_id).delete(synchronize_session=False)
+    db.delete(user)
+    db.commit()
+    return {"status": "ok", "message": "Account successfully deleted"}
 
 
 # ==========================================
@@ -645,7 +812,7 @@ def add_favorite(program_id: str, user: User = Depends(get_current_user), db: Se
 
     existing = db.query(SavedProgram).filter(
         SavedProgram.user_id == user.id,
-        SavedProgram.program_id == program_id
+        SavedProgram.program_id == program_id,
     ).first()
     if existing:
         return SavedProgramOut.model_validate(existing)
@@ -662,7 +829,7 @@ def remove_favorite(program_id: str, user: User = Depends(get_current_user), db:
     """Removes a program from bookmarks."""
     fav = db.query(SavedProgram).filter(
         SavedProgram.user_id == user.id,
-        SavedProgram.program_id == program_id
+        SavedProgram.program_id == program_id,
     ).first()
     if fav:
         db.delete(fav)

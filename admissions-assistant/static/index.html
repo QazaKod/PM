@@ -890,29 +890,30 @@
           Register with:
         </p>
         <div class="auth-channel-selector" style="margin-bottom: 12px;">
-          <button type="button" id="reg-channel-email" class="auth-channel-btn active" onclick="setRegisterChannel('email')">
-            📧 Email
+          <button type="button" id="reg-channel-phone" class="auth-channel-btn active" onclick="setRegisterChannel('phone')">
+            ✈️ Phone + Telegram
           </button>
-          <button type="button" id="reg-channel-phone" class="auth-channel-btn" onclick="setRegisterChannel('phone')">
-            📱 Phone Number
+          <button type="button" id="reg-channel-email" class="auth-channel-btn" onclick="setRegisterChannel('email')">
+            📧 Email
           </button>
         </div>
 
-        <div id="reg-email-group" class="auth-form-group">
+        <div id="reg-email-group" class="auth-form-group" style="display: none;">
           <label>Email Address</label>
           <input type="email" id="reg-email" placeholder="applicant@sdu.edu.kz">
           <div class="form-hint" style="font-size: 11px; color: var(--muted); margin-top: 3px;">A 6-digit confirmation code will be sent to your email.</div>
         </div>
 
-        <div id="reg-phone-group" class="auth-form-group" style="display: none;">
-          <label>Phone Number</label>
-          <input type="tel" id="reg-phone" placeholder="+7 777 123 4567">
+        <div id="reg-phone-group" class="auth-form-group" style="display: block;">
+          <label>Phone Number (linked to your Telegram)</label>
+          <input type="tel" id="reg-phone" placeholder="+7 701 123 4567">
+          <div class="form-hint" style="font-size: 11.5px; color: var(--muted); margin-top: 4px;">🔒 Verification & account binding is performed via our official Telegram Bot <strong>@sdu_admissions_registration_bot</strong>.</div>
           <div style="margin-top: 8px; font-size: 12px; color: var(--muted);">Receive code via:</div>
           <div class="auth-channel-selector" style="margin-top: 4px; margin-bottom: 6px;">
-            <button type="button" id="reg-phone-via-sms" class="auth-channel-btn active" onclick="setPhoneDeliveryMethod('phone_sms')" style="padding: 6px 10px; font-size: 12px;">
+            <button type="button" id="reg-phone-via-sms" class="auth-channel-btn" onclick="setPhoneDeliveryMethod('phone_sms')" style="display: none; padding: 6px 10px; font-size: 12px;">
               💬 SMS Code
             </button>
-            <button type="button" id="reg-phone-via-tg" class="auth-channel-btn" onclick="setPhoneDeliveryMethod('phone_telegram')" style="padding: 6px 10px; font-size: 12px;">
+            <button type="button" id="reg-phone-via-tg" class="auth-channel-btn active" onclick="setPhoneDeliveryMethod('phone_telegram')" style="padding: 6px 10px; font-size: 12px;">
               ✈️ Telegram Bot
             </button>
           </div>
@@ -943,9 +944,13 @@
         </div>
         <div id="verify-reg-tg-container" style="display: none; margin-bottom: 12px;">
           <a id="verify-reg-tg-link" href="#" target="_blank" class="auth-tg-btn">
-            ✈️ Open in Telegram Bot to Get Code
+            ✈️ Step 1: Open Telegram Bot & Confirm Phone
           </a>
+          <p style="font-size: 11.5px; color: var(--muted); margin: 6px 0 0 0;">
+            💡 Если этот Telegram уже привязан к старому номеру, отправьте боту <code>/unlink</code> для отвязки.
+          </p>
         </div>
+        <div id="verify-reg-tg-status" style="display: none; padding: 10px 12px; border-radius: 8px; font-size: 12.5px; margin-bottom: 12px; background: rgba(27, 127, 92, 0.12); color: var(--ok, #1B7F5C); font-weight: 600;"></div>
         <div class="auth-form-group">
           <label>6-Digit Verification Code</label>
           <input type="text" id="verify-reg-code" maxlength="6" class="auth-code-input" required placeholder="123456">
@@ -964,19 +969,19 @@
           Choose how you want to receive your 6-digit verification code:
         </p>
         <div class="auth-channel-selector">
-          <button type="button" id="channel-btn-email" class="auth-channel-btn active" onclick="setForgotChannel('email')">
+          <button type="button" id="channel-btn-email" class="auth-channel-btn" onclick="setForgotChannel('email')">
             📧 Email
           </button>
-          <button type="button" id="channel-btn-telegram" class="auth-channel-btn" onclick="setForgotChannel('telegram')">
+          <button type="button" id="channel-btn-telegram" class="auth-channel-btn active" onclick="setForgotChannel('telegram')">
             ✈️ Telegram
           </button>
         </div>
         <div class="auth-form-group">
-          <label>Registered Email Address</label>
-          <input type="email" id="forgot-email" required placeholder="applicant@sdu.edu.kz">
+          <label>Registered Phone Number or Email</label>
+          <input type="text" id="forgot-email" required placeholder="+7 701 123 4567 or applicant@sdu.edu.kz">
         </div>
         <div id="forgot-error" class="auth-form-error"></div>
-        <button type="submit" id="forgot-submit-btn" class="auth-form-submit">Send Code via Email</button>
+        <button type="submit" id="forgot-submit-btn" class="auth-form-submit">Get Code via Telegram Bot</button>
         <div style="text-align: center; margin-top: 14px;">
           <a href="#" class="auth-forgot-link" onclick="switchAuthTab('login'); return false;">&larr; Back to Sign In</a>
         </div>
@@ -1051,8 +1056,9 @@
         </div>
         <div class="auth-form-group">
           <label>Phone Number</label>
-          <input type="tel" id="prof-phone" placeholder="+7 777 123 4567">
-          <div class="form-hint">Format: +7 777 123 4567 or 10-15 digits</div>
+          <div id="prof-telegram-badge" style="font-size: 12.5px; margin-bottom: 10px; padding: 8px 12px; border-radius: 8px; background: var(--surface-alt, rgba(18,137,167,0.08));"></div>
+          <input type="tel" id="prof-phone" placeholder="+7 701 123 4567">
+          <div id="prof-phone-hint" class="form-hint">Format: +7 701 123 4567 or 10-15 digits</div>
         </div>
         <div class="auth-form-group" style="margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);">
           <label style="display: flex; align-items: center; justify-content: space-between; cursor: pointer;">

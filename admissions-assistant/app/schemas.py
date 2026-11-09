@@ -18,11 +18,17 @@ class RequirementContext(BaseModel):
     pending: Optional[Literal['program_id', 'category', 'study_level']] = None
 
 
+class ChatHistoryTurn(BaseModel):
+    sender: Literal['user', 'bot'] = 'user'
+    message: str = Field(min_length=1, max_length=4000)
+
+
 class ChatQuery(BaseModel):
     message: str = Field(min_length=1, max_length=4000)
     context: Optional[RequirementContext] = None
     language: Optional[Literal['en', 'ru', 'kk']] = None
     session_id: Optional[str] = None
+    history: Optional[List[ChatHistoryTurn]] = None
 
 
 class ChatResponse(BaseModel):

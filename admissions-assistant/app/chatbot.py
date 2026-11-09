@@ -35,19 +35,35 @@ from app.services.unt_calculator import (
 )
 from app.services.tuition_calculator import calculate_tuition_and_grant
 
+import logging
+from pathlib import Path
+
+logger = logging.getLogger("admissions_api")
+
 # --- AI Fallback Imports ---
 try:
     from dotenv import load_dotenv
-    load_dotenv()
+    if not os.environ.get("TESTING"):
+        load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 except ImportError:
     pass
 
 try:
+    import httpx
+    HTTPX_AVAILABLE = True
+except ImportError:
+    httpx = None
+    HTTPX_AVAILABLE = False
+
+try:
     from google import genai
     from google.genai import types
-    AI_AVAILABLE = True
 except ImportError:
-    AI_AVAILABLE = False
+    genai = None
+    types = None
+
+AI_AVAILABLE = bool(genai is not None or HTTPX_AVAILABLE)
+AI_MODELS = ("gemini-3.5-flash-lite", "gemini-3.5-flash", "gemini-3.6-flash")
 
 
 CONFIDENCE_THRESHOLD = 0.34
@@ -113,7 +129,9 @@ def _stem_match(q_word: str, target_tokens: list) -> int:
             return syn_hits
 
     # Prefix stem matching for longer inflected words (>= 5 chars)
-    if len(q_word) >= 5:
+    if len(q_word) >= 5 and q_word not in (
+        "программа", "программы", "программу", "программе", "программ", "программам", "программами", "программах"
+    ):
         prefix = q_word[: max(5, len(q_word) - 2)]
         stem_hits = sum(
             1
@@ -144,7 +162,7 @@ def get_scored_programs(message: str) -> List[Tuple[Dict, float]]:
         aliases = " ".join(program.get("aliases") or [])
         codes_dict = program.get("codes") or {}
         codes = " ".join(filter(None, codes_dict.values()))
-        target = f"{program['name']} {program['name']} {program['name']} {program['code']} {program.get('description', '')} {program.get('degree', '')} {aliases} {codes}"
+        target = f"{program['name']} {program['name']} {program['name']} {program['code']} {program.get('description', '')} {program.get('degree', '')} {aliases} {aliases} {aliases} {codes}"
         scored.append((program, _score(q_tokens, _tokenize(target))))
     scored.sort(key=lambda x: x[1], reverse=True)
     return scored
@@ -203,17 +221,22 @@ LINKS_PATTERN = re.compile(
     r"|список\s+(?:официальных\s+)?ссылок"
     r"|полезн\w*\s+ссылк\w*"
     r"|ссылк\w*\s*(?:на\s+портал|на\s+сайт|сду|приемн\w*|sdu)"
+    r"|соед[еи]н\w*\s+с\s*(?:оператор\w*|приемн\w*|консультант\w*|менеджер\w*)?"
+    r"|(?:поз\w*|связать\w*\s+с)\s*(?:оператор\w*|консультант\w*|менеджер\w*|приемн\w*\s+комисси\w*)"
+    r"|контакт\w*\s*(?:приемн\w*\s*комисси\w*|сду|sdu|университет\w*)"
+    r"|(?:номер\s+телефона|телефон|колл[- ]?центр|call[- ]?центр|whatsapp|ватсап)\s*(?:приемн\w*|сду|sdu)"
     r"|official\s+(?:source\s+)?links"
     r"|verified\s+links"
     r"|admissions\s+links"
     r"|useful\s+links"
     r"|ресми\s+сілтемелер"
-    r"|пайдалы\s+сілтемелер",
+    r"|пайдалы\s+сілтемелер"
+    r"|оператормен\s+байланыс\w*",
     re.IGNORECASE
 )
 
 UNT_KEYWORD_PATTERN = re.compile(
-    r"unt\s*matcher|калькулятор\s*ент|подбор\s*программ(?:\s*по\s*ент)?|пройду\s*ли\s*(?:я\s*)?(?:с|по|на)\b|с\s*какими\s*баллами|куда\s*поступить\s*с",
+    r"unt\s*matcher|калькулятор\s*ент|подбор\s*программ(?:\s*по\s*ент)?|пройду\s*ли\s*(?:я\s*)?(?:с|по|на)\b|с\s*какими\s*баллами|куда\s*(?:можно\s+|я\s+могу\s+)?поступить\s*(?:с|по)\s*(?:ент|ұбт|балл\w*|\d)",
     re.IGNORECASE
 )
 
@@ -298,12 +321,12 @@ def _handle_official_links(message: str, language: Optional[str] = None) -> Opti
         return None
 
     official = get_official_links()
-    lines = ["🌐 **Официальные проверенные ресурсы SDU University:**\n"]
+    lines = ["🌐 **Официальные проверенные ресурсы и контакты SDU University:**\n"]
     for item in official["links"]:
         desc = f" — {item['description']}" if item.get("description") else ""
         lines.append(f"• [{item['title']}]({item['url']}){desc}")
 
-    lines.append("\n📞 Call-центр SDU: +7 (727) 307 95 65 | WhatsApp: +7 702 000 11 33")
+    lines.append("\n📞 Call-центр SDU: +7 (727) 307 95 65 | WhatsApp: +7 702 000 11 33 | Email: admission@sdu.edu.kz")
     return {
         "answer": "\n".join(lines).strip(),
         "confident": True,
@@ -328,6 +351,18 @@ def _extract_unt_subjects_and_score(message: str) -> Tuple[List[str], Optional[i
             pass
 
     found_subjects = []
+    # Check compound subject shorthands first (e.g. физмат, инфомат, геомат)
+    compound_shorthands = [
+        (r"\b(?:физмат|матфиз)\w*\b", ["Mathematics", "Physics"]),
+        (r"\b(?:инфомат|матинфо)\w*\b", ["Mathematics", "Computer Science"]),
+        (r"\b(?:геомат|матгео)\w*\b", ["Mathematics", "Geography"]),
+    ]
+    for pat, subs in compound_shorthands:
+        if re.search(pat, message, re.IGNORECASE):
+            for s in subs:
+                if s not in found_subjects:
+                    found_subjects.append(s)
+
     for canonical, patterns in SUBJECT_ALIASES.items():
         if canonical in ("Biology", "Chemistry"):
             continue
@@ -343,6 +378,7 @@ def _handle_unt_matcher(message: str, language: Optional[str] = None) -> Optiona
     """Recognize inquiries regarding UNT score and subject matching."""
     has_keyword = bool(UNT_KEYWORD_PATTERN.search(message))
     found_subjects, score = _extract_unt_subjects_and_score(message)
+    raw_subject_count = len(found_subjects)
 
     # Check if a specific program was mentioned instead of two subjects
     all_progs = load_programs()
@@ -353,12 +389,27 @@ def _handle_unt_matcher(message: str, language: Optional[str] = None) -> Optiona
         if p_name in msg_clean or p["id"].lower() in msg_clean:
             mentioned_prog = p
             break
+        for alias in (p.get("aliases") or []):
+            if len(alias) >= 4 and alias.lower() in msg_clean:
+                mentioned_prog = p
+                break
+        if mentioned_prog:
+            break
 
-    if mentioned_prog and len(found_subjects) < 2 and p.get("unt_subjects"):
-        found_subjects = [normalize_subject(s) for s in p["unt_subjects"]]
+    if mentioned_prog and len(found_subjects) < 2 and mentioned_prog.get("unt_subjects"):
+        found_subjects = [normalize_subject(s) for s in mentioned_prog["unt_subjects"]]
+
+    if not has_keyword and score is None and COMPLEX_AI_QUERY_PATTERN.search(message):
+        return None
 
     if not has_keyword and (len(found_subjects) < 2 or score is None):
-        return None
+        # Also allow subject-pair program queries without score if 2 subjects were explicitly given
+        if not (
+            raw_subject_count >= 2
+            and mentioned_prog is None
+            and re.search(r"программ|специальност|поступ|направлен|ент|unt|ұбт|мамандық|какие|куда", msg_clean)
+        ):
+            return None
 
     if len(found_subjects) < 2:
         return {
@@ -373,25 +424,35 @@ def _handle_unt_matcher(message: str, language: Optional[str] = None) -> Optiona
         }
 
     sub1, sub2 = found_subjects[0], found_subjects[1]
-    eval_score = score if score is not None else 75
+    eval_score = score if score is not None else 140
 
     try:
         res = match_unt_eligibility(sub1, sub2, eval_score)
-    except Exception as e:
+    except Exception:
         return None
 
+    if score is None and not has_keyword and not res["eligible_programs"] and not res["deficit_programs"]:
+        return None
+
+    score_header = f" | Балл: **{eval_score}**" if score is not None else ""
     lines = [
-        "🎯 **Результат подбора программ SDU по баллам ЕНТ**",
-        f"Предметы: **{res['subjects_normalized'][0]} + {res['subjects_normalized'][1]}** | Балл: **{eval_score}**\n",
-        f"{res['status_message']}\n"
+        "🎯 **Результат подбора программ SDU по профильным предметам ЕНТ**",
+        f"Предметы: **{res['subjects_normalized'][0]} + {res['subjects_normalized'][1]}**{score_header}\n",
     ]
+    if score is not None:
+        lines.append(f"{res['status_message']}\n")
 
     if res["eligible_programs"]:
-        lines.append("✅ **Доступные программы (балл достаточен):**")
+        header_label = (
+            "✅ **Доступные программы (балл достаточен):**"
+            if score is not None
+            else "✅ **Подходящие программы SDU и пороговые баллы:**"
+        )
+        lines.append(header_label)
         for p in res["eligible_programs"]:
-            grant_str = f"шанс на грант: {p['grant_chance'].upper()}" if p.get("grant_chance") else ""
+            grant_str = f" (шанс на грант: {p['grant_chance'].upper()})" if (score is not None and p.get("grant_chance")) else ""
             cost_str = f"~{p['approx_cost_per_year_kzt']:,} KZT/год" if p.get('approx_cost_per_year_kzt') else ""
-            lines.append(f"• **{p['name']}** ({p.get('code')}) — Порог: {p['min_score']} б. | {cost_str} ({grant_str})")
+            lines.append(f"• **{p['name']}** ({p.get('code')}) — Порог: {p['min_score']} б. | {cost_str}{grant_str}")
         lines.append("")
 
     if res["deficit_programs"]:
@@ -638,60 +699,220 @@ def _resolve_followup_program_from_history(
     return None
 
 
+_SDU_KB_CACHE: Optional[Dict] = None
+
+COMPLEX_AI_QUERY_PATTERN = re.compile(
+    r"\b(?:чем\s+отлича\w*|разниц\w*\s+между|сравн\w*|compare|difference\s+between|vs\b"
+    r"|или\s+лучше|что\s+лучше|кем\s+(?:я\s+)?(?:смогу\s+|можно\s+)?работать"
+    r"|карьер\w*|перспектив\w*|трудоустройств\w*|посоветуй\w*|помоги\w*\s+выбрать"
+    r"|сложно\s+ли|трудно\s+ли|тяжело\s+ли|стоит\s+ли|почему\s+стоит"
+    r"|какие\s+язык\w*\s+программирован\w*|что\s+(?:изучают|проходят|учат)"
+    r"|какие\s+(?:предмет\w*|дисциплин\w*|курс\w*)\s+(?:изучают|проходят|учат|есть)"
+    r"|учебн\w*\s+план|практик\w*|стажировк\w*|перевест\w*|перевод\w*\s+(?:из|в|на|с)"
+    r"|военн\w*\s+кафедр\w*|военк\w*|академическ\w*\s+мобильност\w*|по\s+обмену|erasmus|двойн\w*\s+диплом\w*|dual\s+degree"
+    r"|клуб\w*|кружк\w*|студенческ\w*\s+жизн\w*|кампус\w*|кто\s+ректор"
+    r"|какие\s+факультет\w*|расскажи\s+(?:подробно\s+|коротко\s+)?(?:про|о|об)\s+(?:сду|sdu|университет\w*))\b",
+    re.IGNORECASE,
+)
+
+
+def _load_sdu_knowledge_base() -> Dict:
+    """Load and cache the comprehensive SDU knowledge base JSON."""
+    global _SDU_KB_CACHE
+    if _SDU_KB_CACHE is not None:
+        return _SDU_KB_CACHE
+    kb_path = Path(__file__).resolve().parent.parent / "data" / "sdu_knowledge_base.json"
+    if kb_path.exists():
+        try:
+            _SDU_KB_CACHE = json.loads(kb_path.read_text(encoding="utf-8"))
+            return _SDU_KB_CACHE
+        except Exception:
+            pass
+    _SDU_KB_CACHE = {}
+    return _SDU_KB_CACHE
+
+
+def _is_ai_active() -> bool:
+    """Check whether AI generation is enabled and an API key is configured."""
+    return bool(AI_AVAILABLE and os.environ.get("GEMINI_API_KEY"))
+
+
+def _should_prefer_ai_over_keyword(message: str, scored_programs: List[Tuple[Dict, float]]) -> bool:
+    """
+    When AI is active, route comparative, career-advice, or multi-program questions
+    to the AI assistant rather than returning a single static program card.
+    """
+    if not _is_ai_active():
+        return False
+    if COMPLEX_AI_QUERY_PATTERN.search(message):
+        return True
+    if len(scored_programs) >= 2:
+        msg_lower = message.lower()
+        explicit_hits = 0
+        for prog, score in scored_programs[:4]:
+            if score >= CONFIDENCE_THRESHOLD:
+                names = [prog.get("name", ""), *(prog.get("aliases") or [])]
+                if any(n and n.lower() in msg_lower for n in names):
+                    explicit_hits += 1
+        if explicit_hits >= 2:
+            return True
+    return False
+
+
+def _call_gemini_rest(api_key: str, system_instruction: str, message: str) -> str:
+    """Call Gemini generateContent REST endpoint via httpx with automatic model fallback."""
+    if not HTTPX_AVAILABLE or httpx is None:
+        raise RuntimeError("httpx is not available for Gemini REST API call")
+
+    payload = {
+        "system_instruction": {
+            "parts": [{"text": system_instruction}]
+        },
+        "contents": [
+            {"role": "user", "parts": [{"text": message}]}
+        ],
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+        },
+    }
+
+    last_error = None
+    for model_name in AI_MODELS:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+        try:
+            resp = httpx.post(url, json=payload, timeout=8.0)
+            if resp.status_code == 200:
+                data = resp.json()
+                candidates = data.get("candidates") or []
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts") or []
+                    if parts and "text" in parts[0]:
+                        return parts[0]["text"]
+            last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        except Exception as exc:
+            last_error = str(exc)
+            continue
+
+    raise RuntimeError(f"All Gemini models failed. Last error: {last_error}")
+
+
 def get_ai_fallback_response(
     message: str,
     top_programs: list,
     top_faqs: list,
     history: Optional[List[Dict]] = None,
+    language: Optional[str] = None,
 ) -> Dict:
-    """Uses Gemini API as a smart fallback with top matches and multi-turn conversation history."""
+    """
+    Uses Gemini AI with the full SDU knowledge base, programs, FAQs, and conversation history
+    to answer any SDU / admissions / university question when deterministic matchers do not trigger.
+    Only returns FALLBACK_MESSAGE in extreme cases when even the AI is not confident.
+    """
     api_key = os.environ.get("GEMINI_API_KEY")
     if not AI_AVAILABLE or not api_key:
-        print("AI Fallback skipped: Missing google-genai library or GEMINI_API_KEY")
+        logger.debug("AI Fallback skipped: Missing AI client or GEMINI_API_KEY")
         return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
-        
+
     try:
-        client = genai.Client(api_key=api_key)
-        
         programs_ctx = [{k: v for k, v in p.items() if k != "unt_subjects"} for p in top_programs]
-        faq_ctx = [f for f in top_faqs if f["id"] != "faq_language"]
+        faq_ctx = [f for f in top_faqs if f.get("id") != "faq_language"]
         history_ctx = (history or [])[-6:]
-        
+        kb_ctx = _load_sdu_knowledge_base()
+        all_faqs_ctx = [f for f in load_faq() if f.get("id") != "faq_language"]
+
+        lang_hint = f"Preferred response language code: {language}.\n" if language else ""
         context = (
-            "You are a university admissions assistant.\n"
-            "If the user is just greeting you (e.g. 'Hello', 'Привет', 'Сәлем') or making small talk, respond warmly and concisely in the same language. "
-            "Return a JSON object: {\"source\": \"greeting\", \"answer\": \"Your text\"}.\n\n"
-            "Otherwise, select an entry that answers the user's question (taking RECENT_HISTORY into account for follow-up questions). "
-            "Return ONLY a JSON object with source (\"program\" or \"faq\") and matched_id, or {} if no entry answers it.\n"
-            "Do not author admission conditions yourself.\n"
+            "You are the official intelligent AI Admissions Assistant for SDU University "
+            "(Suleyman Demirel University, Kaskelen, Almaty Region, Kazakhstan).\n"
+            "Your primary role is to help applicants, students, and parents with ANY questions about SDU University, "
+            "academic programs, faculties, UNT (ЕНТ) profile subjects and threshold scores, tuition fees, scholarships, "
+            "Republic of Kazakhstan state grants, the SDU Proficiency Test (SPT) Olympiad, internal discounts (Altyn Belgi, "
+            "high UNT, sibling), admission procedures, deadlines, required documents, English proficiency requirements "
+            "(IELTS 5.5+, TOEFL iBT 46+, SDU internal exam B1+, or SDU Foundation year), dormitories (Student House), "
+            "campus facilities, career prospects, program comparisons, or contacting the admissions office.\n\n"
+            "LANGUAGE RULE:\n"
+            "- Always reply in the SAME language as the user's message (Russian, Kazakh, or English).\n"
+            f"{lang_hint}\n"
+            "RESPONSE JSON FORMAT (CRITICAL):\n"
+            "Return ONLY a valid JSON object matching ONE of the following schemas:\n"
+            "1. Greeting or small talk (e.g. 'Hello', 'Привет', 'Сәлем', 'Как дела?', 'Кто ты?'):\n"
+            "   {\"source\": \"greeting\", \"confident\": true, \"answer\": \"Your warm, helpful response in the user's language\"}\n"
+            "2. Any question you can answer helpfully (about SDU University, programs, UNT combinations, tuition, discounts, "
+            "grants, SPT, admission steps, documents, dorms, campus, contacts/operator, program comparisons, major selection advice, "
+            "general university/education questions, or follow-ups from RECENT_HISTORY):\n"
+            "   {\"source\": \"ai\", \"confident\": true, \"answer\": \"Your clear, accurate, well-structured answer in the user's language using Markdown (**bold**, bullet points)\"}\n"
+            "   - Base SDU facts on SDU_KNOWLEDGE_BASE, PROGRAMS, and FAQ.\n"
+            "   - Do not invent fake admission requirements. If the user asks about a specific detail not explicitly covered in the catalog "
+            "(e.g., internal transfers, specific student clubs, military training, individual edge cases), provide helpful general guidance "
+            "and share official SDU Admissions contacts (Call-center: +7 (727) 307-95-65, WhatsApp: +7 702 000 11 33, Email: admission@sdu.edu.kz, "
+            "Portal: https://admissions.sdu.edu.kz) while keeping \"confident\": true.\n"
+            "3. EXTREME FALLBACK ONLY — Use \"confident\": false ONLY in extreme cases when the user's query is completely unrelated to "
+            "education, universities, SDU, admissions, or student life (for example: weather on Mars, cooking recipes, cryptocurrency prices, "
+            "bringing a pet dog to live on campus, or random gibberish) where even as an AI assistant you cannot provide an accurate or relevant answer:\n"
+            "   {\"source\": \"unconfident\", \"confident\": false}\n\n"
             f"RECENT_HISTORY: {json.dumps(history_ctx, ensure_ascii=False)}\n"
             f"PROGRAMS: {json.dumps(programs_ctx, ensure_ascii=False)}\n"
-            f"FAQ: {json.dumps(faq_ctx, ensure_ascii=False)}"
+            f"FAQ: {json.dumps(faq_ctx or all_faqs_ctx, ensure_ascii=False)}\n"
+            f"SDU_KNOWLEDGE_BASE: {json.dumps(kb_ctx, ensure_ascii=False)}"
         )
 
-        config = types.GenerateContentConfig(
-            system_instruction=context,
-            temperature=0,
-            response_mime_type="application/json",
-        )
-        
-        chat = client.chats.create(model='gemini-3.6-flash', config=config)
-        response = chat.send_message(message)
-        selection = json.loads(response.text)
-        
-        if selection.get("source") == "greeting":
-            return {"answer": selection.get("answer"), "confident": True, "source": "greeting", "matched_id": None}
-        if selection.get("source") == "program":
-            program = next((p for p in top_programs if p["id"] == selection.get("matched_id")), None)
+        if genai is not None and types is not None:
+            client = genai.Client(api_key=api_key)
+            config = types.GenerateContentConfig(
+                system_instruction=context,
+                temperature=0,
+                response_mime_type="application/json",
+            )
+            chat = client.chats.create(model="gemini-3.6-flash", config=config)
+            response = chat.send_message(message)
+            raw_text = response.text
+        else:
+            raw_text = _call_gemini_rest(api_key, context, message)
+
+        cleaned_text = (raw_text or "").strip()
+        if cleaned_text.startswith("```"):
+            cleaned_text = re.sub(r"^```(?:json)?\s*", "", cleaned_text, flags=re.IGNORECASE)
+            cleaned_text = re.sub(r"\s*```$", "", cleaned_text)
+
+        selection = json.loads(cleaned_text)
+        if not isinstance(selection, dict):
+            return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
+
+        src = selection.get("source")
+        confident_flag = selection.get("confident")
+        answer_text = selection.get("answer")
+        matched_id = selection.get("matched_id")
+
+        if src == "program":
+            program = next((p for p in top_programs if p["id"] == matched_id), None)
             if program:
                 return _program_answer(program)
-        if selection.get("source") == "faq":
-            entry = next((f for f in top_faqs if f["id"] == selection.get("matched_id")), None)
+            return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
+
+        if src == "faq":
+            entry = next((f for f in faq_ctx if f["id"] == matched_id), None)
             if entry:
                 return {"answer": entry["answer"], "confident": True, "source": "faq", "matched_id": entry["id"]}
+            return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
+
+        if confident_flag is False or src in ("unconfident", "fallback", "none", None):
+            return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
+
+        if src == "greeting" and isinstance(answer_text, str) and answer_text.strip():
+            return {"answer": answer_text.strip(), "confident": True, "source": "greeting", "matched_id": None}
+
+        if isinstance(answer_text, str) and answer_text.strip():
+            return {
+                "answer": answer_text.strip(),
+                "confident": True,
+                "source": "ai",
+                "matched_id": matched_id if isinstance(matched_id, str) and matched_id else "ai_assistant",
+            }
+
         return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
     except Exception as e:
-        print(f"AI Fallback Error: {e}")
+        logger.warning("AI Fallback Error: %s", e)
         return {"answer": FALLBACK_MESSAGE, "confident": False, "source": None, "matched_id": None}
 
 
@@ -709,7 +930,7 @@ def answer_query(
     if guide_res is not None:
         return guide_res
 
-    # 1.2 US9: Official Source Links
+    # 1.2 US9: Official Source Links & Operator Contacts
     links_res = _handle_official_links(message, language)
     if links_res is not None:
         return links_res
@@ -741,19 +962,20 @@ def answer_query(
     best_p, p_score = scored_programs[0] if scored_programs else (None, 0.0)
     best_f, f_score = scored_faqs[0] if scored_faqs else (None, 0.0)
 
-    # 4. Fast Local Response (if confident)
-    if p_score >= CONFIDENCE_THRESHOLD and p_score >= f_score:
-        return _program_answer(best_p)
-    if f_score >= CONFIDENCE_THRESHOLD:
-        return {"answer": best_f["answer"], "confident": True, "source": "faq", "matched_id": best_f["id"]}
+    # 4. Fast Local Response (if confident and not a complex/comparative AI query)
+    if not _should_prefer_ai_over_keyword(message, scored_programs):
+        if p_score >= CONFIDENCE_THRESHOLD and p_score >= f_score:
+            return _program_answer(best_p)
+        if f_score >= CONFIDENCE_THRESHOLD:
+            return {"answer": best_f["answer"], "confident": True, "source": "faq", "matched_id": best_f["id"]}
 
-    # 4.5 Multi-turn follow-up resolution from conversation history
-    followup_prog = _resolve_followup_program_from_history(message, context, history)
-    if followup_prog is not None:
-        return _program_answer(followup_prog)
+        # 4.5 Multi-turn follow-up resolution from conversation history
+        followup_prog = _resolve_followup_program_from_history(message, context, history)
+        if followup_prog is not None:
+            return _program_answer(followup_prog)
         
-    # 5. AI Fallback (Expanded top-6 RAG candidates + conversation history)
+    # 5. AI Assistant Response (Full SDU Knowledge Base + top RAG candidates + conversation history)
     top_6_programs = [p[0] for p in scored_programs[:6]]
     top_6_faqs = [f[0] for f in scored_faqs[:6]]
     
-    return get_ai_fallback_response(message, top_6_programs, top_6_faqs, history=history)
+    return get_ai_fallback_response(message, top_6_programs, top_6_faqs, history=history, language=language)

@@ -79,35 +79,35 @@ def language_of(message, previous='en'):
     return previous
 
 
-def is_requirements_query(message, data=None):
+NON_REQUIREMENT_QUERY_PATTERN = re.compile(
+    r'cost|tuition|price|dorm|documents|format|оплат|стоимост|сколько\s+стоит|документ|жатақхана|құжат|баға|формат'
+    r'|tell\s+me\s+about|расскажи|чем\s+отлича|разниц\w*\s+между|сравн\w*|compare|difference\s+between|\bvs\b'
+    r'|или\s+лучше|что\s+лучше|кем\s+(?:я\s+)?(?:смогу\s+|можно\s+)?работать|карьер|перспектив|трудоустройств'
+    r'|посоветуй|помоги\w*\s+выбрать|сложно\s+ли|стоит\s+ли|клуб|кампус|campus|\bspt\b|олимпиад'
+    r'|военн\w*\s+кафедр|перевест|перевод|обмен|мобильност|стипенди|грант'
+    r'|проходит\s+обучен|язык\w*\s+обучен|на\s+каком\s+языке\s+(?:учат|обучают|преподают|проходит)'
+    r'|изучают|преподают|учат\s+на|на\s+\d\s*курс|курс\w*\s+английск|foundation',
+    re.IGNORECASE,
+)
+
+QUESTION_OR_CHITCHAT_START = re.compile(
+    r'^(?:what|which|how|why|who|where|when|tell|can|is|are|do|does|hello|hi'
+    r'|кто|что|где|когда|как|почему|зачем|какие|какой|какая|расскажи|чем|сколько|есть\s+ли|можно\s+ли|стоит\s+ли|сложно\s+ли|привет|здравствуй|сәлем)\b',
+    re.IGNORECASE,
+)
+
+
+def is_requirements_query(message, data=None, full_text=None):
     text = message.lower()
-    
-    # Exclude non-academic inquiries (like dorms, cost, standard documents)
-    # UNLESS they explicitly say "requirements" or similar strong intent.
-    if re.search(r'cost|tuition|price|dorm|оплат|стоимост|сколько стоит|документ|жатақхана|құжат|баға', text):
-        if not re.search(INTENT, text) and not re.search(r'ielts|toefl|score|балл|ұбт|qualification', text):
+    check_text = (full_text or message).lower()
+
+    # Exclude non-requirement inquiries (cost, dorms, comparisons, curriculum, medium of instruction, etc.)
+    # UNLESS they explicitly ask for admission requirements/criteria or specific exam score thresholds.
+    if NON_REQUIREMENT_QUERY_PATTERN.search(check_text):
+        if not re.search(INTENT, check_text) and not re.search(r'ielts|toefl|score|балл|ұбт|qualification', text):
             return False
-            
-    has_intent = bool(re.search(INTENT, text) or any(re.search(p, text) for p in TOPICS.values()))
-    
-    # Also consider standalone category, level, or program words as valid intent
-    # if they match our recognized slot dictionaries (to handle dropped frontend context).
-    if not has_intent and len(text.split()) <= 3:
-        has_category = any(re.search(pattern, text) for pattern in CATEGORY.values())
-        has_level = any(re.search(pattern, text) for pattern in LEVEL.values())
-        
-        has_program = False
-        if data:
-            for pid, p in data.items():
-                aliases = [p['name']] + p.get('aliases', [])
-                if any(re.search(fr'\b{re.escape(a.lower())}\b', text) for a in aliases):
-                    has_program = True
-                    break
-                    
-        if has_category or has_level or has_program:
-            return True
-            
-    return has_intent
+
+    return bool(re.search(INTENT, text) or any(re.search(p, text) for p in TOPICS.values()))
 
 
 def _contains(text, alias):
@@ -168,12 +168,23 @@ def answer_requirements(message, context=None, language=None, *, data=None, toda
         for level, code in p.get('codes', {}).items():
             if code and _contains(text, code) and level not in levels:
                 levels.append(level)
-    intent = is_requirements_query(category_text, data)
-    if not intent and re.search(r'cost|tuition|documents|dorm|оплат|стоимост|документ|жатақхана|құжат', text):
-        return None
-    slot_reply = bool(matches or categories or levels)
-    if not intent and not (ctx and (ctx.get('pending') or slot_reply)):
-        return None
+    intent = is_requirements_query(category_text, data, full_text=text)
+    if not intent:
+        if NON_REQUIREMENT_QUERY_PATTERN.search(text):
+            return None
+        pending_slot = ctx.get('pending') if ctx else None
+        if not pending_slot:
+            return None
+        slot_reply = bool(matches or categories or levels)
+        if not slot_reply:
+            is_unknown_program_attempt = (
+                pending_slot == 'program_id'
+                and len(text.split()) <= 3
+                and '?' not in text
+                and not QUESTION_OR_CHITCHAT_START.search(text)
+            )
+            if not is_unknown_program_attempt:
+                return None
     topics = [k for k, pattern in TOPICS.items() if re.search(pattern, category_text)]
     if 'language' in topics and not re.search(r'\b(?:unt|ent|sat|act|gpa|кт|ент|ұбт)\b', category_text):
         topics = [topic for topic in topics if topic != 'exams']

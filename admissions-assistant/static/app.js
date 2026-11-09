@@ -49,6 +49,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
   let requirementContext = null;
+  let chatSessionId = null;
+  let chatHistory = [];
   let chatBusy = false;
   let programsData = [];
   let faqData = [];
@@ -170,7 +172,19 @@ document.addEventListener("DOMContentLoaded", () => {
     let sourceBadgeHtml = "";
     if (isBot && meta.source) {
       const badgeClass = meta.source === "program" ? "source-program" : "source-faq";
-      const badgeLabel = meta.source === "admission_guide" ? "Admission Guide · US7" : meta.source === "requirements" ? "Admission Requirements" : meta.source === "program" ? "Program Match" : "FAQ Match";
+      const sourceLabels = {
+        ai: "✨ AI Assistant",
+        greeting: "✨ AI Assistant",
+        admission_guide: "Admission Guide · US7",
+        requirements: "Admission Requirements",
+        deadlines: "Deadlines · US8",
+        official_links: "Official Links · US9",
+        unt_matcher: "UNT Matcher · US18",
+        tuition_calculator: "Tuition Calculator · US19",
+        program: "Program Match",
+        faq: "FAQ Match",
+      };
+      const badgeLabel = sourceLabels[meta.source] || "FAQ Match";
       sourceBadgeHtml = `<span class="msg-badge ${badgeClass}">${badgeLabel}</span>`;
     } else if (isBot && meta.isFallback) {
       sourceBadgeHtml = `<span class="msg-badge source-fallback">Admissions Staff Offer</span>`;
@@ -238,7 +252,13 @@ document.addEventListener("DOMContentLoaded", () => {
       const response = await fetch("/chat", {
         method: "POST",
         headers: headers,
-        body: JSON.stringify({ message: text, context: requirementContext, language: document.getElementById("requirements-language").value || null })
+        body: JSON.stringify({
+          message: text,
+          context: requirementContext,
+          language: document.getElementById("requirements-language").value || null,
+          session_id: chatSessionId,
+          history: chatHistory.slice(-6)
+        })
       });
 
       removeTypingIndicator(typingId);
@@ -249,6 +269,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
       requirementContext = data.context || null;
+      if (data.session_id) {
+        chatSessionId = data.session_id;
+      }
+      chatHistory.push({ sender: "user", message: text });
+      chatHistory.push({ sender: "bot", message: data.answer || "" });
+      if (chatHistory.length > 12) {
+        chatHistory = chatHistory.slice(-12);
+      }
       appendMessage("bot", data.answer, {
         source: data.source,
         isFallback: !data.confident,
@@ -285,6 +313,8 @@ document.addEventListener("DOMContentLoaded", () => {
   if (clearChatBtn) {
     clearChatBtn.addEventListener("click", () => {
       requirementContext = null;
+      chatSessionId = null;
+      chatHistory = [];
       chatMessages.innerHTML = `
         <div class="message bot-message">
           <div class="msg-avatar">🤖</div>

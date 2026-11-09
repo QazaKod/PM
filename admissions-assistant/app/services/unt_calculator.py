@@ -14,20 +14,21 @@ from app.database import load_programs
 # Canonical subject dictionary with multivariant multilingual regex
 SUBJECT_ALIASES = {
     "Mathematics": [
-        r"матем\w*", r"math\w*", r"математика"
+        r"матем\w*", r"math\w*", r"математика", r"мат\b"
     ],
     "Computer Science": [
-        r"информ\w*", r"computer\s*science", r"информатика", r"\bcs\b", r"компьютер\w*"
+        r"информ\w*", r"computer\s*science", r"информатика", r"\bcs\b", r"компьютер\w*",
+        r"инфо\b", r"инф[аеуы]\b"
     ],
     "Physics": [
-        r"физик\w*", r"physics"
+        r"физик\w*", r"physics", r"физ\b"
     ],
     "Geography": [
-        r"географ\w*", r"geography"
+        r"географ\w*", r"geography", r"гео\b"
     ],
     "World History": [
         r"всемирн\w*\s*истори\w*", r"дүние\s*жүзі\s*тарих\w*", r"world\s*history",
-        r"\bистори\w*\b", r"\bтарих\b"
+        r"\bистори\w*\b", r"\bтарих\b", r"всемирк\w*"
     ],
     "Fundamentals of Law": [
         r"основ\w*\s*прав\w*", r"құқық\s*негіз\w*", r"fundamentals\s*of\s*law",
@@ -35,16 +36,16 @@ SUBJECT_ALIASES = {
     ],
     "Foreign Language": [
         r"иностранн\w*\s*язык\w*", r"шет\s*тіл\w*", r"ағылшын\w*", r"foreign\s*language",
-        r"english", r"английск\w*"
+        r"english", r"английск\w*", r"англ\b", r"иняз\w*"
     ],
     "Creative Exams": [
         r"творческ\w*", r"creative", r"шығармашылық"
     ],
     "Biology": [
-        r"биолог\w*", r"biology"
+        r"биолог\w*", r"biology", r"био\b"
     ],
     "Chemistry": [
-        r"хими\w*", r"chemistry"
+        r"хими\w*", r"chemistry", r"хим\b"
     ]
 }
 

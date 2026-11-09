@@ -179,6 +179,8 @@ def chat(
         )
         for msg in reversed(past_messages):
             history_turns.append({"sender": msg.sender, "message": msg.message})
+    if not history_turns and query.history:
+        history_turns = [{"sender": t.sender, "message": t.message} for t in query.history[-6:]]
 
     response = chatbot.answer_query(
         query.message,

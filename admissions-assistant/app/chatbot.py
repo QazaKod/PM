@@ -547,8 +547,12 @@ def _handle_deadlines(message: str, language: Optional[str] = None) -> Optional[
     elif re.search(r"бакалавр|bachelor|undergraduate", msg_clean):
         degree_level = "undergraduate"
 
+    status_filter = None
+    if re.search(r"наступающ|предстоящ|ближайш|актуальн|upcoming|future|алдағы|жақын", msg_clean):
+        status_filter = "upcoming_active"
+
     from app.services.deadlines import get_all_deadlines
-    deadlines = get_all_deadlines(category=category, degree_level=degree_level, lang=lang)
+    deadlines = get_all_deadlines(category=category, degree_level=degree_level, status=status_filter, lang=lang)
 
     headers = {
         "ru": "📅 **Официальные ключевые дедлайны приемной кампании SDU 2026-2027:**\n",

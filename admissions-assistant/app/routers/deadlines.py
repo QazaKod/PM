@@ -33,12 +33,14 @@ router = APIRouter(prefix="/deadlines", tags=["Deadlines & Calendar"])
 def get_deadlines_list(
     category: Optional[str] = Query(None, description="Filter by category ('grant', 'unt', 'contract', 'dormitory', 'olympiad', 'exam')"),
     degree_level: Optional[str] = Query(None, description="Filter by degree level ('all', 'undergraduate', 'graduate')"),
+    status: Optional[str] = Query(None, description="Filter by status ('all', 'upcoming_active', 'upcoming', 'active', 'passed')"),
     lang: str = Query("ru", description="Response language ('ru', 'kk', 'en')"),
 ):
     """Retrieve official SDU admissions deadlines with dynamic statuses and days remaining."""
     items = deadline_service.get_all_deadlines(
         category=category,
         degree_level=degree_level,
+        status=status,
         lang=lang,
     )
     return {

@@ -459,6 +459,16 @@
               </select>
             </div>
             <div class="filter-group">
+              <label for="deadlines-filter-status"><i class="ph ph-clock-countdown"></i> Status:</label>
+              <select id="deadlines-filter-status" onchange="onDeadlinesFilterChange()">
+                <option value="all">All Statuses</option>
+                <option value="upcoming_active">Upcoming &amp; Active</option>
+                <option value="upcoming">Upcoming Only</option>
+                <option value="active">Active Now</option>
+                <option value="passed">Concluded</option>
+              </select>
+            </div>
+            <div class="filter-group">
               <label for="deadlines-filter-lang"><i class="ph ph-translate"></i> Language:</label>
               <select id="deadlines-filter-lang" onchange="onDeadlinesFilterChange()">
                 <option value="ru" selected>Русский (RU)</option>

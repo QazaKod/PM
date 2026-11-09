@@ -205,12 +205,35 @@ def test_us8_scenario2_past_deadline_informs_user_and_suggests_alternative_advic
     assert "💡" in resp["answer"]
     assert ("государственный грант" in resp["answer"]) or ("скидки" in resp["answer"])
 
-    # Directly verify service output with a simulated past date (e.g. 2026-09-01)
-    past_deadlines = get_all_deadlines(lang="ru", reference_date=date(2026, 9, 1))
+    # Directly verify service output with a simulated past date after all campaigns (e.g. 2027-09-01)
+    past_deadlines = get_all_deadlines(lang="ru", reference_date=date(2027, 9, 1))
     for dl in past_deadlines:
         assert dl["status"] == "passed"
         assert dl["passed_advice"] != ""
         assert len(dl["passed_advice"]) > 10
+
+
+def test_upcoming_and_graduate_deadlines_present():
+    """Verify live upcoming/active deadlines exist for both undergraduate and graduate tracks."""
+    upcoming_active = get_all_deadlines(status="upcoming_active", reference_date=date(2026, 11, 9))
+    assert len(upcoming_active) >= 6
+
+    grad_upcoming = get_all_deadlines(degree_level="graduate", status="upcoming_active", reference_date=date(2026, 11, 9))
+    assert len(grad_upcoming) >= 3
+    assert any(d["id"] == "grad_winter_kt_exam" for d in grad_upcoming)
+    assert any(d["id"] == "sdu_master_winter_docs" for d in grad_upcoming)
+
+    undergrad_upcoming = get_all_deadlines(degree_level="undergraduate", status="upcoming_active", reference_date=date(2026, 11, 9))
+    assert len(undergrad_upcoming) >= 3
+    assert any(d["id"] == "spt_olympiad_2027" for d in undergrad_upcoming)
+    assert any(d["id"] == "unt_january_2027" for d in undergrad_upcoming)
+
+    # Verify API status filter
+    res = client.get("/deadlines?status=upcoming_active&lang=ru")
+    assert res.status_code == 200
+    assert res.json()["total"] >= 6
+    for item in res.json()["deadlines"]:
+        assert item["status"] in ("active", "upcoming")
 
 
 def test_us8_calendar_grid_and_color_mapping():

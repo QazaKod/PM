@@ -1855,10 +1855,12 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadDeadlines() {
     const degreeEl = document.getElementById("deadlines-filter-degree");
     const catEl = document.getElementById("deadlines-filter-category");
+    const statusEl = document.getElementById("deadlines-filter-status");
     const langEl = document.getElementById("deadlines-filter-lang");
 
     const degree = degreeEl ? degreeEl.value : "all";
     const category = catEl ? catEl.value : "all";
+    const status = statusEl ? statusEl.value : "all";
     const lang = langEl ? langEl.value : "ru";
 
     let url = `/deadlines?lang=${encodeURIComponent(lang)}`;
@@ -1867,6 +1869,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (degree && degree !== "all") {
       url += `&degree_level=${encodeURIComponent(degree)}`;
+    }
+    if (status && status !== "all") {
+      url += `&status=${encodeURIComponent(status)}`;
     }
 
     const container = document.getElementById("deadlines-list-container");

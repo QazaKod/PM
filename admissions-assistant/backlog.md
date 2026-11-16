@@ -77,17 +77,29 @@
   * **Delivery:** [Implementation, startup, validation and limits](docs/sprint_4_us20.md). Automatic upstream sync and exact timestamp-based 72-hour timing remain unresolved.
 
 ## Iteration 5
-* **[US-6] Application Status Check**
-  * **Description:** As an applicant, I want to check my application status through the assistant, so that I know what stage my application is at.
-  * **Estimation:** 6 | **Assignee:** Saken | **Deadline:** 15 Nov 2026
-  * **Pre-Requirements:** Integration with the admissions office system (application statuses)
+* **[US-6] Staff Consultation Analytics Dashboard**
+  * **Description:** As a university staff member, I want to view a summary analytics dashboard of applicant registrations, saved program popularity, and chatbot consultation activity, so that I can understand applicant demand at a glance.
+  * **Estimation:** 4 | **Assignee:** Saken | **Deadline:** 15 Nov 2026
+  * **Pre-Requirements:** Staff RBAC permissions; users, saved_programs, and chat_sessions tables
   * **QA Test:** US6QATest
 
-* **[US-10] Admission Info Update**
-  * **Description:** As a university staff member, I want to update the admission information used by the assistant, so that applicants receive accurate data.
-  * **Estimation:** 6 | **Assignee:** Shadiyar | **Deadline:** 22 Nov 2026
-  * **Pre-Requirements:** Admin panel / editing access to the database
+* **[US-10] Staff Program Catalog Manager**
+  * **Description:** As a university staff member, I want to add and edit educational program cards (tuition fee, UNT subject pairs, passing scores, and description) in the staff portal, so that the catalog and calculators show accurate program information.
+  * **Estimation:** 4 | **Assignee:** Shadiyar | **Deadline:** 15 Nov 2026
+  * **Pre-Requirements:** Staff RBAC permissions; programs database table
   * **QA Test:** US10QATest
+
+* **[US-22] Unanswered Chatbot Queries Log**
+  * **Description:** As a university staff member, I want to view a log of applicant questions where the chatbot could not answer confidently and quickly convert common questions into new FAQ entries, so that the assistant continuously improves.
+  * **Estimation:** 4 | **Assignee:** Arman | **Deadline:** 22 Nov 2026
+  * **Pre-Requirements:** Chatbot fallback logging in chat_messages; FAQ management service
+  * **QA Test:** US22QATest
+
+* **[US-23] Staff Admissions Announcements Banner**
+  * **Description:** As an admissions manager, I want to publish and toggle short pinned announcements (e.g., Open House dates, olympiad extensions, campus events) on the portal, so that applicants immediately see important news.
+  * **Estimation:** 4 | **Assignee:** Yertai | **Deadline:** 22 Nov 2026
+  * **Pre-Requirements:** Staff RBAC permissions; announcements storage and portal banner
+  * **QA Test:** US23QATest
 
 ## Iteration 6
 * **[US-2] Program Recommendation**

@@ -62,8 +62,8 @@ All sprint goals were achieved, verified with automated end-to-end tests, and in
 
 ## 4. Next Sprint Outlook (Sprint 5)
 
-With Sprint 4 delivered, the upcoming **Sprint 5 (November 9 – November 22, 2026)** will focus on applicant submissions and review:
-- **US6:** Online Application Status Check.
-- **US10:** Admission Information & Quota Updates for Staff.
-- **US22:** Online Application Submission Portal with Unique Tracking Numbers.
-- **US23:** Staff Application Review & Evaluation Desk.
+With Sprint 4 delivered, the upcoming **Sprint 5 (November 9 – November 22, 2026)** will focus on lightweight staff productivity and portal management tools:
+- **US6:** Staff Consultation Analytics Dashboard.
+- **US10:** Staff Program Catalog Manager.
+- **US22:** Unanswered Chatbot Queries Log & FAQ Conversion.
+- **US23:** Staff Admissions Announcements Banner.

@@ -11,7 +11,13 @@ from sqlalchemy.orm import Session
 
 from app.db_session import get_db
 from app.models import User
-from app.schemas import FAQCreateRequest, FAQUpdateRequest, FAQItemOut
+from app.schemas import (
+    FAQCreateRequest,
+    FAQUpdateRequest,
+    FAQItemOut,
+    UnansweredQueryOut,
+    UnansweredQueryConvertRequest,
+)
 from app.security import require_role
 from app.services import faq_manager
 
@@ -50,8 +56,71 @@ def create_faq_entry(
             category=payload.category,
             keywords=payload.keywords,
             faq_id=payload.id,
+            unanswered_query_id=payload.unanswered_query_id,
         )
         return faq
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
+
+
+@router.get("/unanswered", response_model=List[UnansweredQueryOut])
+def list_unanswered_queries(
+    status_filter: Optional[str] = Query("pending", alias="status", description="Filter by status: pending, converted, dismissed, or all"),
+    search: Optional[str] = Query(None, description="Search unanswered question text"),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(["admin", "manager"])),
+):
+    """US22: Retrieve logged low-confidence/fallback chat questions for staff review."""
+    return faq_manager.get_unanswered_queries(db, status_filter=status_filter, search=search)
+
+
+@router.post("/unanswered/{query_id}/dismiss", response_model=UnansweredQueryOut)
+@router.patch("/unanswered/{query_id}/dismiss", response_model=UnansweredQueryOut)
+def dismiss_unanswered_query(
+    query_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(["admin", "manager"])),
+):
+    """US22: Mark an unanswered query as dismissed so it leaves the pending review queue."""
+    updated = faq_manager.mark_unanswered_query_status(db, query_id=query_id, new_status="dismissed")
+    if not updated:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Unanswered query with ID '{query_id}' not found.",
+        )
+    return updated
+
+
+@router.post("/unanswered/{query_id}/convert", status_code=status.HTTP_201_CREATED)
+def convert_unanswered_query(
+    query_id: int,
+    payload: UnansweredQueryConvertRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(require_role(["admin", "manager"])),
+):
+    """US22: Convert an unanswered query into a new FAQ entry with instant chatbot hot-reload."""
+    try:
+        res = faq_manager.convert_unanswered_to_faq(
+            db=db,
+            query_id=query_id,
+            answer=payload.answer,
+            question=payload.question,
+            category=payload.category,
+            keywords=payload.keywords,
+        )
+        return {
+            "status": "converted",
+            "faq": FAQItemOut.model_validate(res["faq"]),
+            "query": UnansweredQueryOut.model_validate(res["query"]),
+        }
+    except LookupError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e),
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

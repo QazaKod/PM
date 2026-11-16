@@ -517,6 +517,7 @@ class FAQCreateRequest(BaseModel):
     answer: str = Field(min_length=3, max_length=4000)
     category: Optional[str] = "general"
     keywords: List[str] = Field(default_factory=list)
+    unanswered_query_id: Optional[int] = None
 
     @field_validator("question", "answer")
     @classmethod
@@ -566,3 +567,34 @@ class NotificationPreferenceResponse(BaseModel):
     telegram_notifications_enabled: bool
     telegram_chat_id: Optional[str] = None
     message: str
+
+
+# ==========================================
+# SPRINT 5: UNANSWERED CHATBOT QUERIES LOG (US22)
+# ==========================================
+
+class UnansweredQueryOut(BaseModel):
+    id: int
+    session_id: str
+    user_id: Optional[int] = None
+    question: str
+    bot_response: str
+    status: Literal["pending", "converted", "dismissed"] = "pending"
+    converted_faq_id: Optional[str] = None
+    timestamp: datetime
+
+
+class UnansweredQueryConvertRequest(BaseModel):
+    question: Optional[str] = Field(default=None, min_length=3, max_length=1000)
+    answer: str = Field(min_length=3, max_length=4000)
+    category: Optional[str] = "general"
+    keywords: List[str] = Field(default_factory=list)
+
+    @field_validator("question", "answer")
+    @classmethod
+    def validate_non_empty_text(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            v = v.strip()
+            if not v:
+                raise ValueError("Field cannot be empty or whitespace only.")
+        return v

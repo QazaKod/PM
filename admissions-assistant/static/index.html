@@ -104,7 +104,7 @@
         <button class="nav-item" data-tab="faq-admin" id="nav-item-faq-admin" style="display: none;">
           <i class="ph ph-sliders nav-icon"></i>
           <span class="nav-label">Manage FAQ</span>
-          <span class="nav-tag demo-tag">US13</span>
+          <span class="nav-tag demo-tag">US13/22</span>
         </button>
       </nav>
 
@@ -844,6 +844,56 @@
               <p>No FAQ entries found matching the filter criteria.</p>
             </div>
           </div>
+
+          <!-- US22: Unanswered Chatbot Queries Log -->
+          <div style="margin-top: 36px;">
+            <div class="section-header" style="margin-bottom: 16px;">
+              <div>
+                <div class="title-with-badge">
+                  <h3>Unanswered Chatbot Queries Log</h3>
+                  <span class="preview-badge">US22 Staff</span>
+                </div>
+                <p>Review applicant questions where the assistant returned a low-confidence fallback and convert them into FAQ entries.</p>
+              </div>
+            </div>
+
+            <div class="faq-admin-toolbar">
+              <div class="search-input-wrap">
+                <i class="ph ph-magnifying-glass search-icon"></i>
+                <input type="text" id="unanswered-search" placeholder="Search unanswered questions..." oninput="debounceUnansweredSearch()">
+              </div>
+              <div class="filter-group">
+                <label for="unanswered-status-filter"><i class="ph ph-funnel"></i> Status:</label>
+                <select id="unanswered-status-filter" onchange="loadUnansweredQueries()">
+                  <option value="pending">Pending Review</option>
+                  <option value="converted">Converted to FAQ</option>
+                  <option value="dismissed">Dismissed</option>
+                  <option value="all">All</option>
+                </select>
+              </div>
+              <div class="faq-admin-stats" id="unanswered-count">0 queries</div>
+            </div>
+
+            <div class="faq-admin-table-container">
+              <table class="faq-admin-table" id="unanswered-table">
+                <thead>
+                  <tr>
+                    <th style="width: 120px;">Status</th>
+                    <th style="width: 42%;">Applicant Question</th>
+                    <th style="width: 170px;">Logged At</th>
+                    <th style="width: 210px; text-align: right;">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="unanswered-tbody">
+                  <!-- Populated dynamically via renderUnansweredQueries() -->
+                </tbody>
+              </table>
+              <div id="unanswered-empty" class="faq-admin-empty" style="display: none;">
+                <i class="ph ph-check-circle" style="font-size: 2.5rem; color: var(--muted);"></i>
+                <p>No unanswered chatbot queries in this view.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -1095,6 +1145,7 @@
       </div>
       <form id="form-faq-edit" onsubmit="handleFaqSubmit(event)">
         <input type="hidden" id="faq-edit-id">
+        <input type="hidden" id="faq-edit-unanswered-id">
         <div class="auth-form-group">
           <label for="faq-edit-question">Question <span style="color: var(--alert, #e74c3c);">*</span></label>
           <input type="text" id="faq-edit-question" placeholder="e.g. Какие документы нужны для поступления в бакалавриат?" required minlength="3">

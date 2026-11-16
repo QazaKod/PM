@@ -95,6 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
       loadDeadlines();
     } else if (tabId === "faq-admin") {
       loadAdminFAQs();
+      loadUnansweredQueries();
     }
 
     // Focus input if switched to chat
@@ -2279,6 +2280,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const modal = document.getElementById("faq-edit-modal");
     const titleEl = document.getElementById("faq-modal-title");
     const idInput = document.getElementById("faq-edit-id");
+    const unansweredIdInput = document.getElementById("faq-edit-unanswered-id");
     const qInput = document.getElementById("faq-edit-question");
     const aInput = document.getElementById("faq-edit-answer");
     const catSelect = document.getElementById("faq-edit-category");
@@ -2286,6 +2288,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusEl = document.getElementById("faq-edit-status");
 
     if (statusEl) statusEl.textContent = "";
+    if (unansweredIdInput) unansweredIdInput.value = "";
 
     if (faqId) {
       const faq = adminFaqsData.find(f => f.id === faqId);
@@ -2320,6 +2323,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!token) return;
 
     const idInput = document.getElementById("faq-edit-id");
+    const unansweredIdInput = document.getElementById("faq-edit-unanswered-id");
     const qInput = document.getElementById("faq-edit-question");
     const aInput = document.getElementById("faq-edit-answer");
     const catSelect = document.getElementById("faq-edit-category");
@@ -2327,6 +2331,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const statusEl = document.getElementById("faq-edit-status");
 
     const faqId = idInput ? idInput.value.trim() : "";
+    const unansweredId = unansweredIdInput ? unansweredIdInput.value.trim() : "";
     const question = qInput ? qInput.value.trim() : "";
     const answer = aInput ? aInput.value.trim() : "";
     const category = catSelect ? catSelect.value : "general";
@@ -2344,6 +2349,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const payload = { question, answer, category, keywords };
     const isEdit = Boolean(faqId);
+    if (!isEdit && unansweredId) {
+      payload.unanswered_query_id = parseInt(unansweredId, 10);
+    }
     const url = isEdit ? `/admin/faqs/${encodeURIComponent(faqId)}` : "/admin/faqs";
     const method = isEdit ? "PUT" : "POST";
 
@@ -2360,6 +2368,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (res.ok) {
         closeFaqModal();
         await loadAdminFAQs();
+        await loadUnansweredQueries();
       } else {
         const data = await res.json();
         if (statusEl) {
@@ -2393,6 +2402,145 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.error("deleteFaq error:", err);
       alert("Network error while deleting FAQ entry.");
+    }
+  };
+
+  // ============================================================
+  // SPRINT 5: US22 UNANSWERED CHATBOT QUERIES LOG
+  // ============================================================
+  let unansweredQueriesData = [];
+  let unansweredSearchTimer = null;
+
+  window.debounceUnansweredSearch = function() {
+    clearTimeout(unansweredSearchTimer);
+    unansweredSearchTimer = setTimeout(() => {
+      loadUnansweredQueries();
+    }, 250);
+  };
+
+  async function loadUnansweredQueries() {
+    const token = safeStorage.getItem("auth_token");
+    if (!token) return;
+
+    const searchInput = document.getElementById("unanswered-search");
+    const statusSelect = document.getElementById("unanswered-status-filter");
+    const search = searchInput ? searchInput.value.trim() : "";
+    const statusVal = statusSelect ? statusSelect.value : "pending";
+
+    const params = [`status=${encodeURIComponent(statusVal)}`];
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+
+    try {
+      const res = await fetch(`/admin/faqs/unanswered?${params.join("&")}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) {
+        return;
+      }
+      if (!res.ok) throw new Error("Failed to load unanswered queries");
+      unansweredQueriesData = await res.json();
+      renderUnansweredQueries(unansweredQueriesData);
+    } catch (err) {
+      console.error("loadUnansweredQueries error:", err);
+    }
+  }
+  window.loadUnansweredQueries = loadUnansweredQueries;
+
+  function renderUnansweredQueries(items) {
+    const tbody = document.getElementById("unanswered-tbody");
+    const countEl = document.getElementById("unanswered-count");
+    const emptyEl = document.getElementById("unanswered-empty");
+    const tableEl = document.getElementById("unanswered-table");
+
+    if (countEl) {
+      countEl.textContent = `${items.length} ${items.length === 1 ? "query" : "queries"}`;
+    }
+    if (!tbody) return;
+
+    if (!items || items.length === 0) {
+      tbody.innerHTML = "";
+      if (emptyEl) emptyEl.style.display = "block";
+      if (tableEl) tableEl.style.display = "none";
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    if (tableEl) tableEl.style.display = "table";
+
+    tbody.innerHTML = items.map((item) => {
+      const badgeClass = item.status === "converted"
+        ? "cat-tuition"
+        : item.status === "pending"
+          ? "cat-grants"
+          : "";
+      const dateStr = item.timestamp ? new Date(item.timestamp).toLocaleString() : "—";
+      const actionButtons = item.status === "pending"
+        ? `
+          <button type="button" class="btn-edit" onclick="convertUnansweredToFaq(${item.id})">
+            <i class="ph ph-plus-circle"></i> Convert to FAQ
+          </button>
+          <button type="button" class="btn-delete" onclick="dismissUnansweredQuery(${item.id})">
+            <i class="ph ph-x-circle"></i> Dismiss
+          </button>
+        `
+        : `<span style="color: var(--muted); font-size: 0.8rem;">${item.converted_faq_id ? `FAQ: ${escapeHtml(item.converted_faq_id)}` : "Reviewed"}</span>`;
+
+      return `
+        <tr data-unanswered-id="${item.id}">
+          <td>
+            <span class="faq-cat-badge ${badgeClass}">${escapeHtml(item.status)}</span>
+          </td>
+          <td>
+            <strong>${escapeHtml(item.question)}</strong>
+          </td>
+          <td style="color: var(--muted); font-size: 0.82rem;">
+            ${escapeHtml(dateStr)}
+          </td>
+          <td>
+            <div class="faq-actions">
+              ${actionButtons}
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+  window.renderUnansweredQueries = renderUnansweredQueries;
+
+  window.convertUnansweredToFaq = function(queryId) {
+    const item = unansweredQueriesData.find(q => q.id === queryId);
+    if (!item) return;
+
+    openFaqModal();
+    const titleEl = document.getElementById("faq-modal-title");
+    const qInput = document.getElementById("faq-edit-question");
+    const aInput = document.getElementById("faq-edit-answer");
+    const unansweredIdInput = document.getElementById("faq-edit-unanswered-id");
+
+    if (titleEl) titleEl.textContent = "Convert Unanswered Query to FAQ";
+    if (qInput) qInput.value = item.question;
+    if (unansweredIdInput) unansweredIdInput.value = String(item.id);
+    if (aInput) aInput.focus();
+  };
+
+  window.dismissUnansweredQuery = async function(queryId) {
+    const token = safeStorage.getItem("auth_token");
+    if (!token) return;
+
+    try {
+      const res = await fetch(`/admin/faqs/unanswered/${queryId}/dismiss`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.ok) {
+        await loadUnansweredQueries();
+      } else {
+        const data = await res.json();
+        alert(data.detail || "Failed to dismiss unanswered query");
+      }
+    } catch (err) {
+      console.error("dismissUnansweredQuery error:", err);
+      alert("Network error while dismissing query.");
     }
   };
 

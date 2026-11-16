@@ -29,6 +29,7 @@ from app.admin import (
 from app.security import SECRET_KEY, get_optional_current_user
 from app.rate_limit import rate_limit
 from app.routers import auth, admissions, deadlines, faq_admin
+from app.services import faq_manager
 
 # Set up logging to file
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -129,17 +130,23 @@ def get_faq():
 
 
 @app.post("/chat/programs", response_model=ChatResponse)
-def chat_programs(query: ChatQuery):
+def chat_programs(query: ChatQuery, db: Session = Depends(get_db)):
     """US1: Chat-Program Info."""
     logger.info(f"[Legacy /chat/programs] User Query: {query.message}")
-    return chatbot.answer_query(query.message, query.context.model_dump() if query.context else None, query.language)
+    res = chatbot.answer_query(query.message, query.context.model_dump() if query.context else None, query.language)
+    if (not res.get("confident")) and (res.get("source") is None):
+        faq_manager.record_fallback_query(db=db, question=query.message, bot_answer=res.get("answer", ""))
+    return res
 
 
 @app.post("/chat/faq", response_model=ChatResponse)
-def chat_faq(query: ChatQuery):
+def chat_faq(query: ChatQuery, db: Session = Depends(get_db)):
     """US5: Admission FAQ."""
     logger.info(f"[Legacy /chat/faq] User Query: {query.message}")
-    return chatbot.answer_query(query.message, query.context.model_dump() if query.context else None, query.language)
+    res = chatbot.answer_query(query.message, query.context.model_dump() if query.context else None, query.language)
+    if (not res.get("confident")) and (res.get("source") is None):
+        faq_manager.record_fallback_query(db=db, question=query.message, bot_answer=res.get("answer", ""))
+    return res
 
 
 @app.post(
@@ -191,6 +198,8 @@ def chat(
     logger.info(f"[Unified /chat] Response Source: {response.get('source', 'None')} | Confident: {response.get('confident')}")
     logger.info(f"[Unified /chat] Outgoing Context: {response.get('context')}")
 
+    is_fallback = (not response.get("confident")) and (response.get("source") is None)
+
     # Persistence: If user is logged in, save chat history
     if optional_user:
         session = None
@@ -206,22 +215,38 @@ def chat(
             db.commit()
             session_id = session.id
 
+        user_ctx = (
+            {**(ctx_dict or {}), "review_status": "pending", "bot_answer": response.get("answer", "")}
+            if is_fallback
+            else ctx_dict
+        )
+
         # Save user message
         db.add(ChatMessage(
             session_id=session.id,
             sender="user",
             message=query.message,
-            context_state=ctx_dict,
+            source="fallback" if is_fallback else None,
+            context_state=user_ctx,
         ))
         # Save bot response
         db.add(ChatMessage(
             session_id=session.id,
             sender="bot",
             message=response.get("answer", ""),
-            source=response.get("source"),
+            source="fallback" if is_fallback else response.get("source"),
             context_state=response.get("context"),
         ))
         db.commit()
+    elif is_fallback:
+        faq_manager.record_fallback_query(
+            db=db,
+            question=query.message,
+            bot_answer=response.get("answer", ""),
+            user_id=None,
+            session_id=query.session_id,
+            context_state=ctx_dict,
+        )
 
     response["session_id"] = session_id
     return response

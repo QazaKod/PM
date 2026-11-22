@@ -169,6 +169,32 @@ class SavedProgram(Base):
     program = relationship("Program")
 
 
+class OfficerPresence(Base):
+    __tablename__ = "officer_presence"
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    seen_at = Column(DateTime, nullable=False)
+
+
+class OfficerRequest(Base):
+    __tablename__ = "officer_requests"
+    session_id = Column(String, ForeignKey("chat_sessions.id", ondelete="CASCADE"), primary_key=True)
+    officer_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"))
+    callback = Column(String(200))
+
+
+class SessionRating(Base):
+    __tablename__ = "session_ratings"
+    session_id = Column(String, ForeignKey("chat_sessions.id", ondelete="CASCADE"), primary_key=True)
+    score = Column(Integer, nullable=False)
+    comment = Column(String(1000))
+
+
+class ConsultationSetting(Base):
+    __tablename__ = "consultation_settings"
+    key = Column(String, primary_key=True)
+    value = Column(Float, nullable=False)
+
+
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 

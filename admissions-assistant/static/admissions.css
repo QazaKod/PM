@@ -1311,6 +1311,24 @@ body.staff-mode .chat-container {
   }
 }
 
+.choice-form, .consult-tools {
+  padding: 1rem;
+  margin-block: .75rem;
+}
+.choice-form { display: grid; gap: .8rem; }
+.choice-form label, .consult-tools label { display: block; }
+.choice-form input:not([type=checkbox]), .choice-form select, .consult-tools input,
+.consult-tools select { padding: .45rem; border: 1px solid var(--line); border-radius: .4rem; max-width: 100%; }
+.choice-form button, .consult-tools button { width: fit-content; padding: .4rem .8rem; cursor: pointer; }
+#choice-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: .35rem; padding: .75rem; }
+#choice-table { overflow-x: auto; }
+#choice-table table { width: 100%; border-collapse: collapse; }
+#choice-table td, #choice-table th { text-align: left; padding: .6rem; border-bottom: 1px solid var(--line); }
+#live-transcript, #officer-transcript, #quality-review { max-height: 16rem; overflow: auto; overflow-wrap: anywhere; }
+.consult-tools[open] { max-height: 35vh; overflow: auto; }
+.consult-tools summary, #policy-documents summary { cursor: pointer; }
+#choice-status, #desk-status, #consult-status { overflow-wrap: anywhere; }
+
 /* ---------- Staff analytics and announcements ---------- */
 #section-analytics,
 #section-announcements-admin {

@@ -935,6 +935,10 @@ def answer_query(
 ) -> Dict:
     """Unified entry point (Router). Only ONE decision path."""
     
+    from app.services.chat_language import career_answer, language_for
+    career_result = career_answer(message, language_for(message, language))
+    if career_result:
+        return career_result
     # 1. Sprint 3 Specialized Intent Matchers
     # 1.1 US7: Admission Guide
     guide_res = _handle_admission_guide(message, context, language)
@@ -974,10 +978,15 @@ def answer_query(
     best_f, f_score = scored_faqs[0] if scored_faqs else (None, 0.0)
 
     # 4. Fast Local Response (if confident and not a complex/comparative AI query)
+    from app.models import ConsultationSetting
+    from app.db_session import SessionLocal
+    with SessionLocal() as db:
+        setting = db.get(ConsultationSetting, "confidence")
+        threshold = setting.value if setting else CONFIDENCE_THRESHOLD
     if not _should_prefer_ai_over_keyword(message, scored_programs):
-        if p_score >= CONFIDENCE_THRESHOLD and p_score >= f_score:
+        if p_score >= threshold and p_score >= f_score:
             return _program_answer(best_p)
-        if f_score >= CONFIDENCE_THRESHOLD:
+        if f_score >= threshold:
             return {"answer": best_f["answer"], "confident": True, "source": "faq", "matched_id": best_f["id"]}
 
         # 4.5 Multi-turn follow-up resolution from conversation history

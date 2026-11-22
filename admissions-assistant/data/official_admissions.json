@@ -1,0 +1,150 @@
+{
+  "source": "https://sdu.edu.kz/en/admission-3-2/",
+  "checked": "2026-11-22",
+  "stages": [
+    "Application for the State Grant Competition",
+    "Enrollment of State Grant Recipients",
+    "Tuition-Based Enrollment"
+  ],
+  "documents": [
+    {
+      "name": "Registration and application submission via admissions.sdu.edu.kz",
+      "required": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "Admission Application Form*",
+      "required": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "School Certificate with Transcript",
+      "required": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "UNT Certificate",
+      "required": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "Medical Certificate (Form 075)",
+      "required": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "Chest fluorography image with physician’s report",
+      "required": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "Vaccination Record (Form 063)",
+      "required": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "Photographs (3×4 cm, 6 copies)",
+      "required": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "IELTS / SDU Language School Certificate (if available)**",
+      "required": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "State Educational Grant Certificate",
+      "required": [
+        false,
+        true,
+        false
+      ]
+    },
+    {
+      "name": "Pedagogical Examination Result (for teacher education programs)",
+      "required": [
+        true,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "Interview Protocol (for College Graduates, Tuition-Based)",
+      "required": [
+        false,
+        false,
+        true
+      ]
+    },
+    {
+      "name": "Student Fee Payment Receipt",
+      "required": [
+        false,
+        true,
+        true
+      ]
+    },
+    {
+      "name": "First-Semester Tuition Fee Payment Receipt",
+      "required": [
+        false,
+        false,
+        true
+      ]
+    }
+  ],
+  "grant_codes": [
+    "6B01101",
+    "6B01201",
+    "6B01301",
+    "6B01501",
+    "6B01502",
+    "6B01503",
+    "6B01504",
+    "6B01601",
+    "6B01701",
+    "6B01702",
+    "6B01801",
+    "6B02302",
+    "6B02304",
+    "6B03101",
+    "6B03201",
+    "6B04101",
+    "6B04102",
+    "6B04103",
+    "6B04104",
+    "6B04105",
+    "6B04201",
+    "6B05401",
+    "6B06101",
+    "6B06102",
+    "6B06103"
+  ]
+}

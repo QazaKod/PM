@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeFilter = "all";
   let currentUser = null;
   let userFavorites = new Set();
-  const staffTabs = new Set(["faq-admin", "programs-admin", "analytics", "announcements-admin"]);
+  const staffTabs = new Set(["faq-admin", "programs-admin", "analytics", "announcements-admin", "officers"]);
 
   function isStaffUser(user) {
     return ["admin", "manager"].includes(user?.role);
@@ -66,6 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // ================= 1. TAB NAVIGATION (SPA) =================
   function switchTab(tabId) {
     if (staffTabs.has(tabId) && !isStaffUser(currentUser)) return;
+    document.dispatchEvent(new CustomEvent("portal-tab", { detail: tabId }));
 
     // Update active nav button
     navItems.forEach((btn) => {
@@ -250,6 +251,11 @@ document.addEventListener("DOMContentLoaded", () => {
   async function handleUserMessage(messageText) {
     const text = messageText.trim();
     if (!text || chatBusy) return;
+    if (window.consultationDesk?.isLive(chatSessionId)) {
+      await window.consultationDesk.send(text);
+      chatInput.value = "";
+      return;
+    }
     chatBusy = true;
     clearChatBtn.disabled = true;
 
@@ -286,6 +292,9 @@ document.addEventListener("DOMContentLoaded", () => {
       requirementContext = data.context || null;
       if (data.session_id) {
         chatSessionId = data.session_id;
+      }
+      if (!data.confident || /operator|officer|оператор|сотрудник|қызметкер/i.test(text)) {
+        document.querySelector(".consult-tools").open = true;
       }
       chatHistory.push({ sender: "user", message: text });
       chatHistory.push({ sender: "bot", message: data.answer || "" });
@@ -415,6 +424,7 @@ document.addEventListener("DOMContentLoaded", () => {
             <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: auto;">${p.duration_years} Years</span>
           </div>
           <h3 class="program-title">${escapeHtml(p.name)}</h3>
+          <button type="button" class="btn btn-secondary" data-career="${escapeHtml(p.id)}">Career &amp; internships</button>
           <p class="program-desc" style="font-size: 0.85rem; color: #64748b; margin-bottom: 8px;">${escapeHtml(p.faculty)}</p>
           <p class="program-desc">${escapeHtml(p.description)}</p>
           
@@ -1282,6 +1292,9 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   window.handleLogout = function() {
+    window.consultationDesk?.reset();
+    chatSessionId = null;
+    chatHistory = [];
     safeStorage.removeItem("auth_token");
     currentUser = null;
     userFavorites = new Set();
@@ -3304,6 +3317,17 @@ document.addEventListener("DOMContentLoaded", () => {
   window.setInterval(refreshVisibleAnnouncements, 10000);
   loadPublicAnnouncements();
 
+  const languageSelect = document.getElementById("requirements-language");
+  languageSelect.value = safeStorage.getItem("chat_language") || "";
+  languageSelect.addEventListener("change", () => safeStorage.setItem("chat_language", languageSelect.value));
+  window.consultationDesk = initializeAdmissionsTools({
+    token: () => safeStorage.getItem("auth_token"),
+    session: () => chatSessionId,
+    resume: sid => { chatSessionId = sid; },
+    language: () => languageSelect.value || "en",
+    staff: () => isStaffUser(currentUser),
+    navigate: switchTab,
+  });
   // Initialize Auth on page load
   initAuth();
 });

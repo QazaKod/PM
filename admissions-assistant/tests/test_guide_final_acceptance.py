@@ -1,5 +1,6 @@
 """Regressions found by the independent final acceptance audit."""
 import json
+from datetime import date, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -65,10 +66,14 @@ def test_program_specific_action_requires_reviewed_source_and_full_translation(t
     assert client.get('/admissions/guide').status_code == 503
 
 
-@pytest.mark.parametrize('verified,due', [('2026-10-01','2026-10-17'),('2026-10-19','2026-11-01')])
-def test_freshness_gate_rejects_well_formed_out_of_window_publications(tmp_path,monkeypatch,verified,due):
-    data=json.loads(PROCEDURES_FILE.read_text())
-    data.update(verified_on=verified,review_due=due)
+@pytest.mark.parametrize('start_offset,end_offset', [(-17, -1), (1, 8)])
+def test_freshness_gate_rejects_well_formed_out_of_window_publications(tmp_path, monkeypatch, start_offset, end_offset):
+    data = json.loads(PROCEDURES_FILE.read_text())
+    verified_on = date.fromisoformat(data['verified_on'])
+    data.update(
+        verified_on=(verified_on + timedelta(days=start_offset)).isoformat(),
+        review_due=(verified_on + timedelta(days=end_offset)).isoformat(),
+    )
     path=tmp_path/'outside-window.json';path.write_text(json.dumps(data))
     monkeypatch.setenv('ADMISSION_GUIDE_FILE',str(path))
     response=client.get('/admissions/guide')

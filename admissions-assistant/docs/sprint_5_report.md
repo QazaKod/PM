@@ -33,3 +33,28 @@ python -m pytest -q
 For a browser check, sign in as a manager. Verify the analytics cards, edit a program and confirm the new fee in the tuition calculator, convert an unanswered question and ask it again, then publish and deactivate an announcement while watching the public portal in another session. Check that an applicant cannot open the staff pages.
 
 The schedule defers custom analytics date ranges, bulk catalog CSV import, automated clustering of unanswered questions, and scheduled announcement expiration.
+
+
+## Saken's Sprint 5 verification — November 23, 2026
+
+US6 was already in `main` in `2729544`. The existing acceptance tests cover
+manager and admin access, applicant rejection, empty metrics, counts, and saved
+program ranking. A separate check on a disposable database verified a manager's
+counts and the 401/403 responses for anonymous users and applicants. It also
+confirmed that the dashboard is present in the page HTML.
+
+The US7 follow-up publishes guide version `2026-11-23.1`, due for review by
+December 21. SDU's Bachelor page confirms the closed domestic dates and says
+online state grant applications can be filed without the pedagogical examination
+result. SDU's international page still lists November 30 for applications and
+December 20 for originals for the spring intake. The Master route remains general.
+Program-specific notes still follow their own review dates. The separate SDU
+document and grant-list sync does not refresh this procedure guide.
+
+- [SDU Bachelor admissions](https://sdu.edu.kz/en/admission-3-2/)
+- [SDU International admissions](https://sdu.edu.kz/en/international-admissions/)
+- [SDU Master admissions](https://sdu.edu.kz/en/master/)
+
+The full suite passed 289 tests. With the real Almaty date, all 12 guide
+combinations and the chat request passed. The review gate accepted the last
+review day and withheld the guide the following day.

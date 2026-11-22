@@ -1,7 +1,7 @@
 """US7 acceptance and failure tests: synthetic policy edits never touch live data."""
 import json
 from copy import deepcopy
-from datetime import date
+from datetime import date, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -11,7 +11,7 @@ from app.main import app
 from app.services import admission_guide as service
 
 client = TestClient(app)
-TODAY = date(2026, 10, 18)
+TODAY = date.fromisoformat(json.loads(service.PROCEDURES_FILE.read_text())["verified_on"])
 
 
 @pytest.fixture
@@ -49,7 +49,12 @@ def test_invalid_parameters_are_rejected(params):
     assert client.get('/admissions/guide', params=params).status_code == 422
 
 
-def test_selected_program_and_verified_conditions():
+def test_selected_program_and_verified_conditions(monkeypatch):
+    requirements = deepcopy(service.load_requirements())
+    for program in ("sdu-cs", "sdu-law"):
+        note = requirements[program]["requirements"]["domestic"]["undergraduate"]["prerequisites"]
+        note.update(verified_on=TODAY.isoformat(), review_due=TODAY.isoformat())
+    monkeypatch.setattr(service, "load_requirements", lambda: requirements)
     cs = client.get('/admissions/guide', params={'program_id': 'sdu-cs', 'lang': 'en'}).json()
     law = client.get('/admissions/guide', params={'program_id': 'sdu-law', 'lang': 'en'}).json()
     assert cs['program_name'] == 'Computer Science'
@@ -71,7 +76,7 @@ def test_deadline_is_open_on_its_last_day_and_closed_after(policy):
     payload['routes'][0]['steps'][1]['deadline'] = TODAY.isoformat()
     path.write_text(json.dumps(payload))
     assert service.get_admission_guide(today=TODAY)['steps'][1]['deadline_status'] == 'upcoming'
-    assert service.get_admission_guide(today=date(2026, 10, 19))['steps'][1]['deadline_status'] == 'closed'
+    assert service.get_admission_guide(today=TODAY + timedelta(days=1))['steps'][1]['deadline_status'] == 'closed'
 
 
 def test_stale_program_conditions_are_withheld(monkeypatch):
@@ -106,7 +111,8 @@ def test_next_request_reads_reviewed_update_without_restart(policy):
 
 
 @pytest.mark.parametrize('mutation', [
-    {'review_due': '2026-10-17'}, {'verified_on': '2026-10-19'},
+    {'review_due': (TODAY - timedelta(days=1)).isoformat()},
+    {'verified_on': (TODAY + timedelta(days=1)).isoformat()},
     {'status': 'draft'}, {'sources': {}}, {'routes': []},
 ])
 def test_unreviewed_stale_and_empty_policy_is_withheld(policy, mutation):

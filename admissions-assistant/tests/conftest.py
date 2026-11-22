@@ -3,6 +3,7 @@ import os
 import tempfile
 from pathlib import Path
 from datetime import date
+import json
 
 # Set before any app module is imported (including test collection).
 _sandbox = tempfile.TemporaryDirectory(prefix="pm-tests-")
@@ -52,4 +53,5 @@ def fixed_guide_review_date(monkeypatch):
     # Functional tests use the checked-in policy's review date. Explicit stale
     # and future-date tests still exercise the production expiry checks.
     from app.services import admission_guide
-    monkeypatch.setattr(admission_guide, 'local_today', lambda: date(2026, 10, 18))
+    verified_on = date.fromisoformat(json.loads(admission_guide.PROCEDURES_FILE.read_text())["verified_on"])
+    monkeypatch.setattr(admission_guide, "local_today", lambda: verified_on)

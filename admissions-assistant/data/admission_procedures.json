@@ -1,7 +1,7 @@
 {
-  "version": "2026-10-18.2",
-  "verified_on": "2026-10-18",
-  "review_due": "2026-11-01",
+  "version": "2026-11-23.1",
+  "verified_on": "2026-11-23",
+  "review_due": "2026-12-21",
   "status": "reviewed",
   "sources": {
     "admission": {
@@ -145,15 +145,15 @@
             "text": {
               "ru": {
                 "title": "Специальный педагогический экзамен",
-                "description": "Для педагогической программы уточните и пройдите специальный экзамен. Проверьте, когда результат нужен для конкурса грантов и зачисления, до подачи заявления."
+                "description": "Уточните порядок специального экзамена для педагогической программы. SDU позволяет подать онлайн-заявку на государственный грант без результата экзамена. Срок прохождения экзамена для зачисления подтвердите в приёмной комиссии."
               },
               "kk": {
                 "title": "Арнайы педагогикалық емтихан",
-                "description": "Педагогикалық бағдарлама үшін арнайы емтиханды нақтылап, тапсырыңыз. Грант конкурсы мен қабылдау үшін нәтиже қашан қажет екенін өтініш бермес бұрын тексеріңіз."
+                "description": "Педагогикалық бағдарлама үшін арнайы емтихан тәртібін анықтаңыз. SDU мемлекеттік грантқа онлайн өтінішті емтихан нәтижесінсіз қабылдайды. Оқуға қабылдану үшін емтиханды тапсыру мерзімін қабылдау комиссиясынан нақтылаңыз."
               },
               "en": {
                 "title": "Special pedagogical examination",
-                "description": "For this teacher-education route, confirm and complete the special examination. Check when its result is required for the grant competition and enrollment before applying."
+                "description": "Confirm the special examination process for this teacher-education program. SDU accepts online state grant applications without the examination result. Ask admissions when you need to complete the examination for enrollment."
               }
             }
           }

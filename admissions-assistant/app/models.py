@@ -1,6 +1,6 @@
 from datetime import datetime
 import uuid
-from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, JSON, DateTime
+from sqlalchemy import Column, String, Integer, Float, Boolean, ForeignKey, JSON, DateTime, false
 from sqlalchemy.orm import declarative_base, relationship
 
 Base = declarative_base()
@@ -19,6 +19,7 @@ class Program(Base):
     format = Column(String)
     language = Column(JSON)  # Stores list of strings
     unt_subjects = Column(JSON)  # Stores list of strings
+    min_unt_score = Column(Integer, nullable=True)  # Optional staff-managed UNT passing score override
     description = Column(String)
     aliases = Column(JSON)  # US3 requirement program aliases
     codes = Column(JSON)  # US3 requirement program codes
@@ -35,6 +36,19 @@ class FAQ(Base):
     answer = Column(String)
     keywords = Column(JSON)  # Stores list of strings
     category = Column(String, default="general", nullable=True)
+
+
+class Announcement(Base):
+    __tablename__ = "announcements"
+    __table_args__ = {"sqlite_autoincrement": True}
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(120), nullable=False)
+    message = Column(String(500), nullable=False)
+    category = Column(String(16), nullable=False)
+    link = Column(String(2083), nullable=True)
+    is_active = Column(Boolean, nullable=False, server_default=false())
+    created_at = Column(DateTime, nullable=False, default=datetime.utcnow)
 
 
 class Requirement(Base):

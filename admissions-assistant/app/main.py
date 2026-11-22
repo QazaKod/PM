@@ -28,7 +28,7 @@ from app.admin import (
 )
 from app.security import SECRET_KEY, get_optional_current_user
 from app.rate_limit import rate_limit
-from app.routers import auth, admissions, deadlines, faq_admin
+from app.routers import auth, admissions, announcements, deadlines, faq_admin, program_admin, staff_analytics
 from app.services import faq_manager
 
 # Set up logging to file
@@ -80,6 +80,9 @@ app.include_router(auth.router)
 app.include_router(admissions.router)
 app.include_router(deadlines.router)
 app.include_router(faq_admin.router)
+app.include_router(program_admin.router)
+app.include_router(staff_analytics.router)
+app.include_router(announcements.router)
 
 # Initialize SQLAdmin with secure authentication backend
 admin_auth = AdminAuth(secret_key=SECRET_KEY)

@@ -65,15 +65,23 @@ def normalize_subject(subject_raw: str) -> str:
     return subject_raw.strip().title()
 
 
-def get_program_threshold(program_id: str, faculty: str) -> int:
-    """Determine minimum UNT admission threshold based on program and regulatory criteria:
+def get_program_threshold(
+    program_id: str,
+    faculty: str,
+    min_unt_score: Optional[int] = None,
+) -> int:
+    """Determine minimum UNT admission threshold based on staff override or regulatory defaults:
 
+    - Explicit staff-configured min_unt_score takes precedence when set
     - Minimum 75 for Law and IT programs
     - Minimum 65 for Pedagogical & Social sciences
     - Minimum 50 for General programs (Business School, MCM, etc.)
     """
-    pid = program_id.lower()
-    fac = faculty.lower()
+    if min_unt_score is not None:
+        return int(min_unt_score)
+
+    pid = (program_id or "").lower()
+    fac = (faculty or "").lower()
 
     # IT Programs (75)
     if pid in ("sdu-cs", "sdu-is", "sdu-se"):
@@ -165,7 +173,11 @@ def match_unt_eligibility(
 
         # Check if subject combination matches
         if prog_pair == user_pair:
-            min_score = get_program_threshold(prog["id"], prog.get("faculty", ""))
+            min_score = get_program_threshold(
+                prog["id"],
+                prog.get("faculty", ""),
+                prog.get("min_unt_score"),
+            )
             grant_eval = estimate_grant_chance(prog["id"], prog.get("faculty", ""), score)
 
             prog_info = {

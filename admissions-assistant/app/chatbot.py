@@ -190,10 +190,21 @@ def get_scored_faqs(message: str) -> List[Tuple[Dict, float]]:
 
 
 def _program_answer(program):
+    from app.services.unt_calculator import get_program_threshold
+    unt_subjects = program.get("unt_subjects") or []
+    unt_line = f"UNT Subjects: {' + '.join(unt_subjects)}\n" if unt_subjects else ""
+    min_score = get_program_threshold(
+        program.get("id", ""),
+        program.get("faculty", ""),
+        program.get("min_unt_score"),
+    )
+    score_line = f"Minimum UNT Score: {min_score}\n" if (unt_subjects or program.get("min_unt_score") is not None) else ""
     answer = (
         f"**{program['name']}** ({program['code']}) - {program['faculty']}\n"
         f"Degree: {program['degree']}, {program['duration_years']} years\n"
         f"Cost: ~{program['approx_cost_per_year_kzt']:,} KZT/year\n"
+        f"{unt_line}"
+        f"{score_line}"
         f"Format: {program['format']}\n"
         f"Description: {program['description']}"
     )

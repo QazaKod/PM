@@ -1,7 +1,7 @@
 import re
 from datetime import datetime
-from pydantic import BaseModel, Field, ConfigDict, field_validator, model_validator
-from typing import Literal, Optional, List
+from pydantic import BaseModel, Field, ConfigDict, HttpUrl, StringConstraints, field_validator, model_validator
+from typing import Annotated, Literal, Optional, List
 
 
 # ==========================================
@@ -598,3 +598,193 @@ class UnansweredQueryConvertRequest(BaseModel):
             if not v:
                 raise ValueError("Field cannot be empty or whitespace only.")
         return v
+
+
+# ==========================================
+# SPRINT 5: STAFF PROGRAM CATALOG MANAGER (US10)
+# ==========================================
+
+def _clean_string_list(values: Optional[List[str]], *, reject_duplicates: bool = False) -> List[str]:
+    if not values:
+        return []
+    cleaned: List[str] = []
+    seen = set()
+    for item in values:
+        val = (item or "").strip()
+        if not val:
+            continue
+        key = val.lower()
+        if key in seen:
+            if reject_duplicates:
+                raise ValueError(f"Duplicate entry '{val}' is not allowed.")
+            continue
+        seen.add(key)
+        cleaned.append(val)
+    return cleaned
+
+
+class ProgramCreateRequest(BaseModel):
+    id: Optional[str] = Field(default=None, max_length=80)
+    code: str = Field(min_length=2, max_length=40)
+    faculty: str = Field(min_length=2, max_length=150)
+    name: str = Field(min_length=2, max_length=150)
+    degree: str = Field(min_length=2, max_length=60)
+    duration_years: int = Field(default=4, ge=1, le=10)
+    approx_cost_per_year_kzt: int = Field(gt=0, le=50_000_000)
+    format: str = Field(default="Full-time", min_length=2, max_length=60)
+    language: List[str] = Field(default_factory=lambda: ["English"])
+    unt_subjects: List[str] = Field(default_factory=list)
+    min_unt_score: Optional[int] = Field(default=None, ge=1, le=140)
+    description: str = Field(min_length=3, max_length=2000)
+    aliases: List[str] = Field(default_factory=list)
+
+    @field_validator("id")
+    @classmethod
+    def validate_program_id(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        cleaned = v.strip().lower()
+        if not cleaned:
+            return None
+        if not re.fullmatch(r"[a-z0-9][a-z0-9_-]{1,79}", cleaned):
+            raise ValueError("Program ID may contain only lowercase letters, digits, hyphens, and underscores.")
+        return cleaned
+
+    @field_validator("code", "faculty", "name", "degree", "format", "description")
+    @classmethod
+    def validate_required_text(cls, v: str) -> str:
+        cleaned = v.strip()
+        if not cleaned:
+            raise ValueError("Field cannot be empty or whitespace only.")
+        return cleaned
+
+    @field_validator("language")
+    @classmethod
+    def validate_languages(cls, v: List[str]) -> List[str]:
+        cleaned = _clean_string_list(v)
+        return cleaned or ["English"]
+
+    @field_validator("unt_subjects")
+    @classmethod
+    def validate_unt_subjects(cls, v: List[str]) -> List[str]:
+        cleaned = _clean_string_list(v, reject_duplicates=True)
+        if len(cleaned) > 2:
+            raise ValueError("At most two UNT profile subjects can be assigned to a program.")
+        return cleaned
+
+    @field_validator("aliases")
+    @classmethod
+    def validate_aliases(cls, v: List[str]) -> List[str]:
+        return _clean_string_list(v)
+
+
+class ProgramUpdateRequest(BaseModel):
+    code: Optional[str] = Field(default=None, min_length=2, max_length=40)
+    faculty: Optional[str] = Field(default=None, min_length=2, max_length=150)
+    name: Optional[str] = Field(default=None, min_length=2, max_length=150)
+    degree: Optional[str] = Field(default=None, min_length=2, max_length=60)
+    duration_years: Optional[int] = Field(default=None, ge=1, le=10)
+    approx_cost_per_year_kzt: Optional[int] = Field(default=None, gt=0, le=50_000_000)
+    format: Optional[str] = Field(default=None, min_length=2, max_length=60)
+    language: Optional[List[str]] = None
+    unt_subjects: Optional[List[str]] = None
+    min_unt_score: Optional[int] = Field(default=None, ge=1, le=140)
+    description: Optional[str] = Field(default=None, min_length=3, max_length=2000)
+    aliases: Optional[List[str]] = None
+
+    @field_validator("code", "faculty", "name", "degree", "format", "description")
+    @classmethod
+    def validate_optional_text(cls, v: Optional[str]) -> Optional[str]:
+        if v is not None:
+            cleaned = v.strip()
+            if not cleaned:
+                raise ValueError("Field cannot be empty or whitespace only.")
+            return cleaned
+        return v
+
+    @field_validator("language")
+    @classmethod
+    def validate_languages_if_set(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if v is None:
+            return None
+        cleaned = _clean_string_list(v)
+        if not cleaned:
+            raise ValueError("At least one language of instruction is required.")
+        return cleaned
+
+    @field_validator("unt_subjects")
+    @classmethod
+    def validate_unt_subjects_if_set(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if v is None:
+            return None
+        cleaned = _clean_string_list(v, reject_duplicates=True)
+        if len(cleaned) > 2:
+            raise ValueError("At most two UNT profile subjects can be assigned to a program.")
+        return cleaned
+
+    @field_validator("aliases")
+    @classmethod
+    def validate_aliases_if_set(cls, v: Optional[List[str]]) -> Optional[List[str]]:
+        if v is None:
+            return None
+        return _clean_string_list(v)
+
+
+class ProgramItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    code: str
+    faculty: str
+    name: str
+    degree: str
+    duration_years: int
+    approx_cost_per_year_kzt: int
+    format: str
+    language: List[str] = Field(default_factory=list)
+    unt_subjects: List[str] = Field(default_factory=list)
+    min_unt_score: Optional[int] = None
+    effective_min_unt_score: int
+    description: str
+    aliases: List[str] = Field(default_factory=list)
+
+
+class SavedProgramMetric(BaseModel):
+    program_id: str
+    name: str
+    saved_count: int
+
+
+class StaffAnalyticsOut(BaseModel):
+    total_applicants: int
+    domestic_applicants: int
+    international_applicants: int
+    unspecified_applicants: int
+    total_chat_sessions: int
+    top_saved_programs: list[SavedProgramMetric]
+
+
+class AnnouncementContent(BaseModel):
+    title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=120)]
+    message: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)]
+    category: Literal["info", "deadline", "event"] = "info"
+    link: HttpUrl | None = None
+
+
+class AnnouncementCreate(AnnouncementContent):
+    is_active: bool = False
+
+
+class AnnouncementStatusUpdate(BaseModel):
+    is_active: bool
+
+
+class PublicAnnouncementOut(AnnouncementContent):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+
+
+class StaffAnnouncementOut(PublicAnnouncementOut):
+    is_active: bool
+    created_at: datetime

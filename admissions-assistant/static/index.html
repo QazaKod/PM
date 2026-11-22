@@ -7,9 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&family=Oswald:wght@500;700&display=swap" rel="stylesheet">
-  <link id="theme-stylesheet" rel="stylesheet" href="/static/steppe.css">
-  <link rel="stylesheet" href="/static/auth.css">
-  <link rel="stylesheet" href="/static/admissions.css">
+  <link id="theme-stylesheet" rel="stylesheet" href="/static/steppe.css?v=20261122a">
+  <link rel="stylesheet" href="/static/auth.css?v=20261122a">
+  <link rel="stylesheet" href="/static/admissions.css?v=20261122b">
 
   <script src="https://unpkg.com/@phosphor-icons/web"></script>
   <script>
@@ -17,16 +17,17 @@
     (function () {
       const THEMES = ['steppe', 'metro', 'festival'];
       const DEFAULT_THEME = 'steppe';
+      const ASSET_V = '20261122a';
       const el = document.getElementById('theme-stylesheet');
 
       fetch('/static/config.json?v=' + new Date().getTime())
         .then(res => res.json())
         .then(data => {
           const theme = THEMES.includes(data.theme) ? data.theme : DEFAULT_THEME;
-          el.href = '/static/' + theme + '.css';
+          el.href = '/static/' + theme + '.css?v=' + ASSET_V;
         })
         .catch(() => {
-          el.href = '/static/' + DEFAULT_THEME + '.css';
+          el.href = '/static/' + DEFAULT_THEME + '.css?v=' + ASSET_V;
         });
     })();
   </script>
@@ -57,7 +58,7 @@
           <div class="brand-icon">🏛️</div>
           <div class="brand-info">
             <h1 class="brand-title">Smart University</h1>
-            <span class="brand-subtitle">Admissions 2026</span>
+            <span class="brand-subtitle" id="brand-subtitle-text">Admissions 2026</span>
           </div>
         </div>
       </div>
@@ -101,10 +102,24 @@
           <span class="nav-label">Official Links</span>
           <span class="nav-tag demo-tag">US9</span>
         </button>
+        <div id="staff-nav-divider" class="staff-nav-divider" style="display: none;">Staff Workspace</div>
         <button class="nav-item" data-tab="faq-admin" id="nav-item-faq-admin" style="display: none;">
           <i class="ph ph-sliders nav-icon"></i>
           <span class="nav-label">Manage FAQ</span>
           <span class="nav-tag demo-tag">US13/22</span>
+        </button>
+        <button class="nav-item" data-tab="programs-admin" id="nav-item-programs-admin" style="display: none;">
+          <i class="ph ph-graduation-cap nav-icon"></i>
+          <span class="nav-label">Manage Programs</span>
+          <span class="nav-tag demo-tag">US10</span>
+        </button>
+        <button class="nav-item" data-tab="analytics" id="nav-item-analytics" style="display: none;">
+          <i class="ph ph-chart-bar nav-icon"></i>
+          <span class="nav-label">Staff Analytics</span>
+        </button>
+        <button class="nav-item" data-tab="announcements-admin" id="nav-item-announcements-admin" style="display: none;">
+          <i class="ph ph-megaphone nav-icon"></i>
+          <span class="nav-label">Manage Announcements</span>
         </button>
       </nav>
 
@@ -113,8 +128,8 @@
         <div class="system-status">
           <div class="status-indicator online"></div>
           <div class="status-text">
-            <strong>Assistant Online</strong>
-            <span>Rule Matcher v0.1 (Offline)</span>
+            <strong id="system-status-title">Assistant Online</strong>
+            <span id="system-status-sub">Rule Matcher v0.1 (Offline)</span>
           </div>
         </div>
       </div>
@@ -125,6 +140,29 @@
 
     <!-- Main Content Area -->
     <main id="main-content" class="main-content">
+      <div id="staff-command-bar" class="staff-command-bar" style="display: none;">
+        <div class="staff-command-bar-inner">
+          <div class="staff-bar-left">
+            <span class="staff-role-pill" id="staff-role-pill">
+              <i class="ph ph-shield-check"></i> ADMIN CONSOLE
+            </span>
+            <span class="staff-bar-user" id="staff-bar-user">Staff access active</span>
+          </div>
+          <div class="staff-bar-actions">
+            <button type="button" class="staff-bar-btn" onclick="switchTab('programs-admin')">
+              <i class="ph ph-graduation-cap"></i> Program Catalog
+            </button>
+            <button type="button" class="staff-bar-btn" onclick="switchTab('faq-admin')">
+              <i class="ph ph-sliders"></i> FAQ &amp; Unanswered Log
+            </button>
+            <a id="staff-bar-sqladmin-link" href="/admin" target="_blank" rel="noopener noreferrer" class="staff-bar-btn staff-bar-btn-outline" style="display: none;">
+              <i class="ph ph-database"></i> Database Admin ↗
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <section id="public-announcements" class="public-announcements" aria-label="Admissions announcements" aria-live="polite" hidden></section>
 
       <!-- ================= SECTION: CHAT ================= -->
       <section id="section-chat" class="tab-section active">
@@ -784,6 +822,65 @@
         </div>
       </section>
 
+      <section id="section-analytics" class="tab-section">
+        <div class="section-header">
+          <h2>Staff Analytics</h2>
+          <button id="analytics-refresh" type="button" class="btn btn-secondary">Refresh</button>
+        </div>
+        <p id="analytics-status" class="staff-status" role="status"></p>
+        <div id="analytics-results" hidden>
+          <dl class="analytics-metrics">
+            <div class="card"><dt>Registered applicants</dt><dd id="analytics-total-applicants"></dd></div>
+            <div class="card"><dt>Domestic applicants</dt><dd id="analytics-domestic-applicants"></dd></div>
+            <div class="card"><dt>International applicants</dt><dd id="analytics-international-applicants"></dd></div>
+            <div class="card"><dt>Recorded chat sessions</dt><dd id="analytics-chat-sessions"></dd></div>
+          </dl>
+          <p id="analytics-unspecified" class="staff-status" hidden></p>
+          <div class="card analytics-popularity">
+            <h3>Most saved programs</h3>
+            <p id="analytics-programs-empty">Applicants have not saved any programs yet.</p>
+            <ol id="analytics-programs" class="analytics-ranking"></ol>
+          </div>
+        </div>
+      </section>
+
+      <section id="section-announcements-admin" class="tab-section">
+        <div class="section-header">
+          <h2>Manage Announcements</h2>
+        </div>
+        <p id="announcements-admin-status" class="staff-status" role="status"></p>
+        <div class="announcements-workspace">
+          <form id="announcement-form" class="card announcement-form">
+            <h3 id="announcement-form-heading">New announcement</h3>
+            <label for="announcement-title">Title</label>
+            <input id="announcement-title" name="title" required maxlength="120">
+            <label for="announcement-message">Message</label>
+            <textarea id="announcement-message" name="message" required maxlength="500" rows="4"></textarea>
+            <label for="announcement-category">Category</label>
+            <select id="announcement-category" name="category">
+              <option value="info">Information</option>
+              <option value="deadline">Deadline</option>
+              <option value="event">Event</option>
+            </select>
+            <label for="announcement-link">Link (optional)</label>
+            <input id="announcement-link" name="link" type="url" maxlength="2083" placeholder="https://">
+            <label id="announcement-publish-option" class="announcement-checkbox">
+              <input name="is_active" type="checkbox">
+              Publish immediately
+            </label>
+            <div class="announcement-actions">
+              <button id="announcement-cancel" type="button" class="btn btn-secondary" hidden>Cancel edit</button>
+              <button id="announcement-save" type="submit" class="btn btn-primary">Create announcement</button>
+            </div>
+          </form>
+          <div class="announcements-list-panel">
+            <h3>Announcements</h3>
+            <p id="announcements-admin-empty" hidden>No announcements yet.</p>
+            <ul id="announcements-admin-list" class="announcements-list"></ul>
+          </div>
+        </div>
+      </section>
+
       <!-- ================= SECTION: FAQ ADMIN (US13) ================= -->
       <section id="section-faq-admin" class="tab-section">
         <div class="section-container">
@@ -881,7 +978,7 @@
                     <th style="width: 120px;">Status</th>
                     <th style="width: 42%;">Applicant Question</th>
                     <th style="width: 170px;">Logged At</th>
-                    <th style="width: 210px; text-align: right;">Actions</th>
+                    <th style="width: 250px; text-align: right;">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="unanswered-tbody">
@@ -892,6 +989,89 @@
                 <i class="ph ph-check-circle" style="font-size: 2.5rem; color: var(--muted);"></i>
                 <p>No unanswered chatbot queries in this view.</p>
               </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= SECTION: STAFF PROGRAM CATALOG MANAGER (US10) ================= -->
+      <section id="section-programs-admin" class="tab-section">
+        <div class="section-container">
+          <div class="section-header">
+            <div>
+              <div class="title-with-badge">
+                <h2>Program Catalog Manager</h2>
+                <span class="preview-badge">US10 Staff</span>
+              </div>
+              <p>Add, edit, or delete educational program cards. Tuition fees, UNT subject pairs, passing scores, and descriptions immediately sync with the public catalog, chatbot, and calculators.</p>
+            </div>
+            <div>
+              <button type="button" class="btn-primary" id="btn-add-program" onclick="openProgramModal()">
+                <i class="ph ph-plus-circle"></i> Add New Program
+              </button>
+            </div>
+          </div>
+
+          <div id="program-admin-feedback" class="program-admin-banner" style="display: none;" role="status" aria-live="polite"></div>
+
+          <!-- Toolbar: Search, Faculty, Degree filter -->
+          <div class="faq-admin-toolbar">
+            <div class="search-input-wrap">
+              <i class="ph ph-magnifying-glass search-icon"></i>
+              <input type="text" id="program-admin-search" placeholder="Search by code, name, faculty, or description..." oninput="debounceAdminProgramSearch()">
+            </div>
+            <div class="filter-group">
+              <label for="program-admin-faculty-filter"><i class="ph ph-buildings"></i> Faculty:</label>
+              <select id="program-admin-faculty-filter" onchange="loadAdminPrograms()">
+                <option value="all">All Faculties</option>
+                <option value="Faculty of Engineering and Natural Sciences">Engineering &amp; Natural Sciences</option>
+                <option value="SDU Business School">SDU Business School</option>
+                <option value="Faculty of Law and Social Sciences">Law &amp; Social Sciences</option>
+                <option value="Faculty of Education and Humanities">Education &amp; Humanities</option>
+              </select>
+            </div>
+            <div class="filter-group">
+              <label for="program-admin-degree-filter"><i class="ph ph-graduation-cap"></i> Degree:</label>
+              <select id="program-admin-degree-filter" onchange="loadAdminPrograms()">
+                <option value="all">All Degrees</option>
+                <option value="Bachelor">Bachelor</option>
+                <option value="Master">Master</option>
+                <option value="PhD">PhD</option>
+              </select>
+            </div>
+            <div class="faq-admin-stats" id="program-admin-count">0 programs</div>
+          </div>
+
+          <!-- Table Container -->
+          <div class="faq-admin-table-container">
+            <div id="program-admin-loading" class="program-admin-loading" style="display: none;">
+              <i class="ph ph-spinner ph-spin" style="font-size: 1.4rem;"></i>
+              <span>Loading program catalog...</span>
+            </div>
+            <div id="program-admin-error" class="faq-admin-empty" style="display: none;">
+              <i class="ph ph-warning-circle" style="font-size: 2.4rem; color: var(--alert, #B32D3A);"></i>
+              <p id="program-admin-error-text">Failed to load program catalog.</p>
+              <button type="button" class="btn-secondary" style="margin-top: 12px;" onclick="loadAdminPrograms()">
+                <i class="ph ph-arrow-clockwise"></i> Retry
+              </button>
+            </div>
+            <table class="faq-admin-table" id="program-admin-table">
+              <thead>
+                <tr>
+                  <th style="width: 34%;">Code &amp; Program</th>
+                  <th style="width: 17%;">Degree &amp; Format</th>
+                  <th style="width: 22%;">UNT Subjects &amp; Score</th>
+                  <th style="width: 13%;">Annual Tuition</th>
+                  <th style="width: 14%; text-align: right;">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="program-admin-tbody">
+                <!-- Populated dynamically via renderAdminPrograms() -->
+              </tbody>
+            </table>
+            <div id="program-admin-empty" class="faq-admin-empty" style="display: none;">
+              <i class="ph ph-graduation-cap" style="font-size: 2.5rem; color: var(--muted);"></i>
+              <p>No educational programs match your filter. Click "Add New Program" above to create one.</p>
             </div>
           </div>
         </div>
@@ -923,7 +1103,7 @@
       <form id="form-login" onsubmit="handleLoginSubmit(event)">
         <div class="auth-form-group">
           <label>Email Address or Phone Number</label>
-          <input type="text" id="login-email" required placeholder="applicant@sdu.edu.kz or +7 777 123 4567">
+          <input type="text" id="login-email" required placeholder="name@gmail.com or +7 777 123 4567">
         </div>
         <div class="auth-form-group">
           <label>Password</label>
@@ -960,7 +1140,7 @@
 
         <div id="reg-email-group" class="auth-form-group" style="display: none;">
           <label>Email Address</label>
-          <input type="email" id="reg-email" placeholder="applicant@sdu.edu.kz">
+          <input type="email" id="reg-email" placeholder="name@gmail.com">
           <div class="form-hint" style="font-size: 11px; color: var(--muted); margin-top: 3px;">A 6-digit confirmation code will be sent to your email.</div>
         </div>
 
@@ -1038,7 +1218,7 @@
         </div>
         <div class="auth-form-group">
           <label>Registered Phone Number or Email</label>
-          <input type="text" id="forgot-email" required placeholder="+7 701 123 4567 or applicant@sdu.edu.kz">
+          <input type="text" id="forgot-email" required placeholder="+7 701 123 4567 or name@gmail.com">
         </div>
         <div id="forgot-error" class="auth-form-error"></div>
         <button type="submit" id="forgot-submit-btn" class="auth-form-submit">Get Code via Telegram Bot</button>
@@ -1181,7 +1361,128 @@
     </div>
   </div>
 
-  <script type="module" src="/static/js/main.js"></script>
-  <script src="/static/app.js"></script>
+  <!-- ================= MODAL: PROGRAM EDIT / CREATE (US10) ================= -->
+  <div id="program-edit-modal" class="auth-modal-overlay">
+    <div class="auth-modal" style="max-width: 680px; width: 95%; max-height: 92vh; overflow-y: auto;">
+      <div class="auth-modal-header">
+        <h3 id="program-modal-title">Add New Program</h3>
+        <button type="button" class="auth-modal-close" onclick="closeProgramModal()">&times;</button>
+      </div>
+      <form id="form-program-edit" onsubmit="handleProgramSubmit(event)" novalidate>
+        <input type="hidden" id="prog-edit-id">
+        <div class="program-modal-grid">
+          <div class="auth-form-group">
+            <label for="prog-edit-code">Program Code <span style="color: var(--alert, #e74c3c);">*</span></label>
+            <input type="text" id="prog-edit-code" placeholder="e.g. 6B06102" required minlength="2" maxlength="40">
+          </div>
+          <div class="auth-form-group">
+            <label for="prog-edit-degree">Degree Level <span style="color: var(--alert, #e74c3c);">*</span></label>
+            <select id="prog-edit-degree" required>
+              <option value="Bachelor">Bachelor</option>
+              <option value="Master">Master</option>
+              <option value="PhD">PhD</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="prog-edit-name">Program Name <span style="color: var(--alert, #e74c3c);">*</span></label>
+          <input type="text" id="prog-edit-name" placeholder="e.g. Computer Science" required minlength="2" maxlength="150">
+        </div>
+
+        <div class="auth-form-group">
+          <label for="prog-edit-faculty">Faculty <span style="color: var(--alert, #e74c3c);">*</span></label>
+          <input type="text" id="prog-edit-faculty" list="sdu-faculties-list" placeholder="e.g. Faculty of Engineering and Natural Sciences" required minlength="2" maxlength="150">
+          <datalist id="sdu-faculties-list">
+            <option value="Faculty of Engineering and Natural Sciences"></option>
+            <option value="SDU Business School"></option>
+            <option value="Faculty of Law and Social Sciences"></option>
+            <option value="Faculty of Education and Humanities"></option>
+          </datalist>
+        </div>
+
+        <div class="program-modal-grid-3">
+          <div class="auth-form-group">
+            <label for="prog-edit-cost">Annual Tuition (KZT) <span style="color: var(--alert, #e74c3c);">*</span></label>
+            <input type="number" id="prog-edit-cost" placeholder="e.g. 1850000" required min="1" step="1000">
+          </div>
+          <div class="auth-form-group">
+            <label for="prog-edit-duration">Duration (Years) <span style="color: var(--alert, #e74c3c);">*</span></label>
+            <input type="number" id="prog-edit-duration" value="4" required min="1" max="10">
+          </div>
+          <div class="auth-form-group">
+            <label for="prog-edit-min-unt">Passing UNT Score (1–140)</label>
+            <input type="number" id="prog-edit-min-unt" placeholder="Auto (50/65/75)" min="1" max="140">
+            <div class="form-hint">Leave blank for faculty default.</div>
+          </div>
+        </div>
+
+        <div class="program-modal-grid">
+          <div class="auth-form-group">
+            <label for="prog-edit-unt-1">UNT Profile Subject 1</label>
+            <select id="prog-edit-unt-1">
+              <option value="">None / Not Required</option>
+              <option value="Mathematics">Mathematics (Математика)</option>
+              <option value="Computer Science">Computer Science (Информатика)</option>
+              <option value="Physics">Physics (Физика)</option>
+              <option value="Geography">Geography (География)</option>
+              <option value="World History">World History (Всемирная история)</option>
+              <option value="Fundamentals of Law">Fundamentals of Law (Основы права)</option>
+              <option value="Foreign Language">Foreign Language (Иностранный язык)</option>
+              <option value="Creative Exams">Creative Exams (Творческие экзамены)</option>
+              <option value="Biology">Biology (Биология)</option>
+              <option value="Chemistry">Chemistry (Химия)</option>
+            </select>
+          </div>
+          <div class="auth-form-group">
+            <label for="prog-edit-unt-2">UNT Profile Subject 2</label>
+            <select id="prog-edit-unt-2">
+              <option value="">None / Not Required</option>
+              <option value="Mathematics">Mathematics (Математика)</option>
+              <option value="Computer Science">Computer Science (Информатика)</option>
+              <option value="Physics">Physics (Физика)</option>
+              <option value="Geography">Geography (География)</option>
+              <option value="World History">World History (Всемирная история)</option>
+              <option value="Fundamentals of Law">Fundamentals of Law (Основы права)</option>
+              <option value="Foreign Language">Foreign Language (Иностранный язык)</option>
+              <option value="Creative Exams">Creative Exams (Творческие экзамены)</option>
+              <option value="Biology">Biology (Биология)</option>
+              <option value="Chemistry">Chemistry (Химия)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="program-modal-grid">
+          <div class="auth-form-group">
+            <label for="prog-edit-format">Study Format <span style="color: var(--alert, #e74c3c);">*</span></label>
+            <select id="prog-edit-format">
+              <option value="Full-time">Full-time</option>
+              <option value="Part-time">Part-time</option>
+              <option value="Online">Online</option>
+              <option value="Hybrid">Hybrid</option>
+            </select>
+          </div>
+          <div class="auth-form-group">
+            <label for="prog-edit-language">Languages (comma-separated)</label>
+            <input type="text" id="prog-edit-language" value="English" placeholder="English, Russian, Kazakh">
+          </div>
+        </div>
+
+        <div class="auth-form-group">
+          <label for="prog-edit-description">Program Description <span style="color: var(--alert, #e74c3c);">*</span></label>
+          <textarea id="prog-edit-description" rows="4" placeholder="Core curriculum, focus areas, and learning outcomes..." required minlength="3" style="width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm, 8px); padding: 10px; font-family: inherit; font-size: 0.95rem; resize: vertical;"></textarea>
+        </div>
+
+        <div id="program-edit-status" class="auth-form-error"></div>
+        <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px;">
+          <button type="button" class="btn-secondary" onclick="closeProgramModal()">Cancel</button>
+          <button type="submit" id="program-edit-submit-btn" class="auth-form-submit" style="margin: 0; width: auto; padding: 10px 24px;">Save Program</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="/static/js/main.js?v=20261122a"></script>
+  <script src="/static/app.js?v=20261122b"></script>
 </body>
 </html>

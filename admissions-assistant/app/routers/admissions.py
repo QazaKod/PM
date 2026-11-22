@@ -20,7 +20,7 @@ from app.schemas import (
 from app import database
 from app.services.admission_guide import get_admission_guide, GuideUnavailable
 from app.services.official_links import get_official_links
-from app.services.unt_calculator import match_unt_eligibility
+from app.services.unt_calculator import match_unt_eligibility, get_program_threshold
 from app.services.tuition_calculator import calculate_tuition_and_grant
 
 router = APIRouter(prefix="/admissions", tags=["Admissions & Calculators"])
@@ -50,8 +50,14 @@ def admissions_metadata_endpoint():
             "name": p["name"],
             "faculty": p.get("faculty"),
             "degree": p.get("degree"),
+            "duration_years": p.get("duration_years", 4),
             "approx_cost_per_year_kzt": p.get("approx_cost_per_year_kzt", 0),
             "unt_subjects": p.get("unt_subjects", []),
+            "min_unt_score": get_program_threshold(
+                p["id"],
+                p.get("faculty") or "",
+                p.get("min_unt_score"),
+            ),
         }
         for p in programs
     ]

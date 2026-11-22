@@ -1043,6 +1043,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
@@ -1113,4 +1114,506 @@
 
 .btn-secondary:hover {
   background: #E4EAF0;
+}
+
+/* ---------- Staff / Admin Workspace Mode (Same Steppe Style, Executive Gold Variant) ---------- */
+body.staff-mode {
+  --ink:        #111622;
+  --ink-2:      #1A2233;
+  --ink-3:      #253047;
+  --paper:      #F7F5EF;
+  --surface:    #FFFFFF;
+  --surface-2:  #EFECE3;
+  --steppe:     #9E6B10;
+  --steppe-lo:  #FDF4DF;
+  --steppe-hi:  #D99411;
+  --gold:       #E5A93B;
+  --gold-lo:    #FDF4DF;
+  --line:       #E3DCCD;
+}
+
+body.staff-mode .sidebar::before {
+  background: radial-gradient(125% 95% at 0% 0%, rgba(217, 148, 17, 0.26), transparent 72%);
+}
+
+body.staff-mode .brand-icon {
+  background: linear-gradient(145deg, #E5A93B, #9E6B10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.32), 0 4px 12px rgba(217, 148, 17, 0.25);
+}
+
+body.staff-mode .brand-subtitle {
+  color: #E5A93B;
+}
+
+body.staff-mode .auth-avatar {
+  background: linear-gradient(135deg, #E5A93B, #9E6B10);
+  box-shadow: 0 0 0 2px rgba(229, 169, 59, 0.38);
+}
+
+body.staff-mode .auth-role {
+  display: inline-block;
+  margin-top: 3px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: rgba(229, 169, 59, 0.16);
+  border: 1px solid rgba(229, 169, 59, 0.38);
+  color: #F3C468;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 10px;
+}
+
+.staff-nav-divider {
+  margin: 12px 10px 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(229, 169, 59, 0.24);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #E5A93B;
+}
+
+body.staff-mode #nav-item-faq-admin,
+body.staff-mode #nav-item-programs-admin {
+  background: rgba(229, 169, 59, 0.10);
+  border: 1px solid rgba(229, 169, 59, 0.22);
+  color: #F6E6C2;
+}
+
+body.staff-mode #nav-item-faq-admin:hover,
+body.staff-mode #nav-item-faq-admin.active,
+body.staff-mode #nav-item-programs-admin:hover,
+body.staff-mode #nav-item-programs-admin.active {
+  background: rgba(229, 169, 59, 0.20);
+  border-color: rgba(229, 169, 59, 0.45);
+  color: #FFFFFF;
+}
+
+body.staff-mode #nav-item-faq-admin .demo-tag,
+body.staff-mode #nav-item-programs-admin .demo-tag {
+  background: var(--gold);
+  color: #241700;
+}
+
+body.staff-mode .btn-primary:hover {
+  background: #85580A;
+}
+
+.staff-command-bar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  width: 100%;
+  background: rgba(255, 253, 248, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 3px solid #D99411;
+  border-bottom: 1px solid var(--line, #E3DCCD);
+  box-shadow: 0 2px 10px rgba(17, 22, 34, 0.05);
+}
+
+.staff-command-bar-inner {
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 10px 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.staff-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.staff-role-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #E5A93B, #C68310);
+  color: #1D1300;
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 1px 3px rgba(158, 107, 16, 0.25);
+}
+
+.staff-bar-user {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text, #16212E);
+}
+
+.staff-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.staff-bar-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 8px;
+  border: 1px solid #EBD39E;
+  background: var(--gold-lo, #FDF4DF);
+  color: #8A5A08;
+  font-family: var(--font-ui, 'Manrope', sans-serif);
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.16s ease;
+}
+
+.staff-bar-btn:hover {
+  background: #D99411;
+  color: #1A1100;
+  border-color: #D99411;
+}
+
+.staff-bar-btn-outline {
+  background: var(--surface, #FFFFFF);
+  border-color: var(--line, #E3DCCD);
+  color: var(--text, #16212E);
+}
+
+.staff-bar-btn-outline:hover {
+  background: var(--surface-2, #EFECE3);
+  border-color: #C7B99C;
+  color: var(--text, #16212E);
+}
+
+body.staff-mode .chat-container {
+  height: calc(100vh - 54px);
+}
+
+@media (max-width: 768px) {
+  .staff-command-bar-inner {
+    padding: 10px 18px;
+  }
+
+  body.staff-mode .chat-container {
+    height: calc(100vh - 108px);
+  }
+}
+
+/* ---------- Staff analytics and announcements ---------- */
+#section-analytics,
+#section-announcements-admin {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 38px);
+}
+
+.staff-status {
+  color: var(--muted, #516170);
+  margin-bottom: 16px;
+}
+
+.staff-status:empty {
+  display: none;
+}
+
+.analytics-metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr));
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.analytics-metrics .card,
+.analytics-popularity,
+.announcement-form,
+.announcements-list .card {
+  padding: 18px;
+}
+
+.analytics-metrics dt {
+  color: var(--muted, #516170);
+  font-size: 0.87rem;
+}
+
+.analytics-metrics dd {
+  margin: 4px 0 0;
+  color: var(--text, #16212e);
+  font-size: 1.85rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.analytics-popularity h3,
+.announcement-form h3,
+.announcements-list-panel h3 {
+  margin: 0 0 12px;
+}
+
+.analytics-ranking {
+  margin: 0;
+  padding-inline-start: 28px;
+}
+
+.analytics-ranking li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line, #d9e1e8);
+  overflow-wrap: anywhere;
+}
+
+.analytics-ranking li:last-child {
+  border-bottom: 0;
+}
+
+.analytics-ranking strong {
+  display: inline-block;
+  margin-inline-start: 8px;
+  color: var(--muted, #516170);
+}
+
+.announcements-workspace {
+  display: grid;
+  grid-template-columns: minmax(230px, 1fr) minmax(0, 1.45fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.announcement-form > label {
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.announcement-form input:not([type="checkbox"]),
+.announcement-form textarea,
+.announcement-form select {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 14px;
+  padding: 9px 11px;
+  border: 1px solid var(--line, #d9e1e8);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+  color: var(--text, #16212e);
+  font: inherit;
+}
+
+.announcement-form textarea {
+  resize: vertical;
+}
+
+.announcement-form .announcement-checkbox:not([hidden]),
+.announcement-title,
+.announcement-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.announcement-form .announcement-checkbox[hidden],
+.announcement-actions button[hidden] {
+  display: none;
+}
+
+.announcement-actions {
+  margin-top: 14px;
+}
+
+.announcements-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.public-announcements:not([hidden]) {
+  display: grid;
+  gap: 8px;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 12px clamp(16px, 4vw, 38px);
+}
+
+.public-announcement {
+  padding: 12px 16px;
+  border: 1px solid var(--line, #d9e1e8);
+  border-inline-start: 4px solid var(--teal, #087b69);
+  border-radius: 8px;
+  background: var(--surface, #fff);
+}
+
+.public-announcement h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.public-announcement p,
+.announcements-list p {
+  margin: 6px 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.public-announcement a {
+  display: inline-block;
+  margin-top: 8px;
+}
+
+.announcement-title {
+  overflow-wrap: anywhere;
+}
+
+.announcement-category,
+.announcement-state {
+  padding: 3px 8px;
+  border-radius: 6px;
+  background: var(--teal-lo, #e0f3ef);
+  color: var(--teal-hi, #065c50);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.announcement-category[data-category="deadline"] {
+  background: var(--gold-lo, #fdf4df);
+  color: var(--warn, #815507);
+}
+
+.announcement-category[data-category="event"] {
+  background: var(--ok-lo, #e6f5ee);
+  color: var(--ok, #1b7f5c);
+}
+
+.announcement-state[data-active="false"] {
+  background: var(--surface-2, #edf1f5);
+  color: var(--muted, #516170);
+}
+
+@media (max-width: 760px) {
+  .announcements-workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ---------- US10: Staff Program Catalog Manager ---------- */
+.program-admin-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  margin-bottom: 16px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+}
+
+.program-admin-banner.success {
+  background: var(--ok-lo, #E6F5EE);
+  color: var(--ok, #1B7F5C);
+  border-color: rgba(27, 127, 92, 0.28);
+}
+
+.program-admin-banner.error {
+  background: var(--alert-lo, #FCEBEB);
+  color: var(--alert, #B32D3A);
+  border-color: rgba(179, 45, 58, 0.28);
+}
+
+.program-admin-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 36px 16px;
+  color: var(--muted, #5C7085);
+  font-size: 0.92rem;
+}
+
+.program-admin-code {
+  display: inline-block;
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--steppe, #1289A7);
+  background: var(--steppe-lo, #E4F3F7);
+  padding: 2px 7px;
+  border-radius: 6px;
+  margin-right: 6px;
+}
+
+.program-admin-faculty {
+  font-size: 0.78rem;
+  color: var(--muted, #5C7085);
+  margin-top: 3px;
+}
+
+.program-admin-desc-preview {
+  font-size: 0.8rem;
+  color: var(--muted, #5C7085);
+  margin-top: 4px;
+  line-height: 1.4;
+}
+
+.program-unt-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  background: var(--surface-2, #F0F4F8);
+  color: var(--text, #16212E);
+}
+
+.program-threshold-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.73rem;
+  font-weight: 700;
+  background: var(--gold-lo, #FDF4DF);
+  color: var(--warn, #9E6B10);
+}
+
+.program-price-cell {
+  font-weight: 700;
+  color: var(--text, #16212E);
+  white-space: nowrap;
+}
+
+.program-modal-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.program-modal-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+@media (max-width: 640px) {
+  .program-modal-grid,
+  .program-modal-grid-3 {
+    grid-template-columns: 1fr;
+  }
 }

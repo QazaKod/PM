@@ -20,6 +20,7 @@ def load_programs() -> List[Dict]:
                 "format": p.format,
                 "language": p.language,
                 "unt_subjects": p.unt_subjects,
+                "min_unt_score": p.min_unt_score,
                 "description": p.description,
                 "aliases": p.aliases or [],
                 "codes": p.codes or {},

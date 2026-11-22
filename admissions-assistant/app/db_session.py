@@ -66,6 +66,7 @@ def init_db():
         "ALTER TABLE account_verification_tokens ADD COLUMN session_token VARCHAR",
         "ALTER TABLE account_verification_tokens ADD COLUMN telegram_verified BOOLEAN DEFAULT 0 NOT NULL",
         "ALTER TABLE account_verification_tokens ADD COLUMN pending_chat_id VARCHAR",
+        "ALTER TABLE programs ADD COLUMN min_unt_score INTEGER",
     ]
     with engine.connect() as conn:
         for stmt in migrations:

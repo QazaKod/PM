@@ -57,9 +57,16 @@ document.addEventListener("DOMContentLoaded", () => {
   let activeFilter = "all";
   let currentUser = null;
   let userFavorites = new Set();
+  const staffTabs = new Set(["faq-admin", "programs-admin", "analytics", "announcements-admin"]);
+
+  function isStaffUser(user) {
+    return ["admin", "manager"].includes(user?.role);
+  }
 
   // ================= 1. TAB NAVIGATION (SPA) =================
   function switchTab(tabId) {
+    if (staffTabs.has(tabId) && !isStaffUser(currentUser)) return;
+
     // Update active nav button
     navItems.forEach((btn) => {
       btn.classList.toggle("active", btn.dataset.tab === tabId);
@@ -96,6 +103,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } else if (tabId === "faq-admin") {
       loadAdminFAQs();
       loadUnansweredQueries();
+    } else if (tabId === "programs-admin") {
+      loadAdminPrograms();
+    } else if (tabId === "analytics") {
+      loadStaffAnalytics();
+    } else if (tabId === "announcements-admin") {
+      loadStaffAnnouncements();
     }
 
     // Focus input if switched to chat
@@ -103,6 +116,7 @@ document.addEventListener("DOMContentLoaded", () => {
       setTimeout(() => chatInput.focus(), 150);
     }
   }
+  window.switchTab = switchTab;
 
   navItems.forEach((item) => {
     item.addEventListener("click", () => {
@@ -368,17 +382,28 @@ document.addEventListener("DOMContentLoaded", () => {
   window.loadPrograms = loadPrograms;
 
   function renderPrograms() {
-    if (!programsData.length) return;
+    if (!programsGrid) return;
+    if (!programsData.length) {
+      programsGrid.innerHTML = `<div class="card" style="grid-column: 1 / -1; color: var(--muted);">No academic programs available right now.</div>`;
+      return;
+    }
 
     const filtered = programsData.filter((p) => {
       if (activeFilter === "all") return true;
       return p.faculty === activeFilter;
     });
 
+    if (!filtered.length) {
+      programsGrid.innerHTML = `<div class="card" style="grid-column: 1 / -1; color: var(--muted);">No academic programs found in this faculty.</div>`;
+      return;
+    }
+
     programsGrid.innerHTML = filtered.map((p) => {
       const costFormatted = Number(p.approx_cost_per_year_kzt).toLocaleString("en-US");
-      const degreeClass = p.degree.toLowerCase() === "master" ? "degree-master" : "degree-bachelor";
-      const languages = Array.isArray(p.language) ? p.language.join(", ") : p.language;
+      const degreeClass = (p.degree || "Bachelor").toLowerCase() === "master" ? "degree-master" : "degree-bachelor";
+      const languages = Array.isArray(p.language) ? p.language.join(", ") : (p.language || "English");
+      const untSubjects = Array.isArray(p.unt_subjects) ? p.unt_subjects.filter(Boolean) : [];
+      const untText = untSubjects.length ? untSubjects.join(" + ") : "";
       const isFav = userFavorites.has(p.id);
 
       return `
@@ -395,6 +420,8 @@ document.addEventListener("DOMContentLoaded", () => {
           
           <ul class="program-details-list">
             <li><span>Tuition per year:</span> <strong class="program-cost">${costFormatted} KZT</strong></li>
+            ${untText ? `<li><span>UNT Subjects:</span> <strong>${escapeHtml(untText)}</strong></li>` : ""}
+            ${p.min_unt_score ? `<li><span>Min UNT Score:</span> <strong>${escapeHtml(String(p.min_unt_score))} pts</strong></li>` : ""}
             <li><span>Format:</span> <strong>${escapeHtml(p.format)}</strong></li>
             <li><span>Instruction:</span> <strong>${escapeHtml(languages)}</strong></li>
           </ul>
@@ -603,18 +630,57 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  function applyStaffWorkspaceTheme(user) {
+    const isStaff = isStaffUser(user);
+    const isAdmin = Boolean(user && user.role === "admin");
+
+    document.body.classList.toggle("staff-mode", isStaff);
+    document.body.classList.toggle("staff-role-admin", isAdmin);
+    document.body.classList.toggle("staff-role-manager", Boolean(user && user.role === "manager"));
+
+    const staffDivider = document.getElementById("staff-nav-divider");
+    const staffBar = document.getElementById("staff-command-bar");
+    const sqlAdminLink = document.getElementById("staff-bar-sqladmin-link");
+    const rolePill = document.getElementById("staff-role-pill");
+    const barUser = document.getElementById("staff-bar-user");
+    const brandSub = document.getElementById("brand-subtitle-text");
+    const statusTitle = document.getElementById("system-status-title");
+    const statusSub = document.getElementById("system-status-sub");
+
+    staffTabs.forEach((tabId) => {
+      const button = document.querySelector(`.nav-item[data-tab="${tabId}"]`);
+      if (button) button.style.display = isStaff ? "flex" : "none";
+    });
+    if (staffDivider) staffDivider.style.display = isStaff ? "block" : "none";
+    if (staffBar) staffBar.style.display = isStaff ? "flex" : "none";
+    if (sqlAdminLink) sqlAdminLink.style.display = isAdmin ? "inline-flex" : "none";
+
+    if (rolePill) {
+      rolePill.innerHTML = isAdmin
+        ? '<i class="ph ph-shield-check"></i> ADMIN CONSOLE'
+        : '<i class="ph ph-briefcase"></i> STAFF CONSOLE';
+    }
+    if (barUser && isStaff) {
+      barUser.textContent = `Signed in as ${user.full_name || user.email || "Staff"}`;
+    }
+    if (brandSub) {
+      brandSub.textContent = isStaff
+        ? (isAdmin ? "Staff Console · Admin" : "Staff Console · Manager")
+        : "Admissions 2026";
+    }
+    if (statusTitle) {
+      statusTitle.textContent = isStaff ? "Staff Workspace" : "Assistant Online";
+    }
+    if (statusSub) {
+      statusSub.textContent = isStaff ? "Knowledge & Admin Controls" : "Rule Matcher v0.1 (Offline)";
+    }
+  }
+
   function renderAuthWidget(user) {
     const container = document.getElementById("auth-widget-container");
     if (!container) return;
 
-    const faqAdminNav = document.getElementById("nav-item-faq-admin");
-    if (faqAdminNav) {
-      if (user && ["admin", "manager"].includes(user.role)) {
-        faqAdminNav.style.display = "flex";
-      } else {
-        faqAdminNav.style.display = "none";
-      }
-    }
+    applyStaffWorkspaceTheme(user);
 
     if (!user) {
       container.innerHTML = `
@@ -1220,12 +1286,9 @@ document.addEventListener("DOMContentLoaded", () => {
     currentUser = null;
     userFavorites = new Set();
     renderAuthWidget(null);
-    const faqAdminNav = document.getElementById("nav-item-faq-admin");
-    if (faqAdminNav) faqAdminNav.style.display = "none";
-    const currentActiveSection = document.querySelector(".tab-section.active");
-    if (currentActiveSection && currentActiveSection.id === "section-faq-admin") {
-      switchTab("chat");
-    }
+    clearSprintFiveStaffViews();
+    const activeTab = document.querySelector(".nav-item.active")?.dataset.tab;
+    if (staffTabs.has(activeTab)) switchTab("chat");
     if (programsData.length > 0) renderPrograms();
   };
 
@@ -2543,6 +2606,703 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Network error while dismissing query.");
     }
   };
+
+  // ============================================================
+  // SPRINT 5: US10 STAFF PROGRAM CATALOG MANAGER
+  // ============================================================
+  let adminProgramsData = [];
+  let programSearchTimer = null;
+  let programBannerTimer = null;
+
+  function formatApiValidationError(data, fallbackMsg) {
+    if (!data) return fallbackMsg;
+    if (typeof data.detail === "string" && data.detail.trim()) return data.detail;
+    if (Array.isArray(data.detail) && data.detail.length > 0) {
+      return data.detail
+        .map((item) => {
+          const loc = Array.isArray(item.loc) ? item.loc[item.loc.length - 1] : "";
+          return loc ? `${loc}: ${item.msg}` : item.msg;
+        })
+        .join("; ");
+    }
+    return fallbackMsg;
+  }
+
+  function showProgramAdminBanner(type, message) {
+    const banner = document.getElementById("program-admin-feedback");
+    if (!banner) return;
+    clearTimeout(programBannerTimer);
+    banner.className = `program-admin-banner ${type}`;
+    const icon = type === "success" ? "ph-check-circle" : "ph-warning-circle";
+    banner.innerHTML = `
+      <span style="display: inline-flex; align-items: center; gap: 8px;">
+        <i class="ph ${icon}" style="font-size: 1.15rem;"></i>
+        <span>${escapeHtml(message)}</span>
+      </span>
+      <button type="button" onclick="this.parentElement.style.display='none'" style="background: none; border: none; color: inherit; font-size: 1.1rem; cursor: pointer;" aria-label="Dismiss">&times;</button>
+    `;
+    banner.style.display = "flex";
+    if (type === "success") {
+      programBannerTimer = setTimeout(() => {
+        banner.style.display = "none";
+      }, 5000);
+    }
+  }
+
+  async function syncPublicProgramViews() {
+    guideCatalog = null;
+    try {
+      await loadPrograms();
+    } catch (err) {
+      console.warn("Failed to refresh public programs grid:", err);
+    }
+    if (window.SDUModules && typeof window.SDUModules.hydrateDynamicCatalogDropdowns === "function") {
+      try {
+        await window.SDUModules.hydrateDynamicCatalogDropdowns();
+      } catch (err) {
+        console.warn("Failed to refresh calculator program dropdowns:", err);
+      }
+    }
+  }
+
+  window.debounceAdminProgramSearch = function() {
+    clearTimeout(programSearchTimer);
+    programSearchTimer = setTimeout(() => {
+      loadAdminPrograms();
+    }, 250);
+  };
+
+  async function loadAdminPrograms() {
+    const token = safeStorage.getItem("auth_token");
+    const loadingEl = document.getElementById("program-admin-loading");
+    const errorEl = document.getElementById("program-admin-error");
+    const errorTextEl = document.getElementById("program-admin-error-text");
+    const tableEl = document.getElementById("program-admin-table");
+    const emptyEl = document.getElementById("program-admin-empty");
+
+    if (!token) return;
+
+    const searchInput = document.getElementById("program-admin-search");
+    const facultySelect = document.getElementById("program-admin-faculty-filter");
+    const degreeSelect = document.getElementById("program-admin-degree-filter");
+    const search = searchInput ? searchInput.value.trim() : "";
+    const faculty = facultySelect ? facultySelect.value : "all";
+    const degree = degreeSelect ? degreeSelect.value : "all";
+
+    const params = [];
+    if (search) params.push(`search=${encodeURIComponent(search)}`);
+    if (faculty && faculty !== "all") params.push(`faculty=${encodeURIComponent(faculty)}`);
+    if (degree && degree !== "all") params.push(`degree=${encodeURIComponent(degree)}`);
+    const queryStr = params.length > 0 ? `?${params.join("&")}` : "";
+
+    if (loadingEl) loadingEl.style.display = "flex";
+    if (errorEl) errorEl.style.display = "none";
+    if (emptyEl) emptyEl.style.display = "none";
+    if (tableEl) tableEl.style.display = "none";
+
+    try {
+      const res = await fetch(`/admin/programs${queryStr}`, {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      if (res.status === 401 || res.status === 403) {
+        if (errorTextEl) errorTextEl.textContent = "Staff permissions (admin or manager) are required to manage programs.";
+        if (errorEl) errorEl.style.display = "block";
+        return;
+      }
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(formatApiValidationError(errData, `Server returned HTTP ${res.status}`));
+      }
+      adminProgramsData = await res.json();
+      renderAdminPrograms(adminProgramsData);
+    } catch (err) {
+      console.error("loadAdminPrograms error:", err);
+      if (errorTextEl) errorTextEl.textContent = err.message || "Failed to load program catalog.";
+      if (errorEl) errorEl.style.display = "block";
+    } finally {
+      if (loadingEl) loadingEl.style.display = "none";
+    }
+  }
+  window.loadAdminPrograms = loadAdminPrograms;
+
+  function renderAdminPrograms(programs) {
+    const tbody = document.getElementById("program-admin-tbody");
+    const countEl = document.getElementById("program-admin-count");
+    const emptyEl = document.getElementById("program-admin-empty");
+    const tableEl = document.getElementById("program-admin-table");
+
+    if (countEl) {
+      countEl.textContent = `${programs.length} ${programs.length === 1 ? "program" : "programs"}`;
+    }
+    if (!tbody) return;
+
+    if (!programs || programs.length === 0) {
+      tbody.innerHTML = "";
+      if (emptyEl) emptyEl.style.display = "block";
+      if (tableEl) tableEl.style.display = "none";
+      return;
+    }
+
+    if (emptyEl) emptyEl.style.display = "none";
+    if (tableEl) tableEl.style.display = "table";
+
+    tbody.innerHTML = programs.map((prog) => {
+      const costStr = Number(prog.approx_cost_per_year_kzt || 0).toLocaleString("ru-RU").replace(/,/g, " ");
+      const subjects = Array.isArray(prog.unt_subjects) ? prog.unt_subjects.filter(Boolean) : [];
+      const subjectsHtml = subjects.length > 0
+        ? subjects.map(s => `<span class="program-unt-pill">${escapeHtml(s)}</span>`).join(" ")
+        : `<span style="color: var(--muted); font-size: 0.78rem;">No UNT pair</span>`;
+      const scoreBadgeLabel = prog.min_unt_score !== null && prog.min_unt_score !== undefined
+        ? `Min UNT: ${prog.min_unt_score} (custom)`
+        : `Min UNT: ${prog.effective_min_unt_score} (default)`;
+      const descSnippet = (prog.description || "").length > 105
+        ? escapeHtml(prog.description.slice(0, 105)) + "…"
+        : escapeHtml(prog.description || "");
+      const langs = Array.isArray(prog.language) && prog.language.length > 0 ? prog.language.join(", ") : "English";
+      const degreeBadgeClass = (prog.degree || "").toLowerCase() === "master"
+        ? "cat-dormitory"
+        : (prog.degree || "").toLowerCase() === "phd"
+          ? "cat-exams"
+          : "cat-documents";
+
+      return `
+        <tr data-program-id="${escapeHtml(prog.id)}">
+          <td>
+            <div>
+              <span class="program-admin-code">${escapeHtml(prog.code)}</span>
+              <strong>${escapeHtml(prog.name)}</strong>
+            </div>
+            <div class="program-admin-faculty">${escapeHtml(prog.faculty)}</div>
+            <div class="program-admin-desc-preview">${descSnippet}</div>
+          </td>
+          <td>
+            <span class="faq-cat-badge ${degreeBadgeClass}">${escapeHtml(prog.degree)}</span>
+            <div style="font-size: 0.8rem; color: var(--muted); margin-top: 6px;">
+              ${prog.duration_years} yr &bull; ${escapeHtml(prog.format)}
+            </div>
+            <div style="font-size: 0.76rem; color: var(--muted); margin-top: 2px;">
+              ${escapeHtml(langs)}
+            </div>
+          </td>
+          <td>
+            <div class="faq-keywords-wrap">${subjectsHtml}</div>
+            <div><span class="program-threshold-pill"><i class="ph ph-target"></i> ${escapeHtml(scoreBadgeLabel)}</span></div>
+          </td>
+          <td class="program-price-cell">
+            ${escapeHtml(costStr)} ₸
+            <div style="font-size: 0.74rem; font-weight: 500; color: var(--muted);">per year</div>
+          </td>
+          <td>
+            <div class="faq-actions">
+              <button type="button" class="btn-edit" onclick="openProgramModal('${escapeJs(prog.id)}')">
+                <i class="ph ph-pencil-simple"></i> Edit
+              </button>
+              <button type="button" class="btn-delete" onclick="deleteProgram('${escapeJs(prog.id)}', this)">
+                <i class="ph ph-trash"></i> Delete
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join("");
+  }
+  window.renderAdminPrograms = renderAdminPrograms;
+
+  function ensureSelectOption(selectEl, value) {
+    if (!selectEl || !value) return;
+    const exists = Array.from(selectEl.options).some(opt => opt.value === value);
+    if (!exists) {
+      const opt = document.createElement("option");
+      opt.value = value;
+      opt.textContent = value;
+      selectEl.appendChild(opt);
+    }
+  }
+
+  window.openProgramModal = function(programId) {
+    const modal = document.getElementById("program-edit-modal");
+    const titleEl = document.getElementById("program-modal-title");
+    const submitBtn = document.getElementById("program-edit-submit-btn");
+    const idInput = document.getElementById("prog-edit-id");
+    const codeInput = document.getElementById("prog-edit-code");
+    const degreeSelect = document.getElementById("prog-edit-degree");
+    const nameInput = document.getElementById("prog-edit-name");
+    const facultyInput = document.getElementById("prog-edit-faculty");
+    const costInput = document.getElementById("prog-edit-cost");
+    const durationInput = document.getElementById("prog-edit-duration");
+    const minUntInput = document.getElementById("prog-edit-min-unt");
+    const unt1Select = document.getElementById("prog-edit-unt-1");
+    const unt2Select = document.getElementById("prog-edit-unt-2");
+    const formatSelect = document.getElementById("prog-edit-format");
+    const langInput = document.getElementById("prog-edit-language");
+    const descInput = document.getElementById("prog-edit-description");
+    const statusEl = document.getElementById("program-edit-status");
+
+    if (statusEl) statusEl.textContent = "";
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = programId ? "Save Changes" : "Create Program";
+    }
+
+    if (programId) {
+      const prog = adminProgramsData.find(p => p.id === programId);
+      if (prog) {
+        if (titleEl) titleEl.textContent = `Edit Program: ${prog.name}`;
+        if (idInput) idInput.value = prog.id;
+        if (codeInput) codeInput.value = prog.code || "";
+        ensureSelectOption(degreeSelect, prog.degree || "Bachelor");
+        if (degreeSelect) degreeSelect.value = prog.degree || "Bachelor";
+        if (nameInput) nameInput.value = prog.name || "";
+        if (facultyInput) facultyInput.value = prog.faculty || "";
+        if (costInput) costInput.value = prog.approx_cost_per_year_kzt || "";
+        if (durationInput) durationInput.value = prog.duration_years || 4;
+        if (minUntInput) {
+          minUntInput.value = prog.min_unt_score !== null && prog.min_unt_score !== undefined ? String(prog.min_unt_score) : "";
+          minUntInput.placeholder = `Auto (${prog.effective_min_unt_score})`;
+        }
+        const subs = Array.isArray(prog.unt_subjects) ? prog.unt_subjects : [];
+        ensureSelectOption(unt1Select, subs[0] || "");
+        ensureSelectOption(unt2Select, subs[1] || "");
+        if (unt1Select) unt1Select.value = subs[0] || "";
+        if (unt2Select) unt2Select.value = subs[1] || "";
+        ensureSelectOption(formatSelect, prog.format || "Full-time");
+        if (formatSelect) formatSelect.value = prog.format || "Full-time";
+        if (langInput) langInput.value = (prog.language || ["English"]).join(", ");
+        if (descInput) descInput.value = prog.description || "";
+      }
+    } else {
+      if (titleEl) titleEl.textContent = "Add New Educational Program";
+      if (idInput) idInput.value = "";
+      if (codeInput) codeInput.value = "";
+      if (degreeSelect) degreeSelect.value = "Bachelor";
+      if (nameInput) nameInput.value = "";
+      if (facultyInput) facultyInput.value = "Faculty of Engineering and Natural Sciences";
+      if (costInput) costInput.value = "";
+      if (durationInput) durationInput.value = "4";
+      if (minUntInput) {
+        minUntInput.value = "";
+        minUntInput.placeholder = "Auto (50/65/75)";
+      }
+      if (unt1Select) unt1Select.value = "Mathematics";
+      if (unt2Select) unt2Select.value = "Computer Science";
+      if (formatSelect) formatSelect.value = "Full-time";
+      if (langInput) langInput.value = "English";
+      if (descInput) descInput.value = "";
+    }
+
+    if (modal) modal.classList.add("active");
+  };
+
+  window.closeProgramModal = function() {
+    const modal = document.getElementById("program-edit-modal");
+    if (modal) modal.classList.remove("active");
+  };
+
+  window.handleProgramSubmit = async function(e) {
+    e.preventDefault();
+    const token = safeStorage.getItem("auth_token");
+    if (!token) return;
+
+    const statusEl = document.getElementById("program-edit-status");
+    const submitBtn = document.getElementById("program-edit-submit-btn");
+    const programId = (document.getElementById("prog-edit-id")?.value || "").trim();
+    const code = (document.getElementById("prog-edit-code")?.value || "").trim();
+    const degree = (document.getElementById("prog-edit-degree")?.value || "").trim();
+    const name = (document.getElementById("prog-edit-name")?.value || "").trim();
+    const faculty = (document.getElementById("prog-edit-faculty")?.value || "").trim();
+    const costRaw = (document.getElementById("prog-edit-cost")?.value || "").trim();
+    const durationRaw = (document.getElementById("prog-edit-duration")?.value || "").trim();
+    const minUntRaw = (document.getElementById("prog-edit-min-unt")?.value || "").trim();
+    const unt1 = (document.getElementById("prog-edit-unt-1")?.value || "").trim();
+    const unt2 = (document.getElementById("prog-edit-unt-2")?.value || "").trim();
+    const format = (document.getElementById("prog-edit-format")?.value || "Full-time").trim();
+    const langRaw = (document.getElementById("prog-edit-language")?.value || "").trim();
+    const description = (document.getElementById("prog-edit-description")?.value || "").trim();
+
+    if (statusEl) statusEl.textContent = "";
+
+    // Client-side validation with explicit inline feedback
+    if (code.length < 2) {
+      if (statusEl) statusEl.textContent = "Program code is required (at least 2 characters).";
+      return;
+    }
+    if (name.length < 2) {
+      if (statusEl) statusEl.textContent = "Program name is required (at least 2 characters).";
+      return;
+    }
+    if (faculty.length < 2) {
+      if (statusEl) statusEl.textContent = "Faculty is required.";
+      return;
+    }
+    const approxCost = Number(costRaw);
+    if (!costRaw || !Number.isFinite(approxCost) || approxCost <= 0 || !Number.isInteger(approxCost)) {
+      if (statusEl) statusEl.textContent = "Annual tuition fee must be a positive whole number (KZT).";
+      return;
+    }
+    const durationYears = Number(durationRaw);
+    if (!durationRaw || !Number.isInteger(durationYears) || durationYears < 1 || durationYears > 10) {
+      if (statusEl) statusEl.textContent = "Duration must be a positive whole number between 1 and 10 years.";
+      return;
+    }
+    let minUntScore = null;
+    if (minUntRaw !== "") {
+      minUntScore = Number(minUntRaw);
+      if (!Number.isInteger(minUntScore) || minUntScore < 1 || minUntScore > 140) {
+        if (statusEl) statusEl.textContent = "Passing UNT score must be between 1 and 140.";
+        return;
+      }
+    }
+    if (unt1 && unt2 && unt1.toLowerCase() === unt2.toLowerCase()) {
+      if (statusEl) statusEl.textContent = "UNT Profile Subject 1 and Subject 2 must be different.";
+      return;
+    }
+    if (description.length < 3) {
+      if (statusEl) statusEl.textContent = "Description must be at least 3 characters.";
+      return;
+    }
+
+    const untSubjects = [unt1, unt2].filter(Boolean);
+    const languages = langRaw
+      ? langRaw.split(",").map(s => s.trim()).filter(Boolean)
+      : ["English"];
+
+    const payload = {
+      code,
+      faculty,
+      name,
+      degree,
+      duration_years: durationYears,
+      approx_cost_per_year_kzt: approxCost,
+      format,
+      language: languages.length > 0 ? languages : ["English"],
+      unt_subjects: untSubjects,
+      min_unt_score: minUntScore,
+      description,
+    };
+
+    const isEdit = Boolean(programId);
+    const url = isEdit ? `/admin/programs/${encodeURIComponent(programId)}` : "/admin/programs";
+    const method = isEdit ? "PUT" : "POST";
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.textContent = isEdit ? "Saving..." : "Creating...";
+    }
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        closeProgramModal();
+        await loadAdminPrograms();
+        await syncPublicProgramViews();
+        showProgramAdminBanner(
+          "success",
+          isEdit
+            ? `Updated "${data.name}" — catalog, chatbot, and calculators synced immediately.`
+            : `Created "${data.name}" (${data.code}) — now live in catalog and calculators.`
+        );
+      } else {
+        if (statusEl) {
+          statusEl.textContent = formatApiValidationError(data, "Failed to save program.");
+        }
+      }
+    } catch (err) {
+      console.error("handleProgramSubmit error:", err);
+      if (statusEl) statusEl.textContent = "Network error. Please try again.";
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = isEdit ? "Save Changes" : "Create Program";
+      }
+    }
+  };
+
+  window.deleteProgram = async function(programId, btnEl) {
+    const prog = adminProgramsData.find(p => p.id === programId);
+    const label = prog ? `${prog.name} (${prog.code})` : programId;
+    if (!confirm(`Delete program "${label}"? It will be immediately removed from the catalog, chatbot, and calculators.`)) {
+      return;
+    }
+
+    const token = safeStorage.getItem("auth_token");
+    if (!token) return;
+
+    if (btnEl) {
+      btnEl.disabled = true;
+      btnEl.textContent = "Deleting...";
+    }
+
+    try {
+      const res = await fetch(`/admin/programs/${encodeURIComponent(programId)}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok) {
+        await loadAdminPrograms();
+        await syncPublicProgramViews();
+        showProgramAdminBanner("success", `Deleted "${label}" from the program catalog.`);
+      } else {
+        showProgramAdminBanner("error", formatApiValidationError(data, "Failed to delete program."));
+      }
+    } catch (err) {
+      console.error("deleteProgram error:", err);
+      showProgramAdminBanner("error", "Network error while deleting program.");
+    } finally {
+      if (btnEl) {
+        btnEl.disabled = false;
+        btnEl.innerHTML = '<i class="ph ph-trash"></i> Delete';
+      }
+    }
+  };
+
+  // ================= Staff analytics & announcements =================
+  const analyticsStatus = document.getElementById("analytics-status");
+  const analyticsResults = document.getElementById("analytics-results");
+  const analyticsRanking = document.getElementById("analytics-programs");
+  const analyticsFields = {
+    total_applicants: "analytics-total-applicants",
+    domestic_applicants: "analytics-domestic-applicants",
+    international_applicants: "analytics-international-applicants",
+    total_chat_sessions: "analytics-chat-sessions",
+  };
+  const announcementStatus = document.getElementById("announcements-admin-status");
+  const announcementList = document.getElementById("announcements-admin-list");
+  const announcementEmpty = document.getElementById("announcements-admin-empty");
+  const announcementForm = document.getElementById("announcement-form");
+  const announcementSubmit = document.getElementById("announcement-save");
+  const announcementCancel = document.getElementById("announcement-cancel");
+  const publicAnnouncements = document.getElementById("public-announcements");
+  const categoryLabels = { info: "Information", deadline: "Deadline", event: "Event" };
+  const formatMetric = new Intl.NumberFormat(document.documentElement.lang);
+  let staffAnnouncements = [];
+  let analyticsRequest = 0;
+  let announcementListRequest = 0;
+  let publicAnnouncementRequest = 0;
+  let visibleAnnouncements = "";
+
+  function staffWorkspaceToken() {
+    return isStaffUser(currentUser) ? safeStorage.getItem("auth_token") : null;
+  }
+
+  async function staffWorkspaceRequest(path, { method = "GET", body, failureMessage }) {
+    const token = staffWorkspaceToken();
+    if (!token) throw new Error("Staff sign-in is required.");
+    const headers = { Authorization: `Bearer ${token}` };
+    if (body) headers["Content-Type"] = "application/json";
+    const response = await fetch(path, { method, headers, body: JSON.stringify(body) });
+    if (token !== staffWorkspaceToken()) throw new Error("Staff sign-in changed.");
+    if (!response.ok) {
+      const error = await response.json().catch(() => null);
+      throw new Error(formatApiValidationError(error, failureMessage));
+    }
+    return response.status === 204 ? null : response.json();
+  }
+
+  async function loadStaffAnalytics() {
+    const requestId = ++analyticsRequest;
+    analyticsResults.hidden = true;
+    analyticsStatus.textContent = "Loading analytics…";
+    try {
+      const metrics = await staffWorkspaceRequest("/admin/analytics", {
+        failureMessage: "Could not load analytics.",
+      });
+      if (requestId !== analyticsRequest) return;
+      Object.entries(analyticsFields).forEach(([key, id]) => {
+        document.getElementById(id).textContent = formatMetric.format(metrics[key]);
+      });
+      const unspecified = document.getElementById("analytics-unspecified");
+      unspecified.hidden = metrics.unspecified_applicants === 0;
+      unspecified.textContent = `Citizenship unspecified: ${formatMetric.format(metrics.unspecified_applicants)}`;
+      analyticsRanking.innerHTML = metrics.top_saved_programs.map((program) => `
+        <li><span>${escapeHtml(program.name)}</span>
+          <strong>${formatMetric.format(program.saved_count)} saved</strong></li>
+      `).join("");
+      document.getElementById("analytics-programs-empty").hidden = metrics.top_saved_programs.length > 0;
+      analyticsStatus.textContent = "";
+      analyticsResults.hidden = false;
+    } catch (error) {
+      if (requestId === analyticsRequest) analyticsStatus.textContent = error.message;
+    }
+  }
+
+  async function loadPublicAnnouncements() {
+    const requestId = ++publicAnnouncementRequest;
+    try {
+      const response = await fetch("/announcements", { cache: "no-store" });
+      if (!response.ok) return;
+      const notices = await response.json();
+      if (requestId !== publicAnnouncementRequest) return;
+      const signature = JSON.stringify(notices);
+      if (signature === visibleAnnouncements) return;
+      visibleAnnouncements = signature;
+      publicAnnouncements.hidden = notices.length === 0;
+      publicAnnouncements.innerHTML = notices.map((notice) => `
+        <article class="public-announcement">
+          <div class="announcement-title">
+            <span class="announcement-category" data-category="${escapeHtml(notice.category)}">
+              ${categoryLabels[notice.category]}
+            </span>
+            <h2>${escapeHtml(notice.title)}</h2>
+          </div>
+          <p>${escapeHtml(notice.message)}</p>
+          ${notice.link ? `<a href="${escapeHtml(notice.link)}" target="_blank" rel="noopener noreferrer">Learn more</a>` : ""}
+        </article>
+      `).join("");
+    } catch (_) {
+      // Keep the last successful public view until the connection recovers.
+    }
+  }
+
+  async function loadStaffAnnouncements(message = "") {
+    const requestId = ++announcementListRequest;
+    announcementStatus.textContent = "Loading announcements…";
+    try {
+      const notices = await staffWorkspaceRequest("/admin/announcements", {
+        failureMessage: "Could not load announcements.",
+      });
+      if (requestId !== announcementListRequest) return;
+      staffAnnouncements = notices;
+      announcementEmpty.hidden = notices.length > 0;
+      announcementList.innerHTML = notices.map((notice) => `
+        <li class="card">
+          <div class="announcement-title">
+            <span class="announcement-category" data-category="${escapeHtml(notice.category)}">
+              ${categoryLabels[notice.category]}
+            </span>
+            <strong>${escapeHtml(notice.title)}</strong>
+            <span class="announcement-state" data-active="${notice.is_active}">
+              ${notice.is_active ? "Published" : "Inactive"}
+            </span>
+          </div>
+          <p>${escapeHtml(notice.message)}</p>
+          <div class="announcement-actions">
+            <button type="button" class="btn btn-secondary" data-id="${notice.id}" data-action="edit">Edit</button>
+            <button type="button" class="btn btn-secondary" data-id="${notice.id}" data-action="status">
+              ${notice.is_active ? "Deactivate" : "Publish"}
+            </button>
+            <button type="button" class="btn btn-secondary" data-id="${notice.id}" data-action="delete">Delete</button>
+          </div>
+        </li>
+      `).join("");
+      announcementStatus.textContent = message;
+    } catch (error) {
+      if (requestId === announcementListRequest) announcementStatus.textContent = error.message;
+    }
+  }
+
+  function setAnnouncementEditor(notice = null) {
+    announcementForm.reset();
+    announcementForm.dataset.editingId = notice?.id ?? "";
+    document.getElementById("announcement-form-heading").textContent = notice ? "Edit announcement" : "New announcement";
+    document.getElementById("announcement-publish-option").hidden = Boolean(notice);
+    announcementCancel.hidden = !notice;
+    announcementSubmit.textContent = notice ? "Save changes" : "Create announcement";
+    if (!notice) return;
+    for (const name of ["title", "message", "category", "link"]) {
+      announcementForm.elements.namedItem(name).value = notice[name] ?? "";
+    }
+    announcementForm.elements.namedItem("title").focus();
+  }
+
+  function clearSprintFiveStaffViews() {
+    analyticsRequest++;
+    announcementListRequest++;
+    analyticsResults.hidden = true;
+    analyticsStatus.textContent = "";
+    Object.values(analyticsFields).forEach((id) => { document.getElementById(id).textContent = ""; });
+    document.getElementById("analytics-unspecified").textContent = "";
+    analyticsRanking.replaceChildren();
+    staffAnnouncements = [];
+    announcementList.replaceChildren();
+    announcementEmpty.hidden = true;
+    announcementStatus.textContent = "";
+    setAnnouncementEditor();
+  }
+
+  document.getElementById("analytics-refresh").addEventListener("click", loadStaffAnalytics);
+  announcementCancel.addEventListener("click", () => setAnnouncementEditor());
+  announcementForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    const token = staffWorkspaceToken();
+    if (!token || announcementSubmit.disabled) return;
+    const { editingId } = announcementForm.dataset;
+    const formData = new FormData(announcementForm);
+    const body = {
+      title: formData.get("title").trim(),
+      message: formData.get("message").trim(),
+      category: formData.get("category"),
+      link: formData.get("link").trim() || null,
+    };
+    if (!editingId) body.is_active = formData.has("is_active");
+    announcementSubmit.disabled = true;
+    try {
+      await staffWorkspaceRequest(editingId ? `/admin/announcements/${editingId}` : "/admin/announcements", {
+        method: editingId ? "PUT" : "POST",
+        body,
+        failureMessage: "Could not save the announcement.",
+      });
+      if (token !== staffWorkspaceToken()) return;
+      setAnnouncementEditor();
+      await Promise.all([
+        loadStaffAnnouncements(editingId ? "Announcement updated." : "Announcement created."),
+        loadPublicAnnouncements(),
+      ]);
+    } catch (error) {
+      if (token === staffWorkspaceToken()) announcementStatus.textContent = error.message;
+    } finally {
+      announcementSubmit.disabled = false;
+    }
+  });
+
+  announcementList.addEventListener("click", async (event) => {
+    const button = event.target.closest("button[data-action]");
+    const token = staffWorkspaceToken();
+    if (!button || !token) return;
+    const { id, action } = button.dataset;
+    const notice = staffAnnouncements.find((item) => item.id === Number(id));
+    if (!notice) return;
+    if (action === "edit") {
+      if (!announcementSubmit.disabled) setAnnouncementEditor(notice);
+      return;
+    }
+    const deleting = action === "delete";
+    if (deleting && !window.confirm(`Delete "${notice.title}"?`)) return;
+    button.disabled = true;
+    try {
+      await staffWorkspaceRequest(`/admin/announcements/${id}${deleting ? "" : "/status"}`, {
+        method: deleting ? "DELETE" : "PATCH",
+        body: deleting ? undefined : { is_active: !notice.is_active },
+        failureMessage: "Could not update the announcement.",
+      });
+      if (token !== staffWorkspaceToken()) return;
+      if (deleting && announcementForm.dataset.editingId === id) setAnnouncementEditor();
+      const message = deleting ? "Announcement deleted." : (notice.is_active ? "Announcement deactivated." : "Announcement published.");
+      await Promise.all([loadStaffAnnouncements(message), loadPublicAnnouncements()]);
+    } catch (error) {
+      if (token === staffWorkspaceToken()) announcementStatus.textContent = error.message;
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  function refreshVisibleAnnouncements() {
+    if (!document.hidden) loadPublicAnnouncements();
+  }
+
+  document.addEventListener("visibilitychange", refreshVisibleAnnouncements);
+  window.addEventListener("focus", refreshVisibleAnnouncements);
+  window.setInterval(refreshVisibleAnnouncements, 10000);
+  loadPublicAnnouncements();
 
   // Initialize Auth on page load
   initAuth();

@@ -46,7 +46,7 @@ class AdminAuth(AuthenticationBackend):
 # ==========================================
 
 class ProgramAdmin(ModelView, model=Program):
-    column_list = [Program.id, Program.code, Program.name, Program.degree, Program.duration_years, Program.approx_cost_per_year_kzt]
+    column_list = [Program.id, Program.code, Program.name, Program.degree, Program.duration_years, Program.approx_cost_per_year_kzt, Program.min_unt_score]
     column_searchable_list = [Program.id, Program.code, Program.name]
     name = "Program"
     name_plural = "Programs"

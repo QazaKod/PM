@@ -24,7 +24,6 @@ from app.admin import (
     ApplicantProfileAdmin,
     ChatSessionAdmin,
     LogsAdmin,
-    ExcelReportsAdmin,
     AdminAuth,
 )
 from app.security import SECRET_KEY, get_optional_current_user
@@ -54,10 +53,7 @@ from contextlib import asynccontextmanager
 async def lifespan(app: FastAPI):
     """Lifespan context manager for starting and stopping background services."""
     polling_task = None
-    policy_task = None
     if "pytest" not in sys.modules and not os.getenv("TESTING"):
-        from app.services.policy_sync import refresh_daily
-        policy_task = asyncio.create_task(refresh_daily())
         polling_task = asyncio.create_task(start_telegram_polling())
     reminder_task = None
     if "pytest" not in sys.modules and not os.getenv("TESTING") and os.getenv("TELEGRAM_REMINDERS_ENABLED", "").lower() == "true":
@@ -66,9 +62,6 @@ async def lifespan(app: FastAPI):
     try:
         yield
     finally:
-        if policy_task:
-            policy_task.cancel()
-            await asyncio.gather(policy_task, return_exceptions=True)
         if reminder_task:
             reminder_task.cancel()
             await asyncio.gather(reminder_task, return_exceptions=True)
@@ -90,10 +83,6 @@ app.include_router(faq_admin.router)
 app.include_router(program_admin.router)
 app.include_router(staff_analytics.router)
 app.include_router(announcements.router)
-from app.routers import choices, consultation, reports
-app.include_router(choices.router)
-app.include_router(consultation.router)
-app.include_router(reports.router)
 
 # Initialize SQLAdmin with secure authentication backend
 admin_auth = AdminAuth(secret_key=SECRET_KEY)
@@ -113,7 +102,6 @@ admin.add_view(UserAdmin)
 admin.add_view(ApplicantProfileAdmin)
 admin.add_view(ChatSessionAdmin)
 admin.add_view(LogsAdmin)
-admin.add_view(ExcelReportsAdmin)
 
 
 
@@ -191,11 +179,10 @@ def chat(
     # Load recent conversation history for multi-turn context if session_id is present
     history_turns = []
     session_id = query.session_id
-    if session_id and optional_user:
+    if session_id:
         past_messages = (
             db.query(ChatMessage)
-            .join(ChatSession)
-            .filter(ChatMessage.session_id == session_id, ChatSession.user_id == optional_user.id)
+            .filter(ChatMessage.session_id == session_id)
             .order_by(ChatMessage.id.desc())
             .limit(6)
             .all()
@@ -214,8 +201,6 @@ def chat(
     logger.info(f"[Unified /chat] Response Source: {response.get('source', 'None')} | Confident: {response.get('confident')}")
     logger.info(f"[Unified /chat] Outgoing Context: {response.get('context')}")
 
-    from app.services.chat_language import language_for, localized_response
-    response = localized_response(response, query.message, language_for(query.message, query.language))
     is_fallback = (not response.get("confident")) and (response.get("source") is None)
 
     # Persistence: If user is logged in, save chat history
@@ -253,8 +238,7 @@ def chat(
             sender="bot",
             message=response.get("answer", ""),
             source="fallback" if is_fallback else response.get("source"),
-            context_state=({"program_id": response["matched_id"]} if response.get("source") == "program"
-                           else response.get("context")),
+            context_state=response.get("context"),
         ))
         db.commit()
     elif is_fallback:

@@ -102,9 +102,7 @@
           <span class="nav-label">Official Links</span>
           <span class="nav-tag demo-tag">US9</span>
         </button>
-        <button type="button" class="nav-item" data-tab="choices">Program finder</button>
         <div id="staff-nav-divider" class="staff-nav-divider" style="display: none;">Staff Workspace</div>
-        <button type="button" class="nav-item" data-tab="officers" style="display:none">Consultation desk</button>
         <button class="nav-item" data-tab="faq-admin" id="nav-item-faq-admin" style="display: none;">
           <i class="ph ph-sliders nav-icon"></i>
           <span class="nav-label">Manage FAQ</span>
@@ -177,7 +175,7 @@
             <button id="clear-chat-btn" class="text-btn" title="Reset conversation">Reset chat</button>
           </div>
 
-          <label for="requirements-language">Chat language / Язык / Тіл:
+          <label for="requirements-language">Requirements language / Язык / Тіл:
             <select id="requirements-language">
               <option value="">Auto</option><option value="en">English</option>
               <option value="ru">Русский</option><option value="kk">Қазақша</option>
@@ -214,14 +212,6 @@
 
           <!-- Chat Input Area -->
           <div class="chat-input-area">
-            <details class="consult-tools"><summary>Officer support &amp; feedback</summary>
-              <label>Callback email or phone (optional) <input id="callback-contact" maxlength="200"></label>
-              <button id="ask-officer" type="button">Speak with an officer</button>
-              <div id="live-transcript" aria-live="polite"></div>
-              <form id="rate-session"><label>Rate this conversation <select name="score"><option>5</option><option>4</option><option>3</option><option>2</option><option>1</option></select></label>
-                <input name="comment" placeholder="Optional comment" maxlength="1000"><button>Submit rating</button></form>
-              <p id="consult-status" role="status"></p>
-            </details>
             <form id="chat-form" class="chat-form">
               <input
                 type="text"
@@ -285,8 +275,6 @@
 
       <!-- ================= SECTION: DOCUMENTS ================= -->
       <section id="section-documents" class="tab-section">
-        <details class="section-container"><summary>Official checklist by enrollment stage</summary>
-          <div id="policy-documents"></div></details>
         <div class="section-container">
           <div class="section-header">
             <div>
@@ -834,30 +822,7 @@
         </div>
       </section>
 
-      <section id="section-choices" class="tab-section"><div class="section-container">
-        <header class="section-header"><h2>Program finder</h2></header>
-        <form class="card choice-form" id="choice-profile"><h3>Find a match</h3>
-          <label>Interests <input name="interests" required minlength="3" maxlength="500"></label>
-          <label>Academic background <input name="background" required minlength="2" maxlength="500"></label>
-          <label>Career goals <input name="goals" required minlength="3" maxlength="500"></label>
-          <button class="btn btn-primary">Recommend programs</button><ol id="choice-matches"></ol></form>
-        <form class="card choice-form" id="choice-compare"><h3>Compare programs</h3>
-          <fieldset id="choice-options"><legend>Select two to four programs</legend></fieldset>
-          <button class="btn btn-primary">Compare</button><div id="choice-table"></div></form>
-        <div class="card choice-form"><h3>Career &amp; internships</h3><select id="career-program" aria-label="Program"></select><div id="career-result"></div></div>
-        <p id="choice-status" role="status"></p></div></section>
-      <section id="section-officers" class="tab-section"><div class="section-container">
-        <header class="section-header"><h2>Consultation desk</h2></header>
-        <div class="card choice-form"><h3>Officer queue</h3><div id="officer-queue"></div>
-          <div id="officer-transcript"></div><form id="officer-reply" hidden><input name="message" aria-label="Officer reply" maxlength="4000" required><button>Send reply</button></form></div>
-        <div class="card choice-form"><h3>Quality &amp; feedback</h3><div id="quality-summary"></div><div id="quality-review"></div>
-          <form id="set-threshold"><label>Minimum local match score <input name="value" type="number" step="0.01" min="0.01" max="1" required></label><button>Save threshold</button></form></div>
-        <form class="card choice-form" id="export-report"><h3>Excel reports</h3>
-          <label>Report <select name="kind"><option value="applicants">Applicant registrations</option><option value="programs">Program interest</option></select></label>
-          <label>From <input name="start" type="date"></label><label>Through <input name="end" type="date"></label><button>Download Excel</button></form>
-        <p id="desk-status" role="status"></p></div></section>
       <section id="section-analytics" class="tab-section">
-        <button class="btn btn-secondary" type="button" onclick="switchTab('officers')">Consultation queue, ratings &amp; Excel reports</button>
         <div class="section-header">
           <h2>Staff Analytics</h2>
           <button id="analytics-refresh" type="button" class="btn btn-secondary">Refresh</button>
@@ -1518,7 +1483,6 @@
   </div>
 
   <script type="module" src="/static/js/main.js?v=20261122a"></script>
-  <script src="/static/admissions-tools.js"></script>
-  <script src="/static/app.js?v=20261122c"></script>
+  <script src="/static/app.js?v=20261122b"></script>
 </body>
 </html>

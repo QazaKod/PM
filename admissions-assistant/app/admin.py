@@ -105,29 +105,6 @@ class ChatSessionAdmin(ModelView, model=ChatSession):
 # DEVELOPER SECTION
 # ==========================================
 
-class ExcelReportsAdmin(BaseView):
-    name = "Excel reports"
-    icon = "fa-solid fa-file-excel"
-
-    @expose("/excel-reports", methods=["GET"])
-    async def reports(self, request):
-        from starlette.responses import HTMLResponse, PlainTextResponse
-        from starlette.concurrency import run_in_threadpool
-        from app.routers.reports import export
-
-        def download():
-            with SessionLocal() as db:
-                user = db.get(User, request.session.get("user_id"))
-                if not user or not user.is_active or user.role != "admin":
-                    return PlainTextResponse("Admin access required", status_code=403)
-                kind = request.query_params.get("kind")
-                if kind in ("applicants", "programs"):
-                    return export(kind, user=user, db=db)
-                return HTMLResponse('<h1>Excel reports</h1><p><a href="?kind=applicants">Download applicants</a></p>'
-                                    '<p><a href="?kind=programs">Download program interest</a></p>')
-        return await run_in_threadpool(download)
-
-
 class LogsAdmin(BaseView):
     name = "System Logs"
     icon = "fa-solid fa-terminal"
